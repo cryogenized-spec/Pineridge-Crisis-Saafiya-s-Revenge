@@ -272,17 +272,21 @@ func hurt_player() -> void:
 	update_hud()
 
 func update_character(target: Dictionary, delta: float) -> void:
-	var body: Node2D = target["body"]
+	var body: Actor = target["body"]
 	var accessory: Sprite2D = target["attachment"]
 	var feedback: Node2D = target["feedback"]
 	target["reaction"]=maxf(0.0,float(target["reaction"])-delta)
 	feedback.advance(delta)
 	feedback.position=body.position
 	if bool(target["down"]):
-		var p: Dictionary = feedback.pose()
-		body.rotation=float(p["rotation"])
-		body.scale=Vector2.ONE*float(p["scale"])
-		body.position+=Vector2(p["offset"])*delta*0.08
+		if body.npc_down != null:
+			body.set_down_progress(feedback.progress())
+			body.rotation=0.0
+			body.scale=Vector2.ONE
+		else:
+			var p: Dictionary = feedback.pose()
+			body.rotation=float(p["rotation"])
+			body.scale=Vector2.ONE*float(p["scale"])
 		return
 	target["cooldown"]=maxf(0.0,float(target["cooldown"])-delta)
 	target["attack"]=maxf(0.0,float(target["attack"])-delta)
@@ -413,6 +417,7 @@ func _draw() -> void:
 
 func run_test() -> void:
 	assert(actors.size()==7)
+	assert(actors[0]["body"].npc_down != null)
 	assert(player_hp==3)
 	var foe: Dictionary=actors[0]
 	hit_enemy(foe,1)

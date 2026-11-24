@@ -46,3 +46,6 @@ Combat is now functional in the Godot main scene: role-based NPCs, alert bubbles
 
 ## V18 verified character artwork publication
 All 45 approved V9 Saafiya and V13 NPC/accessory PNGs are committed as their original exact bytes. The PNG integrity manifest and mandatory build checker validate their original SHA256 hashes, sizes and RGBA format before both native and browser builds. Older passages saying the textures are supplied separately are superseded by this section. Actual device performance and detailed animation transitions still require visual review.
+
+## V19 NPC collapse rendering
+All 12 NPC appearances now have eight-frame pre-rendered three-dimensional fall/down animations, created from the same VTK models as the other NPC art and verified by the main build. The encounter renderer switches from moving sprites into the animation and keeps the final pose. Original PNG and source are committed. The stylized ground-colour effects remain non-graphic and injury states are game abstractions.

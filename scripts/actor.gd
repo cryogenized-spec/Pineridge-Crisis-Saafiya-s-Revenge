@@ -21,6 +21,8 @@ var wardrobe_index := -1
 var npc_idle: Texture2D
 var npc_walk: Texture2D
 var npc_run: Texture2D
+var npc_down: Texture2D
+var down_phase := -1.0
 var cosmetic_accessory: Texture2D
 var show_accessory := false
 var hero := false
@@ -39,6 +41,7 @@ func _ready() -> void:
 		npc_idle = load_npc_texture(prefix + "idle.png", Vector2(128,128))
 		npc_walk = load_npc_texture(prefix + "walk.png", Vector2(512,256))
 		npc_run = load_npc_texture(prefix + "run.png", Vector2(512,256))
+		npc_down = load_npc_texture(prefix + "down.png", Vector2(512,256))
 		cosmetic_accessory = load_npc_texture("res://assets/characters/accessories/backpack.png", Vector2(128,128))
 		texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	if hero:
@@ -85,6 +88,12 @@ func draw_gait_layer(atlas: Texture2D, source: Rect2, angle: float, size: Vector
 	draw_texture_rect_region(atlas, Rect2(-size / 2.0, size), source)
 	draw_set_transform(Vector2.ZERO)
 
+func set_down_progress(value: float) -> void:
+	var next := clampf(value,0.0,1.0) if value >= 0.0 else -1.0
+	if not is_equal_approx(down_phase,next):
+		down_phase=next
+		queue_redraw()
+
 func animate(delta: float, displacement: Vector2, aim_angle: float, low: bool = false, running: bool = false) -> void:
 	var dist := displacement.length()
 	gait_running = running and not low
@@ -102,6 +111,11 @@ func animate(delta: float, displacement: Vector2, aim_angle: float, low: bool = 
 
 func _draw() -> void:
 	draw_circle(Vector2(2,3),10,Color(0.09,0.07,0.12,0.27),true,-1,true)
+	if not hero and wardrobe_index >= 0 and down_phase >= 0.0 and npc_down != null:
+		var down_frame := mini(7,int(floor(down_phase*8.0)))
+		var source := Rect2((down_frame%4)*TILE,floori(float(down_frame)/4.0)*TILE,TILE,TILE)
+		draw_gait_layer(npc_down,source,facing,Vector2.ONE*DISPLAY_SIZE)
+		return
 	if not hero and wardrobe_index >= 0 and has_npc_atlases():
 		var frame := int(floor(gait_phase * 8.0)) % 8 if gait_moving else 0
 		var atlas := (npc_run if gait_running else npc_walk) if gait_moving else npc_idle

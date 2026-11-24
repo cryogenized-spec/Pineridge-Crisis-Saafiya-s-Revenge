@@ -105,9 +105,15 @@ func _physics_process(delta: float) -> void:
 	var speed := 148.0 if running else 91.0
 	actor.animate(delta,Vector2.from_angle(heading)*speed*delta if moving else Vector2.ZERO,heading,false,running)
 	var pose := feedback.pose()
-	actor.scale = Vector2.ONE*6.0*float(pose.scale)
-	actor.rotation = float(pose.rotation)
-	actor.position = CENTER+Vector2(pose.offset)*6.0
+	actor.set_down_progress(feedback.progress() if feedback.state==Feedback.State.DOWN else -1.0)
+	if feedback.state==Feedback.State.DOWN and actor.npc_down!=null:
+		actor.scale=Vector2.ONE*6.0
+		actor.rotation=0.0
+		actor.position=CENTER
+	else:
+		actor.scale = Vector2.ONE*6.0*float(pose.scale)
+		actor.rotation = float(pose.rotation)
+		actor.position = CENTER+Vector2(pose.offset)*6.0
 	var item: Dictionary = Props.ITEMS[prop_index]
 	accessory.visible = item.id in CARRY_IDS
 	accessory.texture = item.texture

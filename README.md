@@ -1,7 +1,7 @@
 # Pineridge Crisis — Saafiya's Revenge
 
 ## Approved artwork now included in browser and Linux exports
-The six original approved V9 Saafiya transparent atlases (including separate upper/lower walking and running layers), all 36 V13 NPC idle/walk/run atlases, and three detachable cosmetic accessory PNGs are committed in `assets/characters/`. This is the real code-rendered VTK art, not re-drawn/quantized replacements. Every push validates all 45 against original SHA256 hashes before building. Clone and run the project normally; no separate sprite-archive installation is needed.
+The six original approved V9 Saafiya transparent atlases (including separate upper/lower walking and running layers), all 36 V13 NPC idle/walk/run atlases, and three detachable cosmetic accessory PNGs are committed in `assets/characters/`. This is the real code-rendered VTK art, not re-drawn/quantized replacements. Every push validates all 57 approved PNGs against SHA256 hashes before building. Clone and run the project normally; no separate sprite-archive installation is needed.
 
 First native Godot 4.4.1 / GDScript presentation prototype, derived from the existing HTML overhead game. This is not yet a full gameplay-equivalent port.
 
@@ -33,3 +33,6 @@ The Godot Web preset uses the Compatibility renderer and disables thread support
 
 ## Arcade encounters (V16)
 The main Godot scene now includes actual fictional action gameplay: seven initial adversary characters (knife, cudgel, brick, slingshot, pistol, runner appearances), a return wave, player and NPC health, onscreen indicators, generic arcade projectiles, close-range actions, limited equipment slots, reload/refill, pickups and reward drops, reactions, defeat states and mission completion. Left mouse button acts; R refills, E collects, 1–3 selects unlocked equipment. Three health hearts and game-over/restart are enabled. Stats appear in the top-right HUD. The original HTML edition remains the behavioural reference, but there is not yet feature-for-feature parity (cutscenes, vehicle events, sound recording, grading and UI refinements remain). The NPC texture packages must be imported separately for detailed visual art. This is an intentionally stylized arcade simulation, not a representation of real weapon behaviour.
+
+## V19 code-rendered down animation
+All 12 NPC wardrobes now include a separate 8-frame, 3D VTK-rendered collapse atlas, loaded by the in-game actor and displayed through the encounter and F4 review scenes. These are authored from the actual character meshes, not merely rotated versions of the standing sprite. The Python art-generation source is in `tools/render_crowd.py` and `tools/render_crowd_down.py` (requires vtk, numpy and Pillow). The sprite integrity check now enforces 57 exact PNGs.
