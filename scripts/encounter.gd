@@ -143,7 +143,7 @@ func make_hud() -> void:
 func update_hud() -> void:
 	if not is_instance_valid(hud):
 		return
-	var active := KIT[slot]
+	var active: Dictionary = KIT[slot]
 	var remaining := 0
 	for item in actors:
 		if not bool(item["down"]):
@@ -333,7 +333,7 @@ func step_shots(delta: float) -> void:
 		s["rotation"]+=delta*9.0
 		s["life"]-=delta
 		var p: Vector2=s["point"]
-		var remove := float(s["life"])<=0.0 or street.blocked(p,2.0)
+		var remove: bool = float(s["life"])<=0.0 or street.blocked(p,2.0)
 		if not remove:
 			if bool(s["friendly"]):
 				for enemy in actors:

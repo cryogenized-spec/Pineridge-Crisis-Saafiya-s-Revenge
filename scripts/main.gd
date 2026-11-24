@@ -144,7 +144,7 @@ func _unhandled_key_input(event:InputEvent) -> void:
 					preview_timer=0.3
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_LEFT and event.pressed and not event.is_echo():
+	if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_LEFT and event.pressed:
 		encounters.fire_player()
 
 func _physics_process(delta:float) -> void:
