@@ -9,7 +9,7 @@ Reference: recovered standalone Pine Ridge overhead HTML (1,122,501 bytes). This
 | Original starting point, building rows, roadside geometry, taxi bay | Recreated |
 | Pedestrian positions | Recreated; ambient motion is simplified |
 | Out-and-return mission structure | Demonstrated with route markers, not original encounter logic |
-| Layered character art | Procedural placeholders; no production sprite atlas yet |
+| Layered character art | V8 walk/run atlas playback implemented; original PNGs supplied separately until binary import; fallback for missing assets. Idle/crouch use interim poses. |
 | Visual effects | Presentation-only preview: flash, drifting smoke, sparks, brass-colored debris and muted red ground decals |
 | Original inventory, encounters, audio, mission results | Not ported or verified |
 

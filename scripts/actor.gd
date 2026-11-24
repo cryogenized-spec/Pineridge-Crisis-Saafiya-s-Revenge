@@ -1,5 +1,17 @@
 extends Node2D
 
+const WALK_ATLAS := "res://assets/characters/saafiya/walk_atlas.png"
+const RUN_ATLAS := "res://assets/characters/saafiya/run_atlas.png"
+const TILE := 128
+const COUNT := 16
+const WALK_DISTANCE := 91.0 * 1.12
+const RUN_DISTANCE := 148.0 * 0.64
+const DISPLAY_SIZE := 42.0
+var walk_texture: Texture2D
+var run_texture: Texture2D
+var gait_phase := 0.0
+var gait_running := false
+var gait_moving := false
 var hero := false
 var facing := 0.0
 var travel := 0.0
@@ -10,8 +22,34 @@ var jacket := Color("#55516a")
 var skin := Color("#b68062")
 var hair := Color("#392b34")
 
-func animate(delta: float, displacement: Vector2, aim_angle: float, low: bool = false) -> void:
+func _ready() -> void:
+	if hero:
+		walk_texture = load_atlas(WALK_ATLAS)
+		run_texture = load_atlas(RUN_ATLAS)
+		texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+
+func load_atlas(path: String) -> Texture2D:
+	if not ResourceLoader.exists(path):
+		return null
+	var atlas := ResourceLoader.load(path) as Texture2D
+	if atlas == null or atlas.get_size() != Vector2(512, 512):
+		push_warning("Invalid Saafiya atlas: " + path)
+		return null
+	return atlas
+
+func sprite_frame() -> int:
+	return int(floor(gait_phase * COUNT)) % COUNT if gait_moving else 0
+
+func has_approved_atlases() -> bool:
+	return walk_texture != null and run_texture != null
+
+func animate(delta: float, displacement: Vector2, aim_angle: float, low: bool = false, running: bool = false) -> void:
 	var dist := displacement.length()
+	gait_running = running and not low
+	gait_moving = dist > 0.01
+	if gait_moving:
+		var cycle_distance := RUN_DISTANCE if gait_running else WALK_DISTANCE
+		gait_phase = fposmod(gait_phase + dist / cycle_distance, 1.0)
 	motion = move_toward(motion, 1.0 if dist > 0.01 else 0.0, delta * 8.0)
 	if dist > 0.01:
 		travel = lerp_angle(travel, displacement.angle(), 1.0-exp(-delta*18.0))
@@ -22,6 +60,17 @@ func animate(delta: float, displacement: Vector2, aim_angle: float, low: bool = 
 
 func _draw() -> void:
 	draw_circle(Vector2(2,3),10,Color(0.09,0.07,0.12,0.27),true,-1,true)
+	if hero and has_approved_atlases():
+		var atlas := run_texture if gait_running and gait_moving else walk_texture
+		var frame := sprite_frame()
+		var source := Rect2((frame % 4) * TILE, floori(float(frame) / 4.0) * TILE, TILE, TILE)
+		# V8 faces screen-down. The atlas pivot remains at the center of every cell.
+		var angle := travel if gait_moving else facing
+		draw_set_transform(Vector2.ZERO, angle - PI / 2.0)
+		var size := Vector2(DISPLAY_SIZE, DISPLAY_SIZE * (0.82 if crouched else 1.0))
+		draw_texture_rect_region(atlas, Rect2(-size / 2.0, size), source)
+		draw_set_transform(Vector2.ZERO)
+		return
 	draw_set_transform(Vector2.ZERO,travel)
 	for side in [-1,1]:
 		var swing := sin(stride + (PI if side > 0 else 0.0))*motion*5.0

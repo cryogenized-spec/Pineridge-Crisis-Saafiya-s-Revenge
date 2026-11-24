@@ -123,7 +123,7 @@ func _physics_process(delta:float) -> void:
 	next=player.position+Vector2(0,motion.y)
 	if not street.blocked(next):
 		player.position.y=next.y
-	player.animate(delta,player.position-old,(get_global_mouse_position()-player.position).angle(),low)
+	player.animate(delta,player.position-old,(get_global_mouse_position()-player.position).angle(),low,running)
 	camera.position=player.position
 	for person in pedestrians:
 		var p:Vector2=person.get_meta("home")
