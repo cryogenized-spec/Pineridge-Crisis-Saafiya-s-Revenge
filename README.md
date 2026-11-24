@@ -36,3 +36,5 @@ The main Godot scene now includes actual fictional action gameplay: seven initia
 
 ## V19 code-rendered down animation
 All 12 NPC wardrobes now include a separate 8-frame, 3D VTK-rendered collapse atlas, loaded by the in-game actor and displayed through the encounter and F4 review scenes. These are authored from the actual character meshes, not merely rotated versions of the standing sprite. The Python art-generation source is in `tools/render_crowd.py` and `tools/render_crowd_down.py` (requires vtk, numpy and Pillow). The sprite integrity check now enforces 57 exact PNGs.
+
+V20: The arcade impact ground effects now use a pre-rendered, softly shaded stylized stain sprite, with controlled scatter and a strict pooled maximum; this replaces unshaded circular decals without introducing per-impact Node2D allocations. Blood remains a fictional gameplay visual, not a medical or ballistic simulation.

@@ -4,6 +4,7 @@ extends Node2D
 const Actor = preload("res://scripts/actor.gd")
 const Feedback = preload("res://scripts/character_feedback.gd")
 const Props = preload("res://scripts/prop_library.gd")
+const BLOOD_STAIN = preload("res://assets/fx/blood_stain.svg")
 const Audio = preload("res://scripts/preview_audio.gd")
 const KIT := [
 	{"name":"Sidearm","size":12,"interval":0.24,"travel":420.0},
@@ -228,13 +229,15 @@ func collect_nearby() -> bool:
 	return false
 
 func add_ground_mark(at: Vector2, strength: float = 1.0) -> void:
-	# Small, capped visual-only decals, batched in the encounter CanvasItem.
-	for i in range(4):
-		var origin := at + Vector2.from_angle(rng.randf_range(0.0, TAU)) * rng.randf_range(1.0,9.0)
+	# Pre-rendered stain texture: one prominent soft mark and a few satellites.
+	# Store only descriptors in a capped list; don't allocate sprite nodes.
+	for i in range(5):
+		var offset := Vector2.ZERO if i==0 else Vector2.from_angle(rng.randf_range(0.0,TAU))*rng.randf_range(5.0,13.0)
 		ground_marks.append({
-			"point":origin,
-			"size":rng.randf_range(1.0,3.6)*strength,
-			"alpha":rng.randf_range(0.22,0.48)
+			"point":at+offset,
+			"size":(13.0 if i==0 else rng.randf_range(2.5,6.0))*strength,
+			"angle":rng.randf_range(0,TAU),
+			"alpha":(0.80 if i==0 else rng.randf_range(0.35,0.65))
 		})
 	while ground_marks.size()>MAX_GROUND_MARKS:
 		ground_marks.pop_front()
@@ -397,10 +400,12 @@ func _physics_process(delta: float) -> void:
 func _draw() -> void:
 	for mark in ground_marks:
 		var p: Vector2 = mark["point"]
-		var radius: float = mark["size"]
+		var size: float = mark["size"]
 		var alpha: float = mark["alpha"]
-		draw_circle(p+Vector2(0.7,1.0),radius+0.7,Color(0.12,0.06,0.09,alpha*0.32),true,-1,true)
-		draw_circle(p,radius,Color(0.34,0.075,0.11,alpha),true,-1,true)
+		var angle: float = mark["angle"]
+		draw_set_transform(p,angle)
+		draw_texture_rect(BLOOD_STAIN,Rect2(-size*0.5,-size*0.5,size,size),false,Color(1,1,1,alpha))
+	draw_set_transform(Vector2.ZERO)
 	for s in shots:
 		var p: Vector2 = s["point"]
 		var prev: Vector2 = s["prior"]
