@@ -211,8 +211,12 @@ func refill() -> void:
 		return
 	if reload_clock > 0.0 or spares[slot] <= 0 or rounds[slot] >= int(KIT[slot]["size"]):
 		return
-	reload_clock = 1.35 if slot == 2 else 1.0
-	audio.play_cue("akm_reload" if slot == 2 else "beretta_reload" if slot == 0 else "cz75_reload")
+	var cue := "akm_reload" if slot == 2 else ("beretta_reload" if slot == 0 else "cz75_reload")
+	# Stay in the reload state while this project's replacement clip plays.
+	# Avoid completing early and layering a synthesized 'reset' tone over it.
+	var stream: AudioStream = audio.stream_for(cue)
+	reload_clock = clampf(stream.get_length(),0.65,4.0)
+	audio.play_cue(cue)
 
 func fire_player() -> void:
 	if finished or player_hp <= 0 or cooldown > 0.0 or reload_clock > 0.0:
@@ -515,7 +519,6 @@ func _physics_process(delta: float) -> void:
 		if reload_clock<=0:
 			rounds[slot]=int(KIT[slot]["size"])
 			spares[slot]-=1
-			audio.play_cue("reset")
 			update_hud()
 	if player_hp>0 and not finished:
 		for item in actors:

@@ -62,3 +62,5 @@ The F4 character workbench can review both 3D collapse atlases: press N to switc
 
 ## V25 audio and pistol visual review
 New Beretta and CZ reload recordings replace synthesized placeholders, and two distinct male-looter death-voice takes are available for explicitly cast male-voiced NPCs. Both import integrity and audio event presence are exercised by CI; F4 also supports listening tests. Beretta artwork has been recoloured as polished nickel with walnut-toned grips and reduced in 2D display scale by 20%; muzzle flash and haze are smaller/shorter. The existing gameplay and other weapon visuals are otherwise unchanged. Actual perceived mix levels and browser effects still need a live ear/visual check.
+
+Reload timing follows the length of the chosen audio clip when available; completed reload playback no longer adds a placeholder tone. This is presentation timing only, not mechanical weapon simulation.\n
