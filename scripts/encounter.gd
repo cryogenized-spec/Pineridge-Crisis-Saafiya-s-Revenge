@@ -556,7 +556,7 @@ func _draw() -> void:
 		draw_circle(p,3.0,Color("#f3da96"),true,-1,true)
 
 func run_test() -> void:
-	for clip in ["saafiya_death.ogg","beretta_84fs_shot.ogg","cz75_shot.ogg","akm_reload.ogg","akm_shot.mp3","crowd_shout.ogg","shotgun_12ga_shot.ogg","shotgun_pump.ogg","beretta_reload.ogg","cz75_reload.ogg","male_looter_death_1.ogg","male_looter_death_2.ogg"]:
+	for clip in ["saafiya_death.ogg","beretta_84fs_shot.ogg","cz75_shot.ogg","akm_reload.ogg","akm_shot.mp3","crowd_shout.ogg","shotgun_12ga_shot.ogg","shotgun_pump.ogg","beretta_reload.mp3","cz75_reload.ogg","male_looter_death_1.ogg","male_looter_death_2.ogg"]:
 		assert(ResourceLoader.exists("res://assets/audio/" + clip), "Missing audio import: " + clip)
 	assert(actors.size()==7)
 	assert(actors[0]["body"].npc_down != null)
