@@ -27,7 +27,7 @@ jobs:
       - name: Exercise crowd review scene
         run: |
           set -o pipefail
-          engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . res://scenes/character_review.tscn --quit-after 300 -- --review-smoke 2>&1 | tee review.log
+          engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . res://scenes/character_review.tscn --fixed-fps 60 --quit-after 300 -- --review-smoke 2>&1 | tee review.log
           if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|Assertion failed' review.log; then exit 1; fi
           grep -F 'Crowd review: all presets initialized' review.log
       - uses: actions/upload-artifact@v4

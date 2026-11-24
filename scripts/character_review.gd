@@ -65,7 +65,7 @@ func _physics_process(delta: float) -> void:
 		heading = timer
 	if auto_turn:
 		heading += delta * 0.6
-	var speed := [0.0,91.0,148.0][mode] as float
+	var speed := float([0.0,91.0,148.0][mode])
 	var dir := Vector2.from_angle(heading)
 	for a in actors:
 		a.animate(delta,dir*speed*delta,heading,false,mode==2)
