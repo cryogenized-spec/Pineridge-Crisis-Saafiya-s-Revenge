@@ -62,8 +62,8 @@ func pose() -> Dictionary:
 			offset = Vector2(2,1)*sin(PI*t)
 		State.DOWN:
 			var ease := smoothstep(0.0,1.0,t)
-			tilt = ease*0.38
-			factor = lerpf(1.0,0.84,ease)
+			tilt = ease*1.0
+			factor = lerpf(1.0,0.72,ease)
 			offset = Vector2(4,4)*ease
 	return {"scale":factor,"rotation":tilt,"offset":offset}
 

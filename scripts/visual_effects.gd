@@ -32,7 +32,8 @@ func _process(delta:float) -> void:
 		m.p+=m.v*delta
 		m.v*=exp(-delta*3)
 		m.angle+=delta*5
-	queue_redraw()
+	if pulse_time > 0.0 or not motes.is_empty():
+		queue_redraw()
 
 func _draw() -> void:
 	if marker_visible:

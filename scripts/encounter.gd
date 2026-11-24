@@ -25,6 +25,8 @@ var rng := RandomNumberGenerator.new()
 var actors: Array[Dictionary] = []
 var shots: Array[Dictionary] = []
 var motes: Array[Dictionary] = []
+var ground_marks: Array[Dictionary] = []
+const MAX_GROUND_MARKS := 72
 var loot: Array[Dictionary] = []
 var player_hp := 3
 var player_invincible := 0.0
@@ -225,6 +227,18 @@ func collect_nearby() -> bool:
 			return true
 	return false
 
+func add_ground_mark(at: Vector2, strength: float = 1.0) -> void:
+	# Small, capped visual-only decals, batched in the encounter CanvasItem.
+	for i in range(4):
+		var origin := at + Vector2.from_angle(rng.randf_range(0.0, TAU)) * rng.randf_range(1.0,9.0)
+		ground_marks.append({
+			"point":origin,
+			"size":rng.randf_range(1.0,3.6)*strength,
+			"alpha":rng.randf_range(0.22,0.48)
+		})
+	while ground_marks.size()>MAX_GROUND_MARKS:
+		ground_marks.pop_front()
+
 func hit_enemy(target: Dictionary, amount: int) -> void:
 	if bool(target["down"]):
 		return
@@ -232,6 +246,7 @@ func hit_enemy(target: Dictionary, amount: int) -> void:
 	var feedback = target["feedback"]
 	target["reaction"]=0.28
 	feedback.marked=true
+	add_ground_mark(target["body"].position,1.3 if int(target["hp"]) <= 0 else 0.8)
 	if int(target["hp"]) <= 0:
 		target["down"]=true
 		target["attachment"].visible=false
@@ -250,6 +265,7 @@ func hurt_player() -> void:
 		return
 	player_hp = maxi(0,player_hp-1)
 	player_invincible = 0.82
+	add_ground_mark(avatar.position,0.6)
 	audio.play_cue("reaction")
 	if player_hp <= 0:
 		audio.play_cue("down")
@@ -354,6 +370,8 @@ func step_shots(delta: float) -> void:
 			motes.remove_at(i)
 
 func _physics_process(delta: float) -> void:
+	if avatar != null:
+		avatar.modulate = Color(1.0,0.55,0.55) if player_invincible>0.0 and (int(elapsed*14.0)%2)==0 else Color.WHITE
 	if smoke_test:
 		return
 	elapsed+=delta
@@ -373,6 +391,12 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
+	for mark in ground_marks:
+		var p: Vector2 = mark["point"]
+		var radius: float = mark["size"]
+		var alpha: float = mark["alpha"]
+		draw_circle(p+Vector2(0.7,1.0),radius+0.7,Color(0.12,0.06,0.09,alpha*0.32),true,-1,true)
+		draw_circle(p,radius,Color(0.34,0.075,0.11,alpha),true,-1,true)
 	for s in shots:
 		var p: Vector2 = s["point"]
 		var prev: Vector2 = s["prior"]
@@ -396,6 +420,7 @@ func run_test() -> void:
 	hit_enemy(foe,1)
 	assert(bool(foe["down"]))
 	assert(defeated==1)
+	assert(ground_marks.size()>0 and ground_marks.size()<=MAX_GROUND_MARKS)
 	hurt_player()
 	assert(player_hp==2)
 	assert(collect_nearby()==false)
