@@ -25,6 +25,12 @@ var street: Node2D
 var audio: Node
 var held_visual: Node2D
 var shout_cooldown := 0.0
+var gunfire_events := 0
+var escaped_count := 0
+const HEARING_RADIUS := 850.0
+const ESCAPE_MARGIN := 45.0
+const PANIC_CAPTIONS := ["Baleka!", "Awu…", "Baleka!"]
+
 var male_death_take := 0
 var rng := RandomNumberGenerator.new()
 var actors: Array[Dictionary] = []
@@ -66,7 +72,12 @@ func register_bystanders(characters: Array[Actor]) -> void:
 		reaction.position = character.position
 		reaction.z_index = 4
 		add_child(reaction)
-		bystanders.append({"body":character,"feedback":reaction,"down":false,"fall_variant":bystanders.size()%6})
+		bystanders.append({
+			"body":character,"feedback":reaction,"down":false,"fall_variant":bystanders.size()%6,
+			"panicked":false,"escaped":false,"hesitation":0.0,"escape_x":0.0,
+			"escape_lane":character.position.y,"escape_speed":118.0,
+			"panic_personality":bystanders.size()%4
+		})
 
 
 func _ready() -> void:
@@ -86,6 +97,7 @@ func _ready() -> void:
 func spawn_group(return_wave: bool) -> void:
 	var descriptions := [
 		[Vector2(626,382),"knife",0,true],
+		[Vector2(492,369),"pistol",5,true],
 		[Vector2(810,282),"pistol",1,true],
 		[Vector2(1035,420),"brick",2],
 		[Vector2(1330,290),"cudgel",4,true],
@@ -126,8 +138,109 @@ func spawn_character(at: Vector2, kind: String, look: int, male_voice: bool = fa
 		"cooldown":rng.randf_range(0.4,1.3),"attack":0.0,
 		"reaction":0.0,"wander":rng.randf_range(0,TAU),
 		"origin":at,"down":false,"visible_prop":true,"flee_said":false,"male_voice":male_voice,
-		"fall_variant":(look+actors.size())%6
+		"fall_variant":(look+actors.size())%6,
+		"startle":0.0,"fleeing":false,"escaped":false,
+		"escape_x":0.0,"escape_lane":at.y,"escape_speed":110.0
 	})
+
+# The alarm propagates through the fictional level without requiring line of sight.
+# It deliberately uses simplified stage reactions rather than tactical sensing.
+func on_gunfire(at: Vector2) -> void:
+	gunfire_events += 1
+	var alarms := 0
+	for person in bystanders:
+		if bool(person["down"]) or bool(person["escaped"]):
+			continue
+		var body: Actor = person["body"]
+		var distance := body.position.distance_to(at)
+		if distance <= HEARING_RADIUS:
+			start_bystander_escape(person)
+			alarms += 1
+	for enemy in actors:
+		if bool(enemy["down"]) or bool(enemy["escaped"]):
+			continue
+		var body: Actor = enemy["body"]
+		if body.position.distance_to(at) > HEARING_RADIUS:
+			continue
+		var feedback: Node2D = enemy["feedback"]
+		enemy["alerted"] = true
+		enemy["startle"] = rng.randf_range(0.18,0.42)
+		var kind: String = enemy["kind"]
+		var runs := kind == "runner" or ((kind == "brick" or kind == "slingshot") and rng.randf() < 0.55) or (kind == "knife" and rng.randf() < 0.22)
+		if runs:
+			start_enemy_escape(enemy)
+		else:
+			feedback.show_alert("!")
+			feedback.show_caption("Nangu!")
+		alarms += 1
+	if alarms > 0 and shout_cooldown <= 0.0:
+		audio.play_cue("crowd_shout")
+		shout_cooldown = 2.5
+
+func escape_parameters(state: Dictionary) -> void:
+	var body: Actor = state["body"]
+	var towards_west := body.position.x < street.SIZE.x * 0.5
+	state["escape_x"] = -ESCAPE_MARGIN if towards_west else street.SIZE.x + ESCAPE_MARGIN
+	state["escape_lane"] = 184.0 if body.position.y < 335.0 else 520.0
+	state["escape_speed"] = rng.randf_range(108.0,155.0)
+
+func start_bystander_escape(person: Dictionary) -> void:
+	if bool(person["panicked"]):
+		return
+	person["panicked"] = true
+	person["hesitation"] = [0.0,0.17,0.42,0.08][int(person["panic_personality"])]
+	escape_parameters(person)
+	var body: Actor = person["body"]
+	body.set_meta("panic_run",true)
+	var feedback: Node2D = person["feedback"]
+	feedback.show_alert("!")
+	feedback.show_caption(PANIC_CAPTIONS[int(person["panic_personality"])%PANIC_CAPTIONS.size()])
+
+func start_enemy_escape(enemy: Dictionary) -> void:
+	if bool(enemy["fleeing"]):
+		return
+	enemy["fleeing"] = true
+	enemy["startle"] = rng.randf_range(0.14,0.35)
+	escape_parameters(enemy)
+	var feedback: Node2D = enemy["feedback"]
+	feedback.show_alert("!")
+	feedback.show_caption("Baleka!")
+
+func advance_escape(state: Dictionary, delta: float) -> void:
+	if bool(state["escaped"]):
+		return
+	var body: Actor = state["body"]
+	var feedback: Node2D = state["feedback"]
+	if float(state.get("hesitation",0.0)) > 0.0:
+		state["hesitation"] = maxf(0.0,float(state["hesitation"])-delta)
+		body.animate(delta,Vector2.ZERO,body.facing)
+		feedback.position = body.position
+		return
+	var start := body.position
+	var speed: float = state["escape_speed"]
+	var x_target: float = state["escape_x"]
+	var lane: float = state["escape_lane"]
+	var lateral := clampf(lane-body.position.y,-speed*0.42*delta,speed*0.42*delta)
+	var next_y := body.position+Vector2(0,lateral)
+	if not street.blocked(next_y,5.0):
+		body.position = next_y
+	var x_step := clampf(x_target-body.position.x,-speed*delta,speed*delta)
+	var next_x := body.position+Vector2(x_step,0)
+	# Escape remains simulated all the way to the actual ends of the stage.
+	var beyond := next_x.x < 5.0 or next_x.x > street.SIZE.x-5.0
+	if beyond or not street.blocked(next_x,5.0):
+		body.position = next_x
+	var displacement := body.position-start
+	body.animate(delta,displacement,displacement.angle() if displacement.length_squared()>0.001 else body.facing,false,true)
+	feedback.position = body.position
+	if body.position.x < -28.0 or body.position.x > street.SIZE.x+28.0:
+		state["escaped"] = true
+		body.visible = false
+		feedback.visible = false
+		if state.has("attachment"):
+			state["attachment"].visible = false
+		escaped_count += 1
+		update_hud()
 
 func make_hud() -> void:
 	var overlay := CanvasLayer.new()
@@ -172,11 +285,11 @@ func update_hud() -> void:
 	var active: Dictionary = KIT[slot]
 	var remaining := 0
 	for item in actors:
-		if not bool(item["down"]):
+		if not bool(item["down"]) and not bool(item.get("escaped",false)):
 			remaining += 1
-	hud.text="HEALTH  %s   |   %s  %02d / %02d\nACTIVE  %d    DOWN  %d    HITS  %d/%d" % [
+	hud.text="HEALTH  %s   |   %s  %02d / %02d\nACTIVE  %d    DOWN  %d    ESCAPED  %d    HITS  %d/%d" % [
 		"♥".repeat(player_hp)+"♡".repeat(3-player_hp),
-		active["name"],rounds[slot],spares[slot],remaining,defeated,shots_hit,shots_fired]
+		active["name"],rounds[slot],spares[slot],remaining,defeated,escaped_count,shots_hit,shots_fired]
 	if finished:
 		notice.text="ROUTE COMPLETE\nEsc to restart"
 	elif player_hp <= 0:
@@ -235,6 +348,7 @@ func fire_player() -> void:
 	if is_instance_valid(held_visual):
 		held_visual.burst()
 	audio.play_cue("beretta_84fs_shot" if slot == 0 else ("cz75_shot" if slot == 1 else "akm_shot"))
+	on_gunfire(avatar.position)
 	update_hud()
 
 func resolve_player_action(origin: Vector2, direction: Vector2) -> void:
@@ -423,17 +537,29 @@ func update_character(target: Dictionary, delta: float) -> void:
 	target["reaction"]=maxf(0.0,float(target["reaction"])-delta)
 	feedback.advance(delta)
 	feedback.position=body.position
+	if bool(target["escaped"]):
+		return
 	if bool(target["down"]):
 		advance_collapse(target,delta)
 		feedback.position=body.position
 		return
 	target["cooldown"]=maxf(0.0,float(target["cooldown"])-delta)
 	target["attack"]=maxf(0.0,float(target["attack"])-delta)
+	target["startle"]=maxf(0.0,float(target["startle"])-delta)
+	if bool(target["fleeing"]):
+		if float(target["startle"])>0.0:
+			body.animate(delta,Vector2.ZERO,body.facing)
+		else:
+			advance_escape(target,delta)
+		return
+	if float(target["startle"])>0.0:
+		body.animate(delta,Vector2.ZERO,body.facing)
+		return
 	var to_avatar := avatar.position-body.position
 	var distance := to_avatar.length()
 	var motion := Vector2.ZERO
 	var heading := to_avatar.angle()
-	if distance<240.0 and player_hp>0:
+	if (distance<240.0 or (bool(target["alerted"]) and distance<380.0)) and player_hp>0:
 		if not bool(target["alerted"]):
 			target["alerted"]=true
 			feedback.show_alert("?")
@@ -492,6 +618,7 @@ func attack_character(target: Dictionary, to_avatar: Vector2, distance: float) -
 		add_shot(target["body"].position+direction*10.0,direction,false,kind,speed)
 		if kind == "pistol":
 			audio.play_cue("cz75_shot",-4.0)
+			on_gunfire(target["body"].position)
 
 func step_shots(delta: float) -> void:
 	for i in range(shots.size()-1,-1,-1):
@@ -531,12 +658,16 @@ func step_shots(delta: float) -> void:
 
 func _physics_process(delta: float) -> void:
 	for item in bystanders:
+		if bool(item["escaped"]):
+			continue
 		var feedback: Node2D = item["feedback"]
 		feedback.position = item["body"].position
 		feedback.advance(delta)
 		if bool(item["down"]):
 			advance_collapse(item,delta)
 			feedback.position=item["body"].position
+		elif bool(item["panicked"]):
+			advance_escape(item,delta)
 	if avatar != null:
 		avatar.modulate = Color(1.0,0.55,0.55) if player_invincible>0.0 and (int(elapsed*14.0)%2)==0 else Color.WHITE
 	if smoke_test:
@@ -596,6 +727,18 @@ func run_test() -> void:
 	assert(actors[0]["body"].npc_down_back != null)
 	assert(player_hp==3)
 	assert(bystanders.size() > 0)
+	on_gunfire(avatar.position)
+	assert(gunfire_events == 1)
+	assert(bool(bystanders[0]["panicked"]))
+	assert(bool(actors[0]["alerted"]))
+	var escaping: Dictionary = bystanders[0]
+	escaping["hesitation"] = 0.0
+	escaping["body"].position = Vector2(12,184)
+	escaping["escape_x"] = -ESCAPE_MARGIN
+	advance_escape(escaping,1.0)
+	assert(bool(escaping["escaped"]))
+	assert(escaping["body"].position.x < 0.0)
+	assert(escaped_count >= 1)
 	var foe: Dictionary=actors[0]
 	hit_enemy(foe,1)
 	assert(int(foe["hp"])==1)

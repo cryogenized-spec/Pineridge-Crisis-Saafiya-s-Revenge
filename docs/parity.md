@@ -67,3 +67,7 @@ Reload timing follows the length of the chosen audio clip when available; comple
 
 ## V26 third collapse direction
 A reproducible VTK-side lateral fall renderer creates 12 eight-frame NPC atlases at build time. Both CI export workflows run and validate the script before Godot import. Runtime NPCs choose the third sideways pose for a subset of six timing/settling styles, with optional mirroring for left or right. Browser exports include the generated PNG assets; the raw Git tree retains procedural source rather than the redundant generated 400 KB binaries. More detailed custom motion-capture animation remains future work.
+
+
+## V27 NPC response fixes
+Previously, ambient NPCs were moved every frame by a fixed wandering loop, irrespective of sounds. Now they receive stage gunfire notifications, show brief panic indicators and recorded generic crowd shouts, switch to running, and continue all the way to stage exit boundaries. Fleeing antagonists and remaining alert NPCs use separate cartoonish states. A new encounter smoke test verifies a shot causes panic, an enemy becomes alerted, and a fleeing pedestrian crosses the actual stage boundary before counting as escaped.

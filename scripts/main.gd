@@ -189,7 +189,7 @@ func _physics_process(delta:float) -> void:
 		run_phase = player.gait_phase
 	camera.position=player.position
 	for person in pedestrians:
-		if person.down_phase >= 0.0:
+		if person.down_phase >= 0.0 or bool(person.get_meta("panic_run",false)):
 			continue
 		var p:Vector2=person.get_meta("home")
 		var t:float=elapsed*(0.45 + 0.08 * float(person.wardrobe_index % 5))+float(person.get_meta("offset"))
