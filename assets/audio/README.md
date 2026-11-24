@@ -1,15 +1,18 @@
-# Replaceable audio recordings
+# Game recordings — imported
 
-Place your own licensed sound clips here, then commit them. Each event supports WAV, OGG or MP3 (checked in that order).
+These six sound files are included directly in the repository and shipped with both browser and Linux exports. File names are also event IDs for `scripts/preview_audio.gd`.
 
-| Filename (without extension) | Trigger |
-| --- | --- |
-| `saafiya_death` | Saafiya loses her final health point |
-| `beretta_84fs_shot` | Beretta 84FS action |
-| `cz75_shot` | CZ 75 / P-07 action |
-| `akm_reload` | AK-pattern reload sequence, one complete clip |
-| `crowd_shout` | Occasional ambient NPC shouting, rate-limited |
+| File | Trigger | Source |
+| --- | --- | --- |
+| `saafiya_death.ogg` | Saafiya's defeat/death | Supplied ElevenLabs Generation 2 |
+| `beretta_84fs_shot.ogg` | Beretta 84FS fire | Supplied ElevenLabs Generation 4 |
+| `cz75_shot.ogg` | CZ 75 P-07 fire | Supplied CZ 75 WAV, converted to Vorbis |
+| `akm_reload.ogg` | AKM reload | Supplied AKM reload WAV, converted to Vorbis |
+| `akm_shot.mp3` | AKM fire | Original supplied 1.63-second stereo MP3, unchanged |
+| `crowd_shout.ogg` | Periodic ambient NPC shouting | Supplied vocal WAV, converted to Vorbis, level increased for intelligibility |
 
-Other supported cues: `fire`, `beretta_reload`, `cz75_reload`, `pickup`, `set_down`, `alert`, `reaction`, `reset`, `down`.
+The user-supplied recordings replace the earlier synthesized tones for these six events. Additional missing cues (`pickup`, `reaction`, `alert`, `beretta_reload`, `cz75_reload` and others) still use placeholder tones until recordings are supplied.
 
-The supplied sounds were not present as audio files when these event hooks were added. The loader falls back to short synthesized tones, not simulated weapon reports or authentic isiZulu speech. `crowd_shout` can use your deliberately nonsensical vocal clip; it is not presented as real dialogue. Seven sound channels allow overlap, while loaded clips are cached.
+The shout is intentionally fictional, unintelligible vocal material, not a translation or authentic dialogue. The reloading clip is one complete sound sequence, and its timing may be adjusted during audio playtesting.
+
+Run `python3 tools/verify_audio.py` to check all six byte-for-byte checksums. CI verifies both binary integrity and Godot import. Keep source rights/attribution information with any commercial release.

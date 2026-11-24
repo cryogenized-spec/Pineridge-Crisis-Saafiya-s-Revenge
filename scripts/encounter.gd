@@ -10,7 +10,7 @@ const WeaponVisual = preload("res://scripts/weapon_visual.gd")
 const KIT := [
 	{"name":"Beretta 84FS","size":13,"interval":0.24,"travel":2400.0},
 	{"name":"CZ 75 P-07","size":12,"interval":0.31,"travel":2200.0},
-	{"name":"Long arm","size":24,"interval":0.14,"travel":490.0}
+	{"name":"AKM","size":24,"interval":0.14,"travel":490.0}
 ]
 const ROLES := {
 	"knife":{"life":2,"speed":83.0,"reach":24.0,"prop":"blade_icon"},
@@ -214,7 +214,7 @@ func fire_player() -> void:
 	add_shot(avatar.position+heading*10.0,heading,true,"spark",float(KIT[slot]["travel"]))
 	if is_instance_valid(held_visual):
 		held_visual.burst()
-	audio.play_cue("beretta_84fs_shot" if slot == 0 else ("cz75_shot" if slot == 1 else "fire"))
+	audio.play_cue("beretta_84fs_shot" if slot == 0 else ("cz75_shot" if slot == 1 else "akm_shot"))
 	update_hud()
 
 func add_shot(start: Vector2, direction: Vector2, friendly: bool, kind: String, velocity: float) -> void:
@@ -445,6 +445,8 @@ func _draw() -> void:
 		draw_circle(p,3.0,Color("#f3da96"),true,-1,true)
 
 func run_test() -> void:
+	for clip in ["saafiya_death.ogg","beretta_84fs_shot.ogg","cz75_shot.ogg","akm_reload.ogg","akm_shot.mp3","crowd_shout.ogg"]:
+		assert(ResourceLoader.exists("res://assets/audio/" + clip), "Missing audio import: " + clip)
 	assert(actors.size()==7)
 	assert(actors[0]["body"].npc_down != null)
 	assert(player_hp==3)
