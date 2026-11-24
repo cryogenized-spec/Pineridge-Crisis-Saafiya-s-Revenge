@@ -87,6 +87,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_0:
 			shotgun_pump_delay = 0.0
 			audio.play_cue("shotgun_pump")
+		KEY_H: audio.play_cue("beretta_reload")
+		KEY_L: audio.play_cue("cz75_reload")
+		KEY_J: audio.play_cue("male_looter_death_1")
+		KEY_K: audio.play_cue("male_looter_death_2")
 		KEY_B: feedback.blood_enabled = not feedback.blood_enabled
 		KEY_N:
 			fall_backward = not fall_backward
@@ -183,6 +187,6 @@ func _draw() -> void:
 	var item: Dictionary = Props.ITEMS[prop_index]
 	draw_texture_rect(item.texture,Rect2(944,140,150,150),false)
 	draw_string(ThemeDB.fallback_font,Vector2(818,316),item.label,HORIZONTAL_ALIGNMENT_LEFT,-1,20,Color("#eee4dc"))
-	var lines := ["1 / 2 / 3   Idle / Walk / Run","4 / 5   Pick up / Set down (objects)","6 / 7 / 8   Startled / Stumble / Down","9   Shot + pump sound  ·  0   Pump only","B   Toggle decals  ·  N   Change fall direction","P   Next prop display","Arrows   Rotate / Change wardrobe","R   Reset       Esc   Return"]
+	var lines := ["1 / 2 / 3   Idle / Walk / Run","4 / 5   Pick up / Set down (objects)","6 / 7 / 8   Startled / Stumble / Down","9   Shot + pump  ·  0   Pump only","H / L   Beretta / CZ reload","J / K   Male looter cries A / B","B   Toggle decals  ·  N   Change fall direction","P   Next prop display","Arrows   Rotate / Change wardrobe","R   Reset       Esc   Return"]
 	for i in range(lines.size()):
-		draw_string(ThemeDB.fallback_font,Vector2(818,356+i*37),lines[i],HORIZONTAL_ALIGNMENT_LEFT,-1,16,Color("#c6bfca"))
+		draw_string(ThemeDB.fallback_font,Vector2(818,356+i*29),lines[i],HORIZONTAL_ALIGNMENT_LEFT,-1,16,Color("#c6bfca"))

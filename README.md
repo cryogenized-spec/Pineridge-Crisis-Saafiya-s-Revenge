@@ -60,3 +60,7 @@ The single straight-line arm placeholder was replaced by two independently drawn
 
 ## V25 shotgun sound assets
 Two user-provided clips are included as compressed stereo Vorbis in `assets/audio/shotgun_12ga_shot.ogg` and `assets/audio/shotgun_pump.ogg`. Press **F4** in the game, then **9** to preview both in sequence or **0** to preview the standalone pump cue. Both event IDs are available to a future shotgun character/equipment scene; no shotgun slot or real-world weapon cycle was added to Saafiya's established loadout. Their content is locked by the audio checksum verifier and checked by CI. Original-source license and attribution should be checked before public commercial distribution.
+
+
+## V25 approved audio and compact nickel Beretta presentation
+Four new user-supplied sounds are now in `assets/audio`: `beretta_reload.ogg`, `cz75_reload.ogg`, and two alternating male-looter death cries. Existing per-equipment reload events automatically play the new sounds; selected scripted male-voiced antagonists alternate the two cries. F4 workbench: H/L auditions Beretta/CZ reload, J/K auditions both vocal takes. The Beretta shot playback is raised by +5 dB relative to the other cues, without changing the master volume. Beretta artwork has a reflective nickel/silver finish with warmer grips, and its displayed length and width have been reduced together by 20% (13 → 10.4 display px); the supporting arms remain left-biased. The muzzle flash and smoke are brief, reduced visual effects only. Full sound credits: `assets/audio/CREDITS.md`.

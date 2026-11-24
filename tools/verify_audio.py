@@ -13,6 +13,10 @@ EXPECTED = {
     "assets/audio/saafiya_death.ogg": ("7dea5dfd7cc13d8fd46b6174f1981be0c8b3ed23f59d8f6c05944b996b083dc8", 123606),
     "assets/audio/shotgun_12ga_shot.ogg": ("f25b3c6665517208865a8a82c13badcafe942084b3434fbeaa94e67c0f36f825", 40069),
     "assets/audio/shotgun_pump.ogg": ("139b38862fcd208f9096c507c43b2696275231180786c90f804b4dcf093ba649", 32607),
+    "assets/audio/beretta_reload.ogg": ("623438ed99cc2313980297ee771d5d0bb163de5c26de1e99ff59b1dae4843d11", 40878),
+    "assets/audio/cz75_reload.ogg": ("7792e9fee684de6fcea6a956a1f8740f5ac6ede3cdec164d11249b90063ad567", 39636),
+    "assets/audio/male_looter_death_1.ogg": ("dddb6b8311f041f427682989adb2f1ccc16eb2b23fcf96359143b7a0856cd2a4", 54378),
+    "assets/audio/male_looter_death_2.ogg": ("841dd79d84908f4a5c80e07718a42468c5111214c6c1d533b11716b95a389321", 56704),
 }
 for name, (digest, size) in EXPECTED.items():
     path = ROOT / name

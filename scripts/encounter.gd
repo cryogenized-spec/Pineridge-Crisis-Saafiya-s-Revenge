@@ -25,6 +25,7 @@ var street: Node2D
 var audio: Node
 var held_visual: Node2D
 var shout_cooldown := 0.0
+var male_death_take := 0
 var rng := RandomNumberGenerator.new()
 var actors: Array[Dictionary] = []
 var bystanders: Array[Dictionary] = []
@@ -84,25 +85,25 @@ func _ready() -> void:
 
 func spawn_group(return_wave: bool) -> void:
 	var descriptions := [
-		[Vector2(626,382),"knife",0],
-		[Vector2(810,282),"pistol",1],
+		[Vector2(626,382),"knife",0,true],
+		[Vector2(810,282),"pistol",1,true],
 		[Vector2(1035,420),"brick",2],
-		[Vector2(1330,290),"cudgel",4],
+		[Vector2(1330,290),"cudgel",4,true],
 		[Vector2(1650,416),"slingshot",6],
-		[Vector2(2060,350),"pistol",9],
+		[Vector2(2060,350),"pistol",9,true],
 		[Vector2(1180,420),"runner",11]
 	]
 	if return_wave:
 		descriptions = [
-			[Vector2(1680,260),"brick",7],
+			[Vector2(1680,260),"brick",7,true],
 			[Vector2(1220,424),"cudgel",3],
-			[Vector2(900,280),"slingshot",5],
+			[Vector2(900,280),"slingshot",5,true],
 			[Vector2(660,430),"pistol",8]
 		]
 	for desc in descriptions:
-		spawn_character(desc[0],desc[1],int(desc[2]))
+		spawn_character(desc[0],desc[1],int(desc[2]),bool(desc[3]) if desc.size()>3 else false)
 
-func spawn_character(at: Vector2, kind: String, look: int) -> void:
+func spawn_character(at: Vector2, kind: String, look: int, male_voice: bool = false) -> void:
 	var character := Actor.new()
 	character.position = at
 	character.wardrobe_index = look
@@ -124,7 +125,7 @@ func spawn_character(at: Vector2, kind: String, look: int) -> void:
 		"max":int(ROLES[kind]["life"]),"alerted":false,
 		"cooldown":rng.randf_range(0.4,1.3),"attack":0.0,
 		"reaction":0.0,"wander":rng.randf_range(0,TAU),
-		"origin":at,"down":false,"visible_prop":true,"flee_said":false
+		"origin":at,"down":false,"visible_prop":true,"flee_said":false,"male_voice":male_voice
 	})
 
 func make_hud() -> void:
@@ -350,7 +351,12 @@ func hit_enemy(target: Dictionary, amount: int) -> void:
 		defeated+=1
 		if defeated%2 == 0:
 			loot.append({"point":target["body"].position+Vector2(13,9),"age":0.0})
-		audio.play_cue("down")
+		if bool(target.get("male_voice",false)):
+			var id := "male_looter_death_1" if male_death_take%2==0 else "male_looter_death_2"
+			male_death_take+=1
+			audio.play_cue(id)
+		else:
+			audio.play_cue("down")
 	else:
 		feedback.select(Feedback.State.STUMBLE)
 		audio.play_cue("reaction")
@@ -547,7 +553,7 @@ func _draw() -> void:
 		draw_circle(p,3.0,Color("#f3da96"),true,-1,true)
 
 func run_test() -> void:
-	for clip in ["saafiya_death.ogg","beretta_84fs_shot.ogg","cz75_shot.ogg","akm_reload.ogg","akm_shot.mp3","crowd_shout.ogg","shotgun_12ga_shot.ogg","shotgun_pump.ogg"]:
+	for clip in ["saafiya_death.ogg","beretta_84fs_shot.ogg","cz75_shot.ogg","akm_reload.ogg","akm_shot.mp3","crowd_shout.ogg","shotgun_12ga_shot.ogg","shotgun_pump.ogg","beretta_reload.ogg","cz75_reload.ogg","male_looter_death_1.ogg","male_looter_death_2.ogg"]:
 		assert(ResourceLoader.exists("res://assets/audio/" + clip), "Missing audio import: " + clip)
 	assert(actors.size()==7)
 	assert(actors[0]["body"].npc_down != null)
@@ -560,6 +566,7 @@ func run_test() -> void:
 	hit_enemy(foe,1)
 	assert(bool(foe["down"]))
 	assert(defeated==1)
+	assert(male_death_take==1)
 	assert(ground_marks.size()>0 and ground_marks.size()<=MAX_GROUND_MARKS)
 	var next_enemy: Dictionary = actors[1]
 	var health_before := int(next_enemy["hp"])

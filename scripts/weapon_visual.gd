@@ -4,11 +4,13 @@ extends Node2D
 const BERETTA: Texture2D = preload("res://assets/weapons/beretta84fs_overhead.svg")
 const BACKUP: Texture2D = preload("res://assets/props/modern_icon.svg")
 const LONGARM: Texture2D = preload("res://assets/props/longarm_icon.svg")
-const DISPLAY_SPAN := 13.0
+const DISPLAY_SPAN := 10.4
+const BACKUP_SPAN := 14.3
+const LONGARM_SPAN := 20.8
 const LEFT_OFFSET := 2.8
 const FORWARD_OFFSET := 8.0
-const FLASH_DURATION := 0.055
-const HAZE_DURATION := 0.27
+const FLASH_DURATION := 0.048
+const HAZE_DURATION := 0.19
 var wearer: Node2D
 var equipment_slot := 0
 var flash_time := 0.0
@@ -68,15 +70,15 @@ func _draw() -> void:
 	var left := Vector2.from_angle(aim_angle-PI*0.5)
 	var held := forward*FORWARD_OFFSET + left*LEFT_OFFSET
 	var texture: Texture2D = BERETTA if equipment_slot==0 else (BACKUP if equipment_slot==1 else LONGARM)
-	var span := DISPLAY_SPAN if equipment_slot==0 else (DISPLAY_SPAN*1.1 if equipment_slot==1 else DISPLAY_SPAN*1.6)
+	var span := DISPLAY_SPAN if equipment_slot==0 else (BACKUP_SPAN if equipment_slot==1 else LONGARM_SPAN)
 	# Independent, deliberately left-biased overhead costume/arm overlay.
 	# The detailed 3D torso atlas remains unchanged underneath these layers.
 	var left_shoulder := -forward*1.0 + left*5.8
 	var left_elbow := forward*2.6 + left*5.1
-	var left_hand := held-forward*2.0
+	var left_hand := held-forward*2.6
 	var right_shoulder := -forward*1.0-left*5.7
 	var right_elbow := forward*2.1-left*4.1
-	var right_hand := held-forward*2.7-left*0.9
+	var right_hand := held-forward*2.7-left*0.7
 	draw_sleeved_arm(right_shoulder,right_elbow,right_hand,false)
 	draw_sleeved_arm(left_shoulder,left_elbow,left_hand,true)
 	draw_set_transform(held,aim_angle+PI*0.5)
@@ -88,10 +90,10 @@ func _draw() -> void:
 	if flash_time>0.0:
 		var alpha := clampf(flash_time/FLASH_DURATION,0.0,1.0)
 		draw_set_transform(tip,aim_angle)
-		var reach := 3.0 + float(visual_variant)*0.5
-		draw_colored_polygon(PackedVector2Array([Vector2(0,-1.3),Vector2(reach*.55,-.65),Vector2(reach,0),Vector2(reach*.55,.65),Vector2(0,1.3)]),Color(1.0,0.77,0.43,alpha*.90))
+		var reach := 2.35 + float(visual_variant)*0.25
+		draw_colored_polygon(PackedVector2Array([Vector2(0,-1.3),Vector2(reach*.55,-.65),Vector2(reach,0),Vector2(reach*.55,.65),Vector2(0,1.3)]),Color(1.0,0.86,0.60,alpha*.85))
 		draw_set_transform(Vector2.ZERO)
 	if haze_time>0.0:
 		var p := 1.0-haze_time/HAZE_DURATION
-		var point := tip + forward*(2.0+6.0*p)
-		draw_circle(point,2.0+4.0*p,Color(.52,.52,.55,(1.0-p)*0.16),true,-1,true)
+		var point := tip + forward*(1.2+3.5*p)
+		draw_circle(point,1.5+2.3*p,Color(.54,.54,.57,(1.0-p)*0.105),true,-1,true)

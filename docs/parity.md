@@ -58,3 +58,7 @@ A separate Beretta-inspired sprite and effects layer tracks Saafiya's facing ang
 Twelve backward-fall VTK sprite atlases supplement the original twelve forward/down atlases (8 frames each). Alternate fall direction is chosen on impact. Ambient pedestrians now respond to the same generic arcade hit interactions. Firearm tracer and line visuals are gone; thrown objects remain small unlit sprites. A capped contact-colour particle effect supplements stains. All twelve new atlases are checksum-tested in native and Web workflows.
 
 The F4 character workbench can review both 3D collapse atlases: press N to switch front/back orientation, 8 to replay the down animation, and Up/Down to change the model. The scripted workbench smoke test checks that the alternate texture loads.
+
+
+## V25 audio and pistol visual review
+New Beretta and CZ reload recordings replace synthesized placeholders, and two distinct male-looter death-voice takes are available for explicitly cast male-voiced NPCs. Both import integrity and audio event presence are exercised by CI; F4 also supports listening tests. Beretta artwork has been recoloured as polished nickel with walnut-toned grips and reduced in 2D display scale by 20%; muzzle flash and haze are smaller/shorter. The existing gameplay and other weapon visuals are otherwise unchanged. Actual perceived mix levels and browser effects still need a live ear/visual check.

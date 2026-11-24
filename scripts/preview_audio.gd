@@ -8,7 +8,8 @@ const CUES := {
 	"cz75_shot":390.0,"beretta_reload":300.0,
 	"cz75_reload":310.0,"akm_reload":270.0,
 	"saafiya_death":175.0,"crowd_shout":270.0,
-	"shotgun_12ga_shot":200.0,"shotgun_pump":320.0
+	"shotgun_12ga_shot":200.0,"shotgun_pump":320.0,
+	"male_looter_death_1":160.0,"male_looter_death_2":155.0
 }
 var players: Array[AudioStreamPlayer] = []
 var cached: Dictionary = {}
@@ -54,5 +55,7 @@ func play_cue(id: String) -> void:
 	var selected := players[cursor]
 	cursor=(cursor+1)%CHANNELS
 	selected.stop()
+	# +5 dB only for Saafiya's previously hard-to-hear Beretta clip.
+	selected.volume_db = -11.0 if id == "beretta_84fs_shot" else -16.0
 	selected.stream=stream_for(id)
 	selected.play()
