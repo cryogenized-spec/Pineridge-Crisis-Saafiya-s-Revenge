@@ -69,3 +69,6 @@ The new Beretta and CZ reload events now use the real imported clip lengths (up 
 
 ## V25 sound and animation revisions
 Weapon shot events now play only supplied recordings. The generated-tone fallback has been removed; missing cues stay silent. Existing Beretta, CZ 75 and AKM recordings have been raised by approximately four decibels (about 60% amplitude increase); NPC pistol cues play at a quieter relative gain. The nickel Beretta overlay is narrower and slightly shorter, keeping the approved character art and left-biased pose. Every character impact creates a unique small local mark instead of the same fixed decal. Existing 12 forward and 12 backward collapse atlases now support six visual timing/settling variations with alternating mirroring and slight motion, without adding texture memory or rendering thousands of particles.
+
+
+**V25 audio correction:** Two supplied audio files used the Opus codec inside an Ogg container. Godot failed importing these and played old electronic placeholders. Both are now properly encoded Ogg Vorbis. The synthesized fallback is disabled and the CI now rejects import errors. The Beretta recording has the revised +4 dB shot gain.

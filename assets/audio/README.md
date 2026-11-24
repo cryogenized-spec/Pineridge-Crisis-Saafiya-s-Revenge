@@ -30,3 +30,6 @@ The Beretta reload sound was replaced with the Physon712 recording supplied on 2
 
 
 **V25 audio playback:** all gunshot cues use the original recorded assets exclusively, with approximately +4 dB gain over the preceding mix. The older synthesized sine-wave placeholder generator has been removed. Events without a real recording are silent until a file is supplied. No audio files or credits have been altered.
+
+
+**V25 codec repair (2026-11-25):** The supplied Beretta shot and Saafiya death recordings arrived as Ogg/Opus; Godot 4.4.1 could not import them as Vorbis. Both have been transcoded from the original Opus files into playable Ogg Vorbis, retaining the sound content and filenames. Verification checks the Vorbis signature, not only the container header. Audio playback has no synthesized fallback.

@@ -34,7 +34,7 @@ jobs:
         run: |
           set -euo pipefail
           /tmp/godot/Godot_v4.4.1-stable_linux.x86_64 --headless --editor --path . --import --quit 2>&1 | tee web-import.log
-          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script' web-import.log; then exit 1; fi
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|Error importing|Ogg Vorbis decoding failed|Error loading resource' web-import.log; then exit 1; fi
       - name: Export browser preview
         run: |
           set -euo pipefail
