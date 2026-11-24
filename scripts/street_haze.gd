@@ -3,8 +3,10 @@ extends Node2D
 var origins := PackedVector2Array()
 var clock := 0.0
 var smoke_texture: Texture2D
+var smoke_count := 8
 
 func _ready() -> void:
+	smoke_count = 6 if OS.has_feature("web") else 10
 	var image := Image.create(64,64,false,Image.FORMAT_RGBA8)
 	for y in range(64):
 		for x in range(64):
@@ -24,8 +26,8 @@ func _draw() -> void:
 		return
 	for j in range(origins.size()):
 		var origin := origins[j]
-		for i in range(16):
-			var t := fposmod(clock*0.26+float(i)/16.0+float(j)*0.13,1.0)
+		for i in range(smoke_count):
+			var t := fposmod(clock*0.26+float(i)/float(smoke_count)+float(j)*0.13,1.0)
 			var drift := Vector2(22.0*t+sin(t*8.0+float(j))*9.0*t,-74.0*t)
 			var size := 19.0+65.0*t
 			var alpha := sin(PI*t)*0.48

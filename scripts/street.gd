@@ -6,10 +6,13 @@ const AWNINGS := [Color("#85534f"), Color("#526e70"), Color("#9e7858")]
 const SHOP_NAMES := ["HOME & MORE", "PINE RIDGE", "BAKERY", "RECORDS", "PHARMACY"]
 const Props = preload("res://scripts/prop_library.gd")
 var obstacles: Array[Rect2] = []
+var grain_texture: ImageTexture
+const GRAIN_SAMPLES := 2400
 var litter: Array[Dictionary] = []
 var haze_origins := PackedVector2Array([Vector2(580,268),Vector2(1290,435),Vector2(1880,262)])
 
 func _ready() -> void:
+	prepare_grain()
 	# Scenic architecture is a backdrop, not an explorable building plan.
 	obstacles.append(Rect2(0, 0, SIZE.x, 140))
 	obstacles.append(Rect2(0, 550, SIZE.x, 150))
@@ -26,6 +29,19 @@ func _ready() -> void:
 		litter.append({"p":p+Vector2(12,8),"id":"tyre","angle":0.6,"size":22.0})
 	queue_redraw()
 
+func prepare_grain() -> void:
+	var image := Image.create(128,128,false,Image.FORMAT_RGBA8)
+	image.fill(Color.TRANSPARENT)
+	var rand := RandomNumberGenerator.new()
+	rand.seed = 734901
+	for i in range(GRAIN_SAMPLES):
+		var x := rand.randi_range(0,127)
+		var y := rand.randi_range(0,127)
+		var light := rand.randf_range(0.25,0.85)
+		image.set_pixel(x,y,Color(light,light*0.93,light*0.88,rand.randf_range(0.04,0.18)))
+	grain_texture = ImageTexture.create_from_image(image)
+	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+
 func blocked(p: Vector2, radius: float = 7.0) -> bool:
 	if p.x < radius or p.y < radius or p.x > SIZE.x - radius or p.y > SIZE.y - radius:
 		return true
@@ -39,12 +55,8 @@ func _draw() -> void:
 	rng.seed = 123456
 	draw_rect(Rect2(Vector2.ZERO, SIZE), Color("#625c64"))
 	draw_rect(Rect2(0, 208, SIZE.x, 284), Color("#43434d"))
-	for i in range(17000):
-		var p := Vector2(rng.randf_range(0, SIZE.x), rng.randf_range(0, SIZE.y))
-		var c := Color(0.8, 0.74, 0.69, rng.randf_range(0.025, 0.10))
-		if i % 2 == 0:
-			c = Color(0.12, 0.10, 0.15, rng.randf_range(0.03, 0.13))
-		draw_line(p, p + Vector2(rng.randf_range(0.6, 3.8), 0), c, 0.65, true)
+	if grain_texture != null:
+		draw_texture_rect(grain_texture,Rect2(0,0,SIZE.x,SIZE.y),true)
 	for x in range(0, 2320, 24):
 		draw_rect(Rect2(x, 204, 23, 4), Color("#b0a297"))
 		draw_rect(Rect2(x, 492, 23, 4), Color("#b0a297"))

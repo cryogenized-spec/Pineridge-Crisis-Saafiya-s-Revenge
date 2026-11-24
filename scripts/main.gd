@@ -191,7 +191,7 @@ func _physics_process(delta:float) -> void:
 		var movement:Vector2=person.position-previous
 		person.animate(delta,movement,0.0 if cos(t)>0 else PI, false, false)
 	status.text="%s  ·  %03d:%03d  ·  Playable arcade encounter" % ["CROUCH" if low else ("RUN" if running else "WALK"),int(player.position.x),int(player.position.y)]
-	queue_redraw()
+	# Child actors redraw themselves; this node draws no animated geometry.
 
 func _draw() -> void:
 	# Marker visuals are drawn by the dedicated overlay below street rendering.
