@@ -164,15 +164,18 @@ func on_gunfire(at: Vector2) -> void:
 		if body.position.distance_to(at) > HEARING_RADIUS:
 			continue
 		var feedback: Node2D = enemy["feedback"]
+		var first_alarm: bool = not bool(enemy["alerted"])
 		enemy["alerted"] = true
-		enemy["startle"] = rng.randf_range(0.18,0.42)
-		var kind: String = enemy["kind"]
-		var runs := kind == "runner" or ((kind == "brick" or kind == "slingshot") and rng.randf() < 0.55) or (kind == "knife" and rng.randf() < 0.22)
-		if runs:
-			start_enemy_escape(enemy)
-		else:
-			feedback.show_alert("!")
-			feedback.show_caption("Nangu!")
+		# A second or third gunshot cannot indefinitely freeze an enemy.
+		if first_alarm:
+			enemy["startle"] = rng.randf_range(0.18,0.36)
+			var kind: String = enemy["kind"]
+			var runs: bool = kind == "runner" or ((kind == "brick" or kind == "slingshot") and rng.randf() < 0.55) or (kind == "knife" and rng.randf() < 0.22)
+			if runs:
+				start_enemy_escape(enemy)
+			else:
+				feedback.show_alert("!")
+				feedback.show_caption("Nangu!")
 		alarms += 1
 	if alarms > 0 and shout_cooldown <= 0.0:
 		audio.play_cue("crowd_shout")
@@ -223,7 +226,10 @@ func advance_escape(state: Dictionary, delta: float) -> void:
 	var lane: float = state["escape_lane"]
 	var lateral := clampf(lane-body.position.y,-speed*0.42*delta,speed*0.42*delta)
 	var next_y := body.position+Vector2(0,lateral)
-	if not street.blocked(next_y,5.0):
+	# Some legacy pedestrian starting positions overlap scenic car blockers.
+	# Let them step out of an existing overlap towards the open escape lane.
+	var trapped: bool = street.blocked(start,5.0)
+	if not street.blocked(next_y,5.0) or (trapped and absf(lane-next_y.y) < absf(lane-start.y)):
 		body.position = next_y
 	var x_step := clampf(x_target-body.position.x,-speed*delta,speed*delta)
 	var next_x := body.position+Vector2(x_step,0)
@@ -732,6 +738,9 @@ func run_test() -> void:
 	assert(gunfire_events == 1)
 	assert(bool(bystanders[0]["panicked"]))
 	assert(bool(actors[0]["alerted"]))
+	var first_startle: float = actors[0]["startle"]
+	on_gunfire(avatar.position)
+	assert(is_equal_approx(float(actors[0]["startle"]),first_startle))
 	var escaping: Dictionary = bystanders[0]
 	escaping["hesitation"] = 0.0
 	escaping["body"].position = Vector2(12,184)
@@ -740,6 +749,15 @@ func run_test() -> void:
 	assert(bool(escaping["escaped"]))
 	assert(escaping["body"].position.x < 0.0)
 	assert(escaped_count >= 1)
+	# Even pedestrians placed inside an old car obstacle can exit its bounds.
+	var obstructed: Dictionary = bystanders[6]
+	var obstructed_body: Actor = obstructed["body"]
+	assert(street.blocked(obstructed_body.position,5.0))
+	start_bystander_escape(obstructed)
+	obstructed["hesitation"]=0.0
+	var starting_y: float=obstructed_body.position.y
+	advance_escape(obstructed,0.2)
+	assert(obstructed_body.position.y > starting_y)
 	var foe: Dictionary=actors[0]
 	hit_enemy(foe,1)
 	assert(int(foe["hp"])==1)
