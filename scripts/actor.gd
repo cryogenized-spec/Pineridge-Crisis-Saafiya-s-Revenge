@@ -7,6 +7,10 @@ const COUNT := 16
 const WALK_DISTANCE := 91.0 * 1.12
 const RUN_DISTANCE := 148.0 * 0.64
 const DISPLAY_SIZE := 42.0
+var walk_lower: Texture2D
+var walk_upper: Texture2D
+var run_lower: Texture2D
+var run_upper: Texture2D
 var walk_texture: Texture2D
 var run_texture: Texture2D
 var gait_phase := 0.0
@@ -26,6 +30,10 @@ func _ready() -> void:
 	if hero:
 		walk_texture = load_atlas(WALK_ATLAS)
 		run_texture = load_atlas(RUN_ATLAS)
+		walk_lower = load_atlas("res://assets/characters/saafiya/walk_lower_atlas.png")
+		walk_upper = load_atlas("res://assets/characters/saafiya/walk_upper_atlas.png")
+		run_lower = load_atlas("res://assets/characters/saafiya/run_lower_atlas.png")
+		run_upper = load_atlas("res://assets/characters/saafiya/run_upper_atlas.png")
 		texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 
 func load_atlas(path: String) -> Texture2D:
@@ -42,6 +50,14 @@ func sprite_frame() -> int:
 
 func has_approved_atlases() -> bool:
 	return walk_texture != null and run_texture != null
+
+func has_layered_atlases() -> bool:
+	return walk_lower != null and walk_upper != null and run_lower != null and run_upper != null
+
+func draw_gait_layer(atlas: Texture2D, source: Rect2, angle: float, size: Vector2) -> void:
+	draw_set_transform(Vector2.ZERO, angle - PI / 2.0)
+	draw_texture_rect_region(atlas, Rect2(-size / 2.0, size), source)
+	draw_set_transform(Vector2.ZERO)
 
 func animate(delta: float, displacement: Vector2, aim_angle: float, low: bool = false, running: bool = false) -> void:
 	var dist := displacement.length()
@@ -60,6 +76,15 @@ func animate(delta: float, displacement: Vector2, aim_angle: float, low: bool = 
 
 func _draw() -> void:
 	draw_circle(Vector2(2,3),10,Color(0.09,0.07,0.12,0.27),true,-1,true)
+	if hero and has_layered_atlases():
+		var is_run := gait_running and gait_moving
+		var frame := sprite_frame()
+		var source := Rect2((frame % 4) * TILE, floori(float(frame) / 4.0) * TILE, TILE, TILE)
+		var size := Vector2(DISPLAY_SIZE, DISPLAY_SIZE * (0.82 if crouched else 1.0))
+		# Independent unarmed visual orientation; shared center and animation phase.
+		draw_gait_layer(run_lower if is_run else walk_lower, source, travel, size)
+		draw_gait_layer(run_upper if is_run else walk_upper, source, facing, size)
+		return
 	if hero and has_approved_atlases():
 		var atlas := run_texture if gait_running and gait_moving else walk_texture
 		var frame := sprite_frame()

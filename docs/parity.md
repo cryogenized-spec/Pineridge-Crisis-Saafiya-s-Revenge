@@ -17,3 +17,7 @@ The HTML reference is unchanged. Exact gameplay parity cannot be claimed until t
 
 ## Validation
 Godot 4.4.1 is the pinned initial engine version. Run the headless scene smoke test, then visually verify at 1280 × 720 and check collision, camera, gait alignment and effects. The smoke test does not establish graphical quality.
+
+## V9 animation and scenery pass
+
+Run cadence: two brief speed troughs per 0.64 s cycle, positive speed throughout, preserving nominal average on unobstructed straight paths. Q and C are toggles as in the HTML reference. Animation phase advances on actual movement only. Layered V9 PNGs enable independent lower-body travel and upper-body look orientation for the unarmed character; fallback retains existing whole-body sprite. Scenery is a fictional non-navigable retail backdrop with roadside planting and southern greenbelt, not a building or security layout. Existing street obstacle arrangement is intentionally revised. Audio and model-specific weapon effects not ported. Visual playtesting remains required.

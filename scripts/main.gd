@@ -15,6 +15,11 @@ var objective: Label
 var elapsed := 0.0
 var phase := 0
 var preview_timer := 0.0
+var run_phase := 0.0
+var run_enabled := false
+var crouch_enabled := false
+const RUN_CYCLE_SECONDS := 0.64
+const FOOTFALL_VARIATION := 0.48
 
 func _ready() -> void:
 	street=Street.new()
@@ -81,7 +86,7 @@ func make_hud() -> void:
 	v.add_child(status)
 	var help:=Label.new()
 	help.position=Vector2(18,684)
-	help.text="WASD / arrows: move     Q: run     C: crouch     E: interact     V: effects preview     F: fullscreen     Esc: reset"
+	help.text="WASD / arrows: move     Q: toggle run     C: toggle crouch     E: interact     V: effects preview     F: fullscreen     Esc: reset"
 	help.add_theme_font_size_override("font_size",17)
 	help.modulate=Color("#f3ddc7")
 	layer.add_child(help)
@@ -94,6 +99,10 @@ func _unhandled_key_input(event:InputEvent) -> void:
 			KEY_F:
 				var mode:=DisplayServer.window_get_mode()
 				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if mode==DisplayServer.WINDOW_MODE_FULLSCREEN else DisplayServer.WINDOW_MODE_FULLSCREEN)
+			KEY_Q:
+				run_enabled = not run_enabled
+			KEY_C:
+				crouch_enabled = not crouch_enabled
 			KEY_E:
 				if phase==0 and player.position.distance_to(WAYPOINT)<36:
 					phase=1
@@ -112,10 +121,16 @@ func _physics_process(delta:float) -> void:
 	var direction:=Vector2(
 		float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),
 		float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP)))
-	var low:=Input.is_physical_key_pressed(KEY_C)
-	var running:=Input.is_physical_key_pressed(KEY_Q)
+	var low := crouch_enabled
+	var running := run_enabled and not low
 	var speed:=53.0 if low else (148.0 if running else 91.0)
-	var motion:=direction.normalized()*speed*delta
+	# Two gentle footfall pulses per gait cycle; mean multiplier remains 1.
+	# A positive minimum preserves responsiveness through each footfall.
+	var cadence := 1.0
+	if running and direction.length_squared() > 0.0:
+		var midpoint := run_phase + delta / RUN_CYCLE_SECONDS * 0.5
+		cadence = 1.0 - FOOTFALL_VARIATION * cos(midpoint * TAU * 2.0)
+	var motion:=direction.normalized()*speed*cadence*delta
 	var old:Vector2=player.position
 	var next:=old+Vector2(motion.x,0)
 	if not street.blocked(next):
@@ -123,7 +138,14 @@ func _physics_process(delta:float) -> void:
 	next=player.position+Vector2(0,motion.y)
 	if not street.blocked(next):
 		player.position.y=next.y
-	player.animate(delta,player.position-old,(get_global_mouse_position()-player.position).angle(),low,running)
+	var displacement := player.position - old
+	player.animate(delta,displacement,(get_global_mouse_position()-player.position).angle(),low,running)
+	if running and displacement.length() > 0.01:
+		var achieved := clampf(displacement.length() / maxf(motion.length(), 0.001), 0.0, 1.0)
+		run_phase = fposmod(run_phase + delta / RUN_CYCLE_SECONDS * achieved, 1.0)
+		player.gait_phase = run_phase
+	elif not running:
+		run_phase = player.gait_phase
 	camera.position=player.position
 	for person in pedestrians:
 		var p:Vector2=person.get_meta("home")

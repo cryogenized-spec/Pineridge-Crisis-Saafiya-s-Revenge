@@ -7,17 +7,11 @@ const SHOP_NAMES := ["HOME & MORE", "PINE RIDGE", "BAKERY", "RECORDS", "PHARMACY
 var obstacles: Array[Rect2] = []
 
 func _ready() -> void:
-	for row in range(2):
-		for i in range(16):
-			var x := 6.0 + i * 154.0
-			var y := 12.0 if row == 0 else 558.0
-			var h := 132.0 if row == 1 else (110.0 if x >= 1070 and x < 1390 else 140.0)
-			obstacles.append(Rect2(x, y, 148, h))
+	# Scenic architecture is a backdrop, not an explorable building plan.
+	obstacles.append(Rect2(0, 0, SIZE.x, 140))
+	obstacles.append(Rect2(0, 550, SIZE.x, 150))
 	for x in range(330, 2240, 342):
-		obstacles.append(Rect2(x, 304, 54, 12))
-		obstacles.append(Rect2(x + 107, 400, 12, 49))
 		obstacles.append(Rect2(x - 22, (460 if x >= 1000 or x % 2 else 239) - 13, 44, 26))
-	obstacles.append(Rect2(1144, 192, 174, 18))
 	queue_redraw()
 
 func blocked(p: Vector2, radius: float = 7.0) -> bool:
@@ -40,31 +34,44 @@ func _draw() -> void:
 			c = Color(0.12, 0.10, 0.15, rng.randf_range(0.03, 0.13))
 		draw_line(p, p + Vector2(rng.randf_range(0.6, 3.8), 0), c, 0.65, true)
 	for x in range(0, 2320, 24):
-		if x + 23 < 1048 or x > 1413:
-			draw_rect(Rect2(x, 204, 23, 4), Color("#b0a297"))
+		draw_rect(Rect2(x, 204, 23, 4), Color("#b0a297"))
 		draw_rect(Rect2(x, 492, 23, 4), Color("#b0a297"))
 		if x % 48 == 0:
 			draw_rect(Rect2(x, 349, 22, 2), Color("#b6a580"))
-	for row in range(2):
-		for i in range(16):
-			var x := 6.0 + i * 154.0
-			var y := 12.0 if row == 0 else 558.0
-			var h := 132.0 if row == 1 else (110.0 if x >= 1070 and x < 1390 else 140.0)
-			roof(Rect2(x, y, 148, h), i, row == 0)
+	# Fictional retail district: distant architecture and a landscaped foreground.
+	retail_backdrop(rng)
+	draw_rect(Rect2(0, 550, SIZE.x, 150), Color("#344943"))
+	draw_rect(Rect2(0, 553, SIZE.x, 8), Color("#819083"))
+	draw_rect(Rect2(0, 680, SIZE.x, 20), Color("#293d38"))
+	for x in range(0, 2320, 24):
+		var p := Vector2(x + rng.randf_range(-9, 9), rng.randf_range(573, 675))
+		draw_circle(p + Vector2(5, 4), rng.randf_range(10, 18), Color(0.08,0.14,0.13,0.30), true, -1, true)
+		draw_circle(p, rng.randf_range(8, 16), Color("#536e53").lightened(rng.randf_range(-0.20, 0.15)), true, -1, true)
+	for x in range(90, 2320, 117):
+		tree(Vector2(x, 600 + rng.randf_range(-15, 40)), rng)
 	for x in range(330, 2240, 342):
-		barrier(Rect2(x, 304, 54, 12))
-		barrier(Rect2(x + 107, 400, 12, 49))
 		car(Vector2(x, 460 if x >= 1000 or x % 2 else 239), [Color("#ab6758"), Color("#919497"), Color("#758580")][int(x / 342) % 3])
 	for x in range(80, 2320, 218):
-		for y in [181, 519]:
-			if y == 181 and x > 1048 and x < 1413:
-				continue
-			tree(Vector2(x, y), rng)
-	for i in range(8):
-		draw_rect(Rect2(957, 225 + i * 33, 24, 16), Color("#968e86"))
-	draw_colored_polygon(PackedVector2Array([Vector2(1048,208),Vector2(1112,146),Vector2(1348,146),Vector2(1413,208)]),Color("#474752"))
-	barrier(Rect2(1144,192,174,18))
-	draw_string(ThemeDB.fallback_font, Vector2(1162, 189), "TAXI BAY", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("#e5cda5"))
+		tree(Vector2(x, 181), rng)
+		tree(Vector2(x + 30, 519), rng)
+
+func retail_backdrop(rng: RandomNumberGenerator) -> void:
+	draw_rect(Rect2(0, 0, SIZE.x, 146), Color("#4d515b"))
+	for i in range(9):
+		var x := i * 267.0
+		var top := -15.0 + rng.randf_range(0, 15)
+		draw_rect(Rect2(x + 8, top + 8, 257, 115), Color("#33353f"))
+		draw_rect(Rect2(x, top, 257, 115), Color("#8b8583"))
+		draw_rect(Rect2(x + 5, top + 5, 247, 100), Color("#626c78"))
+		# Broad skylight forms, deliberately non-navigable architectural scenery.
+		draw_rect(Rect2(x + 32, top + 19, 192, 50), Color("#394a58"))
+		for j in range(9):
+			draw_rect(Rect2(x + 34 + j * 21, top + 21, 18, 46), Color("#6a8593").lightened(rng.randf_range(-0.10, 0.13)))
+		draw_rect(Rect2(x + 5, top + 101, 247, 10), Color("#a89e91"))
+	draw_rect(Rect2(0, 142, SIZE.x, 19), Color("#546b55"))
+	for x in range(0, 2320, 13):
+		draw_circle(Vector2(x, 150 + rng.randf_range(-4, 4)), 6, Color("#63785e").darkened(rng.randf_range(0, 0.18)), true, -1, true)
+	draw_line(Vector2(0, 165), Vector2(SIZE.x, 165), Color("#a49b8b"), 3)
 
 func roof(r: Rect2, index: int, top: bool) -> void:
 	draw_rect(Rect2(r.position + Vector2(6, 8), r.size), Color("#39343e"))
