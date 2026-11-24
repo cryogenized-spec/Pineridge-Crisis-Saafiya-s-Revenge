@@ -1,0 +1,2 @@
+# V12 crowd textures
+Extract the separately supplied V12 NPC asset pack into the project root. Includes twelve NPC presets, 36 RGBA textures and 204 animation cells, plus the VTK source. Each cell is 128×128, centered, facing south. Idle is a single cell, walk/run each eight cells arranged 4×2. Existing vector fallback is retained. No new generated-image artwork.

@@ -1,0 +1,73 @@
+name: Godot validation
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned Godot
+        run: |
+          curl -fsSL --retry 3 https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip -o godot.zip
+          unzip -q godot.zip -d engine
+          chmod +x engine/Godot_v4.4.1-stable_linux.x86_64
+      - name: Import and check scripts
+        run: |
+          set -o pipefail
+          engine/Godot_v4.4.1-stable_linux.x86_64 --headless --editor --path . --import --quit 2>&1 | tee import.log
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script' import.log; then exit 1; fi
+      - name: Run scene
+        run: |
+          set -o pipefail
+          engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . --quit-after 90 2>&1 | tee smoke.log
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script' smoke.log; then exit 1; fi
+      - name: Exercise crowd review scene
+        run: |
+          set -o pipefail
+          engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . res://scenes/character_review.tscn --fixed-fps 60 --quit-after 300 -- --review-smoke 2>&1 | tee review.log
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|Assertion failed' review.log; then exit 1; fi
+          grep -F 'Crowd review: all presets initialized' review.log
+      - name: Check prop library
+        run: |
+          set -o pipefail
+          engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . res://scenes/prop_review.tscn --quit-after 90 -- --prop-smoke 2>&1 | tee props.log
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|Assertion failed' props.log; then exit 1; fi
+          grep -F 'Prop review: all 14 textures loaded.' props.log
+      - name: Exercise action review states
+        run: |
+          set -o pipefail
+          engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . res://scenes/action_review.tscn --fixed-fps 60 --quit-after 480 -- --action-smoke 2>&1 | tee action.log
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|Assertion failed' action.log; then exit 1; fi
+          grep -F 'Action review: pickup, carry, set down, alert, stumble and down states exercised.' action.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: godot-validation-logs
+          path: |
+            import.log
+            smoke.log
+            review.log
+            props.log
+            action.log
+      - name: Install Linux export templates
+        if: success()
+        run: |
+          curl -fsSL --retry 3 https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz -o /tmp/templates.tpz
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.4.1.stable"
+          unzip -j /tmp/templates.tpz templates/linux_release.x86_64 templates/linux_debug.x86_64 -d "$HOME/.local/share/godot/export_templates/4.4.1.stable"
+      - name: Export Linux x86_64
+        run: |
+          set -o pipefail
+          mkdir -p build
+          engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . --export-release Linux build/pineridge.x86_64 2>&1 | tee export.log
+          test -s build/pineridge.x86_64
+          chmod +x build/pineridge.x86_64
+          build/pineridge.x86_64 --headless --quit-after 90
+          tar -czf pineridge-linux-x86_64.tar.gz -C build pineridge.x86_64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pineridge-linux-x86_64
+          path: pineridge-linux-x86_64.tar.gz
