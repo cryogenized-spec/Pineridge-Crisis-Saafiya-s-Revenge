@@ -30,6 +30,11 @@ jobs:
           mkdir -p "$dest"
           unzip -j /tmp/templates.tpz 'templates/web*.zip' -d "$dest"
           test -s "$dest/web_nothreads_release.zip"
+      - name: Render and verify lateral collapse animation
+        run: |
+          python3 -m pip install -q --disable-pip-version-check vtk numpy Pillow
+          python3 tools/render_crowd_side.py
+          python3 tools/verify_sidefall.py
       - name: Import and validate
         run: |
           set -euo pipefail

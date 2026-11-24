@@ -20,6 +20,11 @@ jobs:
           curl -fsSL --retry 3 https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip -o godot.zip
           unzip -q godot.zip -d engine
           chmod +x engine/Godot_v4.4.1-stable_linux.x86_64
+      - name: Render and verify lateral collapse animation
+        run: |
+          python3 -m pip install -q --disable-pip-version-check vtk numpy Pillow
+          python3 tools/render_crowd_side.py
+          python3 tools/verify_sidefall.py
       - name: Import and check scripts
         run: |
           set -o pipefail

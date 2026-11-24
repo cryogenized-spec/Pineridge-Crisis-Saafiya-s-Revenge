@@ -72,3 +72,6 @@ Weapon shot events now play only supplied recordings. The generated-tone fallbac
 
 
 **V25 audio correction:** Two supplied audio files used the Opus codec inside an Ogg container. Godot failed importing these and played old electronic placeholders. Both are now properly encoded Ogg Vorbis. The synthesized fallback is disabled and the CI now rejects import errors. The Beretta recording has the revised +4 dB shot gain.
+
+
+**V26 additional rendered collapse sprites:** The build now renders 12 more transparent NPC side-fall atlases (96 frames) from the existing VTK procedural models. The renderer runs automatically on CI before Godot import, and its output is packed into the Linux and browser builds alongside the previous forward/backward variants. The new files are generated build assets, not new binary files checked into Git. For offline local development, run `python3 -m pip install vtk numpy Pillow && python3 tools/render_crowd_side.py` once. F4/N cycles FRONT, BACK and SIDE, and the game chooses among six mixed fall variants.
