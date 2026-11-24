@@ -1,0 +1,150 @@
+extends Node2D
+
+const Street = preload("res://scripts/street.gd")
+const Actor = preload("res://scripts/actor.gd")
+const Effects = preload("res://scripts/visual_effects.gd")
+const START := Vector2(132,358)
+const WAYPOINT := Vector2(2060,350)
+var street: Node2D
+var player: Node2D
+var camera: Camera2D
+var effects: Node2D
+var pedestrians: Array[Node2D] = []
+var status: Label
+var objective: Label
+var elapsed := 0.0
+var phase := 0
+var preview_timer := 0.0
+
+func _ready() -> void:
+	street=Street.new()
+	add_child(street)
+	effects=Effects.new()
+	add_child(effects)
+	var positions := [Vector2(235,177),Vector2(316,511),Vector2(484,185),Vector2(561,474),Vector2(717,515),Vector2(890,180),Vector2(998,464),Vector2(1268,149),Vector2(1620,191),Vector2(1845,507),Vector2(353,189),Vector2(1510,513),Vector2(1977,178)]
+	for i in range(positions.size()):
+		var person=Actor.new()
+		person.position=positions[i]
+		person.jacket=[Color("#907343"),Color("#686685"),Color("#466776"),Color("#874857"),Color("#61735d")][i%5]
+		person.skin=[Color("#a36c52"),Color("#c88d6b"),Color("#8f5846")][i%3]
+		person.set_meta("home",positions[i])
+		person.set_meta("offset",float(i)*1.31)
+		add_child(person)
+		pedestrians.append(person)
+	player=Actor.new()
+	player.hero=true
+	player.position=START
+	add_child(player)
+	camera=Camera2D.new()
+	camera.zoom=Vector2(2,2)
+	camera.position=START
+	camera.limit_left=0
+	camera.limit_top=0
+	camera.limit_right=2320
+	camera.limit_bottom=700
+	camera.position_smoothing_enabled=true
+	camera.position_smoothing_speed=8
+	add_child(camera)
+	camera.make_current()
+	make_hud()
+
+func make_hud() -> void:
+	var layer:=CanvasLayer.new()
+	add_child(layer)
+	var panel:=PanelContainer.new()
+	panel.position=Vector2(18,18)
+	panel.custom_minimum_size=Vector2(380,0)
+	var style:=StyleBoxFlat.new()
+	style.bg_color=Color(0.12,0.10,0.16,0.94)
+	style.border_color=Color("#a18a82")
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(7)
+	style.content_margin_left=16
+	style.content_margin_right=16
+	style.content_margin_top=10
+	style.content_margin_bottom=10
+	panel.add_theme_stylebox_override("panel",style)
+	layer.add_child(panel)
+	var v:=VBoxContainer.new()
+	panel.add_child(v)
+	var title:=Label.new()
+	title.text="SAAFIYA  /  PINE RIDGE"
+	title.add_theme_font_size_override("font_size",22)
+	title.modulate=Color("#f3ddc7")
+	v.add_child(title)
+	objective=Label.new()
+	objective.text="Explore the street · reach the east marker"
+	objective.modulate=Color("#e5c496")
+	v.add_child(objective)
+	status=Label.new()
+	status.modulate=Color("#c2b4c2")
+	v.add_child(status)
+	var help:=Label.new()
+	help.position=Vector2(18,684)
+	help.text="WASD / arrows: move     Q: run     C: crouch     E: interact     V: effects preview     F: fullscreen     Esc: reset"
+	help.add_theme_font_size_override("font_size",17)
+	help.modulate=Color("#f3ddc7")
+	layer.add_child(help)
+
+func _unhandled_key_input(event:InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		match event.keycode:
+			KEY_ESCAPE:
+				get_tree().reload_current_scene()
+			KEY_F:
+				var mode:=DisplayServer.window_get_mode()
+				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if mode==DisplayServer.WINDOW_MODE_FULLSCREEN else DisplayServer.WINDOW_MODE_FULLSCREEN)
+			KEY_E:
+				if phase==0 and player.position.distance_to(WAYPOINT)<36:
+					phase=1
+					objective.text="Marker checked · return to the west marker"
+				elif phase==1 and player.position.distance_to(START)<36:
+					phase=2
+					objective.text="Route complete · Esc to restart"
+			KEY_V:
+				if preview_timer<=0:
+					effects.burst(player.position+Vector2(0,-19))
+					preview_timer=0.3
+
+func _physics_process(delta:float) -> void:
+	elapsed+=delta
+	preview_timer=maxf(0,preview_timer-delta)
+	var direction:=Vector2(
+		float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),
+		float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP)))
+	var low:=Input.is_physical_key_pressed(KEY_C)
+	var running:=Input.is_physical_key_pressed(KEY_Q)
+	var speed:=53.0 if low else (148.0 if running else 91.0)
+	var motion:=direction.normalized()*speed*delta
+	var old:Vector2=player.position
+	var next:=old+Vector2(motion.x,0)
+	if not street.blocked(next):
+		player.position.x=next.x
+	next=player.position+Vector2(0,motion.y)
+	if not street.blocked(next):
+		player.position.y=next.y
+	player.animate(delta,player.position-old,(get_global_mouse_position()-player.position).angle(),low)
+	camera.position=player.position
+	for person in pedestrians:
+		var p:Vector2=person.get_meta("home")
+		var t:float=elapsed*0.6+float(person.get_meta("offset"))
+		var desired:=p+Vector2(sin(t)*15,0)
+		var previous:Vector2=person.position
+		if not street.blocked(desired,5):
+			person.position=desired
+		var movement:Vector2=person.position-previous
+		person.animate(delta,movement,0.0 if cos(t)>0 else PI)
+	status.text="%s  ·  %03d:%03d  ·  Native visual prototype" % ["CROUCH" if low else ("RUN" if running else "WALK"),int(player.position.x),int(player.position.y)]
+	queue_redraw()
+
+func _draw() -> void:
+	# Marker visuals are drawn by the dedicated overlay below street rendering.
+	pass
+
+func _process(_delta:float) -> void:
+	if phase<2 and is_instance_valid(player):
+		var target:=WAYPOINT if phase==0 else START
+		if player.position.distance_to(target)<36:
+			objective.text="E · Check east marker" if phase==0 else "E · Complete return"
+		else:
+			objective.text="Explore the street · reach the east marker" if phase==0 else "Marker checked · return to the west marker"

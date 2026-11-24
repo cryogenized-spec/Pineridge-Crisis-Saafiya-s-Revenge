@@ -1,0 +1,33 @@
+name: Godot validation
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned Godot
+        run: |
+          curl -fsSL --retry 3 https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip -o godot.zip
+          unzip -q godot.zip -d engine
+          chmod +x engine/Godot_v4.4.1-stable_linux.x86_64
+      - name: Import and check scripts
+        run: |
+          set -o pipefail
+          engine/Godot_v4.4.1-stable_linux.x86_64 --headless --editor --path . --import --quit 2>&1 | tee import.log
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script' import.log; then exit 1; fi
+      - name: Run scene
+        run: |
+          set -o pipefail
+          engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . --quit-after 90 2>&1 | tee smoke.log
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script' smoke.log; then exit 1; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: godot-validation-logs
+          path: |
+            import.log
+            smoke.log

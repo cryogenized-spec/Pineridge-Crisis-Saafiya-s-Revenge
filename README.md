@@ -1,11 +1,9 @@
 # Pineridge Crisis — Saafiya's Revenge
 
-Native Godot 4 / GDScript edition of the existing browser prototype. The original HTML remains the gameplay reference; this repository is a separate implementation.
+First native Godot 4.4.1 / GDScript presentation prototype, derived from the existing HTML overhead game. This is not yet a full gameplay-equivalent port.
 
-## Development status
+Open `project.godot` in Godot 4.4.1 and press F6/F5 (F5 runs the configured main scene), or use `godot --path .`.
 
-Initial milestone: native overhead scene, movement and camera, visual presentation and reproducible validation. Gameplay parity is not yet established.
+WASD/arrows move, Q runs, C crouches, mouse rotates facing, E interacts with route markers, V previews stylized visual particles, F toggles fullscreen, Esc restarts.
 
-## Run
-
-Open `project.godot` in Godot 4 using the Compatibility renderer, or run `godot --path .` from the repository root once the project files are present.
+The original browser edition is unchanged. See [migration contract](docs/parity.md) for exact scope and missing systems. Character sprites are procedural placeholders; no production-quality art or compiled export is claimed. GitHub Actions checks script import and scene startup.

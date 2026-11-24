@@ -1,0 +1,58 @@
+extends Node2D
+
+var hero := false
+var facing := 0.0
+var travel := 0.0
+var stride := 0.0
+var motion := 0.0
+var crouched := false
+var jacket := Color("#55516a")
+var skin := Color("#b68062")
+var hair := Color("#392b34")
+
+func animate(delta: float, displacement: Vector2, aim_angle: float, low: bool = false) -> void:
+	var dist := displacement.length()
+	motion = move_toward(motion, 1.0 if dist > 0.01 else 0.0, delta * 8.0)
+	if dist > 0.01:
+		travel = lerp_angle(travel, displacement.angle(), 1.0-exp(-delta*18.0))
+		stride = fmod(stride + dist * 0.23, TAU)
+	facing = lerp_angle(facing,aim_angle,1.0-exp(-delta*17.0))
+	crouched = low
+	queue_redraw()
+
+func _draw() -> void:
+	draw_circle(Vector2(2,3),10,Color(0.09,0.07,0.12,0.27),true,-1,true)
+	draw_set_transform(Vector2.ZERO,travel)
+	for side in [-1,1]:
+		var swing := sin(stride + (PI if side > 0 else 0.0))*motion*5.0
+		var hip := Vector2(-2,side*3.2)
+		var foot := Vector2(-4+swing,side*4.0)
+		draw_line(hip,foot,Color("#34303d"),4,true)
+		draw_line(foot-Vector2(1.4,0),foot+Vector2(3,0),Color("#211d29"),4,true)
+		if hero:
+			draw_line(foot,foot+Vector2(1.6,0),Color("#93858d"),0.8,true)
+	draw_set_transform(Vector2.ZERO,facing)
+	var scale_y := 0.82 if crouched else 1.0
+	draw_set_transform(Vector2.ZERO,facing,Vector2(scale_y,1))
+	var cloth := Color("#25202e") if hero else jacket
+	draw_circle(Vector2(-1,0),6.9,cloth.darkened(0.28),true,-1,true)
+	draw_circle(Vector2(-1,0),6.0,cloth,true,-1,true)
+	for side in [-1,1]:
+		var shoulder := Vector2(-1,side*5.2)
+		var hand := Vector2(3.7+sin(stride+side*PI*0.5)*motion*1.3,side*6.3)
+		draw_line(shoulder,hand,cloth.lightened(0.10),3.8,true)
+		draw_circle(hand,1.65,skin,true,-1,true)
+		if hero:
+			draw_line(shoulder,hand,Color(0.57,0.46,0.57,0.42),0.65,true)
+	draw_circle(Vector2(2.5,0),4.5,skin,true,-1,true)
+	draw_circle(Vector2(1,0),4.6,hair,true,-1,true)
+	if hero:
+		for i in range(9):
+			var a := i*TAU/9.0
+			var p := Vector2(-0.5,0)+Vector2.from_angle(a)*3.1
+			draw_circle(p,2.5,Color("#422739").lightened(0.09 if i%2==0 else 0.0),true,-1,true)
+		draw_circle(Vector2(-3.0,0),2.5,Color("#592c45"),true,-1,true)
+		for side in [-1,1]:
+			draw_arc(Vector2(3.1,side*3.6),1.2,0,TAU,12,Color("#d6bd9a"),0.7,true)
+		draw_line(Vector2(1.7,-3.2),Vector2(1.7,3.2),Color("#211c29"),1.1,true)
+	draw_set_transform(Vector2.ZERO)
