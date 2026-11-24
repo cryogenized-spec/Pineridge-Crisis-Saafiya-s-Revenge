@@ -29,6 +29,7 @@ var gunfire_events := 0
 var escaped_count := 0
 const HEARING_RADIUS := 850.0
 const ESCAPE_MARGIN := 45.0
+const LEVEL_WIDTH := 2320.0
 const PANIC_CAPTIONS := ["Baleka!", "Awu…", "Baleka!"]
 
 var male_death_take := 0
@@ -179,8 +180,8 @@ func on_gunfire(at: Vector2) -> void:
 
 func escape_parameters(state: Dictionary) -> void:
 	var body: Actor = state["body"]
-	var towards_west := body.position.x < street.SIZE.x * 0.5
-	state["escape_x"] = -ESCAPE_MARGIN if towards_west else street.SIZE.x + ESCAPE_MARGIN
+	var towards_west: bool = body.position.x < LEVEL_WIDTH * 0.5
+	state["escape_x"] = -ESCAPE_MARGIN if towards_west else LEVEL_WIDTH + ESCAPE_MARGIN
 	state["escape_lane"] = 184.0 if body.position.y < 335.0 else 520.0
 	state["escape_speed"] = rng.randf_range(108.0,155.0)
 
@@ -227,13 +228,13 @@ func advance_escape(state: Dictionary, delta: float) -> void:
 	var x_step := clampf(x_target-body.position.x,-speed*delta,speed*delta)
 	var next_x := body.position+Vector2(x_step,0)
 	# Escape remains simulated all the way to the actual ends of the stage.
-	var beyond := next_x.x < 5.0 or next_x.x > street.SIZE.x-5.0
+	var beyond: bool = next_x.x < 5.0 or next_x.x > LEVEL_WIDTH-5.0
 	if beyond or not street.blocked(next_x,5.0):
 		body.position = next_x
 	var displacement := body.position-start
 	body.animate(delta,displacement,displacement.angle() if displacement.length_squared()>0.001 else body.facing,false,true)
 	feedback.position = body.position
-	if body.position.x < -28.0 or body.position.x > street.SIZE.x+28.0:
+	if body.position.x < -28.0 or body.position.x > LEVEL_WIDTH+28.0:
 		state["escaped"] = true
 		body.visible = false
 		feedback.visible = false
