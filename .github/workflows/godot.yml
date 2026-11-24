@@ -22,8 +22,10 @@ jobs:
           chmod +x engine/Godot_v4.4.1-stable_linux.x86_64
       - name: Render and verify lateral collapse animation
         run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1-mesa-dri libosmesa6 xvfb
           python3 -m pip install -q --disable-pip-version-check vtk numpy Pillow
-          python3 tools/render_crowd_side.py
+          xvfb-run -a -s '-screen 0 1024x768x24' python3 tools/render_crowd_side.py
           python3 tools/verify_sidefall.py
       - name: Import and check scripts
         run: |
