@@ -6,9 +6,10 @@ const Feedback = preload("res://scripts/character_feedback.gd")
 const Props = preload("res://scripts/prop_library.gd")
 const BLOOD_STAIN = preload("res://assets/fx/blood_stain.svg")
 const Audio = preload("res://scripts/preview_audio.gd")
+const WeaponVisual = preload("res://scripts/weapon_visual.gd")
 const KIT := [
-	{"name":"Sidearm","size":12,"interval":0.24,"travel":420.0},
-	{"name":"Backup","size":10,"interval":0.31,"travel":400.0},
+	{"name":"Beretta 84FS","size":13,"interval":0.24,"travel":2400.0},
+	{"name":"CZ 75 P-07","size":12,"interval":0.31,"travel":2200.0},
 	{"name":"Long arm","size":24,"interval":0.14,"travel":490.0}
 ]
 const ROLES := {
@@ -22,6 +23,8 @@ const ROLES := {
 var avatar: Node2D
 var street: Node2D
 var audio: Node
+var held_visual: Node2D
+var shout_cooldown := 0.0
 var rng := RandomNumberGenerator.new()
 var actors: Array[Dictionary] = []
 var shots: Array[Dictionary] = []
@@ -34,7 +37,7 @@ var player_invincible := 0.0
 var cooldown := 0.0
 var reload_clock := 0.0
 var slot := 0
-var rounds := [12,10,24]
+var rounds := [14,12,24]
 var spares := [3,1,1]
 var unlocked := [true,false,false]
 var shots_fired := 0
@@ -55,6 +58,10 @@ func _ready() -> void:
 	rng.seed = 4872011
 	audio = Audio.new()
 	add_child(audio)
+	held_visual = WeaponVisual.new()
+	held_visual.configure(avatar)
+	held_visual.z_index = 6
+	add_child(held_visual)
 	spawn_group(false)
 	make_hud()
 	smoke_test = "--encounter-smoke" in OS.get_cmdline_user_args()
@@ -103,7 +110,7 @@ func spawn_character(at: Vector2, kind: String, look: int) -> void:
 		"max":int(ROLES[kind]["life"]),"alerted":false,
 		"cooldown":rng.randf_range(0.4,1.3),"attack":0.0,
 		"reaction":0.0,"wander":rng.randf_range(0,TAU),
-		"origin":at,"down":false,"visible_prop":true
+		"origin":at,"down":false,"visible_prop":true,"flee_said":false
 	})
 
 func make_hud() -> void:
@@ -177,6 +184,8 @@ func equip(number: int) -> void:
 	if number < 0 or number >= KIT.size() or not unlocked[number]:
 		return
 	slot = number
+	if is_instance_valid(held_visual):
+		held_visual.choose_slot(slot)
 	reload_clock = 0.0
 	audio.play_cue("pickup")
 	update_hud()
@@ -187,8 +196,8 @@ func refill() -> void:
 		return
 	if reload_clock > 0.0 or spares[slot] <= 0 or rounds[slot] >= int(KIT[slot]["size"]):
 		return
-	reload_clock = 1.0
-	audio.play_cue("pickup")
+	reload_clock = 1.35 if slot == 2 else 1.0
+	audio.play_cue("akm_reload" if slot == 2 else "beretta_reload" if slot == 0 else "cz75_reload")
 
 func fire_player() -> void:
 	if finished or player_hp <= 0 or cooldown > 0.0 or reload_clock > 0.0:
@@ -203,12 +212,14 @@ func fire_player() -> void:
 	if heading.length_squared() < 0.01:
 		heading=Vector2.RIGHT
 	add_shot(avatar.position+heading*10.0,heading,true,"spark",float(KIT[slot]["travel"]))
-	audio.play_cue("fire")
+	if is_instance_valid(held_visual):
+		held_visual.burst()
+	audio.play_cue("beretta_84fs_shot" if slot == 0 else ("cz75_shot" if slot == 1 else "fire"))
 	update_hud()
 
 func add_shot(start: Vector2, direction: Vector2, friendly: bool, kind: String, velocity: float) -> void:
 	shots.append({"point":start,"prior":start,"vector":direction.normalized()*velocity,
-	"friendly":friendly,"kind":kind,"life":1.05,"rotation":rng.randf_range(0,TAU)})
+	"friendly":friendly,"kind":kind,"life":0.32 if friendly else 1.05,"rotation":rng.randf_range(0,TAU)})
 	if shots.size()>90:
 		shots.pop_front()
 
@@ -249,6 +260,7 @@ func hit_enemy(target: Dictionary, amount: int) -> void:
 	var feedback = target["feedback"]
 	target["reaction"]=0.28
 	feedback.marked=true
+	feedback.show_caption("Awu…")
 	add_ground_mark(target["body"].position,1.3 if int(target["hp"]) <= 0 else 0.8)
 	if int(target["hp"]) <= 0:
 		target["down"]=true
@@ -271,7 +283,7 @@ func hurt_player() -> void:
 	add_ground_mark(avatar.position,0.6)
 	audio.play_cue("reaction")
 	if player_hp <= 0:
-		audio.play_cue("down")
+		audio.play_cue("saafiya_death")
 	update_hud()
 
 func update_character(target: Dictionary, delta: float) -> void:
@@ -301,11 +313,19 @@ func update_character(target: Dictionary, delta: float) -> void:
 		if not bool(target["alerted"]):
 			target["alerted"]=true
 			feedback.show_alert("?")
-			audio.play_cue("alert")
+			feedback.show_caption("Nangu!")
+			if shout_cooldown <= 0.0:
+				audio.play_cue("crowd_shout")
+				shout_cooldown = 3.2
+			else:
+				audio.play_cue("alert")
 		elif feedback.alert_time<=0.0 and feedback.alert=="?":
 			feedback.show_alert("!")
 		if target["kind"] == "runner":
 			if distance < 95.0:
+				if not bool(target["flee_said"]):
+					target["flee_said"] = true
+					feedback.show_caption("Baleka!")
 				motion = -to_avatar.normalized()*float(ROLES["runner"]["speed"])*delta
 		elif target["kind"] in ["knife","cudgel"]:
 			if distance>float(ROLES[target["kind"]]["reach"]):
@@ -356,11 +376,12 @@ func step_shots(delta: float) -> void:
 		s["rotation"]+=delta*9.0
 		s["life"]-=delta
 		var p: Vector2=s["point"]
+		var previous: Vector2=s["prior"]
 		var remove: bool = float(s["life"])<=0.0 or street.blocked(p,2.0)
 		if not remove:
 			if bool(s["friendly"]):
 				for enemy in actors:
-					if not bool(enemy["down"]) and enemy["body"].position.distance_to(p) < 12.0:
+					if not bool(enemy["down"]) and Geometry2D.get_closest_point_to_segment(enemy["body"].position,previous,p).distance_to(enemy["body"].position) < 12.0:
 						hit_enemy(enemy,1)
 						shots_hit+=1
 						remove=true
@@ -384,6 +405,9 @@ func _physics_process(delta: float) -> void:
 	elapsed+=delta
 	cooldown=maxf(0.0,cooldown-delta)
 	player_invincible=maxf(0.0,player_invincible-delta)
+	shout_cooldown=maxf(0.0,shout_cooldown-delta)
+	if is_instance_valid(held_visual):
+		held_visual.reload_amount = clampf(reload_clock,0.0,1.0)
 	if reload_clock>0:
 		reload_clock=maxf(0.0,reload_clock-delta)
 		if reload_clock<=0:

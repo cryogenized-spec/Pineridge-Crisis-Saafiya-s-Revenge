@@ -38,3 +38,9 @@ The main Godot scene now includes actual fictional action gameplay: seven initia
 All 12 NPC wardrobes now include a separate 8-frame, 3D VTK-rendered collapse atlas, loaded by the in-game actor and displayed through the encounter and F4 review scenes. These are authored from the actual character meshes, not merely rotated versions of the standing sprite. The Python art-generation source is in `tools/render_crowd.py` and `tools/render_crowd_down.py` (requires vtk, numpy and Pillow). The sprite integrity check now enforces 57 exact PNGs.
 
 V20: The arcade impact ground effects now use a pre-rendered, softly shaded stylized stain sprite, with controlled scatter and a strict pooled maximum; this replaces unshaded circular decals without introducing per-impact Node2D allocations. Blood remains a fictional gameplay visual, not a medical or ballistic simulation.
+
+
+## V21 left-handed pistol and audio event hooks
+Approved Saafiya sprites remain unchanged. A small independent Beretta 84FS-inspired cosmetic sprite sits left-of-centre, following the character’s upper-body facing angle, with a restrained transient flash/haze effect. The opening fiction inventory shows 13 rounds plus one preloaded. The second equipment slot is labeled CZ 75 P-07, in keeping with the original HTML source. The fictional travel speed is shortened visually, with segment collision preventing high-speed shots passing through a character between frames.
+
+Dedicated recording hooks are ready for `saafiya_death`, `beretta_84fs_shot`, `cz75_shot`, `akm_reload`, and `crowd_shout` using WAV, OGG or MP3 files in `assets/audio/`. No actual audio recordings were attached or committed yet, so the sound system uses simple tones until replaced. The optional `crowd_shout` is deliberately an unintelligible ambient vocal cue, not authentic isiZulu. Captions `Nangu!`, `Baleka!`, and `Awu…` are taken from the original HTML game's existing dialogue.
