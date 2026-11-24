@@ -56,3 +56,5 @@ A separate Beretta-inspired sprite and effects layer tracks Saafiya's facing ang
 
 ## V23 art and animation
 Twelve backward-fall VTK sprite atlases supplement the original twelve forward/down atlases (8 frames each). Alternate fall direction is chosen on impact. Ambient pedestrians now respond to the same generic arcade hit interactions. Firearm tracer and line visuals are gone; thrown objects remain small unlit sprites. A capped contact-colour particle effect supplements stains. All twelve new atlases are checksum-tested in native and Web workflows.
+
+The F4 character workbench can review both 3D collapse atlases: press N to switch front/back orientation, 8 to replay the down animation, and Up/Down to change the model. The scripted workbench smoke test checks that the alternate texture loads.

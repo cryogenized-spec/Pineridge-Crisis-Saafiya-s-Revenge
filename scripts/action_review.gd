@@ -9,6 +9,7 @@ var audio: Audio
 var accessory := Sprite2D.new()
 var prop_index := 0
 var wardrobe := 0
+var fall_backward := false
 var heading := 0.0
 var status: Label
 var smoke := false
@@ -40,13 +41,14 @@ func make_actor() -> void:
 		actor.queue_free()
 	actor = Actor.new()
 	actor.wardrobe_index = wardrobe
+	actor.fall_backward = fall_backward
 	actor.position = CENTER
 	actor.scale = Vector2.ONE*6.0
 	add_child(actor)
 	actor.z_index = 1
 
 func refresh() -> void:
-	status.text = "Look %02d   |   %s   |   Display prop: %s   |   Decals: %s" % [wardrobe+1,Feedback.State.keys()[feedback.state],Props.ITEMS[prop_index].label,"ON" if feedback.blood_enabled else "OFF"]
+	status.text = "Look %02d   |   %s   |   Prop: %s   |   Fall: %s   |   Decals: %s" % [wardrobe+1,Feedback.State.keys()[feedback.state],Props.ITEMS[prop_index].label,"BACK" if fall_backward else "FRONT","ON" if feedback.blood_enabled else "OFF"]
 	queue_redraw()
 
 func change_state(next: Feedback.State, cue: String = "") -> void:
@@ -78,6 +80,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			feedback.marked = true
 			change_state(Feedback.State.DOWN,"reaction")
 		KEY_B: feedback.blood_enabled = not feedback.blood_enabled
+		KEY_N:
+			fall_backward = not fall_backward
+			actor.fall_backward = fall_backward
+			if feedback.state==Feedback.State.DOWN:
+				feedback.select(Feedback.State.DOWN)
 		KEY_R:
 			feedback.reset()
 			audio.play_cue("reset")
@@ -106,7 +113,7 @@ func _physics_process(delta: float) -> void:
 	actor.animate(delta,Vector2.from_angle(heading)*speed*delta if moving else Vector2.ZERO,heading,false,running)
 	var pose := feedback.pose()
 	actor.set_down_progress(feedback.progress() if feedback.state==Feedback.State.DOWN else -1.0)
-	if feedback.state==Feedback.State.DOWN and actor.npc_down!=null:
+	if feedback.state==Feedback.State.DOWN and (actor.npc_down!=null or actor.npc_down_back!=null):
 		actor.scale=Vector2.ONE*6.0
 		actor.rotation=0.0
 		actor.position=CENTER
@@ -145,6 +152,7 @@ func _physics_process(delta: float) -> void:
 		elif test_step == 4 and feedback.progress() >= 1.0:
 			assert(not feedback.carried)
 			assert(feedback.state == Feedback.State.DOWN)
+			assert(actor.npc_down_back != null)
 			print("Action review: pickup, carry, set down, alert, stumble and down states exercised.")
 			get_tree().quit()
 	refresh()
@@ -162,6 +170,6 @@ func _draw() -> void:
 	var item: Dictionary = Props.ITEMS[prop_index]
 	draw_texture_rect(item.texture,Rect2(944,140,150,150),false)
 	draw_string(ThemeDB.fallback_font,Vector2(818,316),item.label,HORIZONTAL_ALIGNMENT_LEFT,-1,20,Color("#eee4dc"))
-	var lines := ["1 / 2 / 3   Idle / Walk / Run","4 / 5   Pick up / Set down (objects)","6 / 7 / 8   Startled / Stumble / Down","B   Toggle subtle colour decals","P   Next prop display","Arrows   Rotate / Change wardrobe","R   Reset       Esc   Return"]
+	var lines := ["1 / 2 / 3   Idle / Walk / Run","4 / 5   Pick up / Set down (objects)","6 / 7 / 8   Startled / Stumble / Down","B   Toggle decals  ·  N   Change fall direction","P   Next prop display","Arrows   Rotate / Change wardrobe","R   Reset       Esc   Return"]
 	for i in range(lines.size()):
 		draw_string(ThemeDB.fallback_font,Vector2(818,356+i*37),lines[i],HORIZONTAL_ALIGNMENT_LEFT,-1,16,Color("#c6bfca"))
