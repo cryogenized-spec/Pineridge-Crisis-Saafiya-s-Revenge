@@ -30,6 +30,7 @@ func _ready() -> void:
 	for i in range(positions.size()):
 		var person:=Actor.new()
 		person.position=positions[i]
+		person.wardrobe_index = i
 		person.jacket=[Color("#907343"),Color("#686685"),Color("#466776"),Color("#874857"),Color("#61735d")][i%5]
 		person.skin=[Color("#a36c52"),Color("#c88d6b"),Color("#8f5846")][i%3]
 		person.set_meta("home",positions[i])
@@ -149,13 +150,13 @@ func _physics_process(delta:float) -> void:
 	camera.position=player.position
 	for person in pedestrians:
 		var p:Vector2=person.get_meta("home")
-		var t:float=elapsed*0.6+float(person.get_meta("offset"))
+		var t:float=elapsed*(0.45 + 0.08 * float(person.wardrobe_index % 5))+float(person.get_meta("offset"))
 		var desired:=p+Vector2(sin(t)*15,0)
 		var previous:Vector2=person.position
 		if not street.blocked(desired,5):
 			person.position=desired
 		var movement:Vector2=person.position-previous
-		person.animate(delta,movement,0.0 if cos(t)>0 else PI)
+		person.animate(delta,movement,0.0 if cos(t)>0 else PI, false, false)
 	status.text="%s  ·  %03d:%03d  ·  Native visual prototype" % ["CROUCH" if low else ("RUN" if running else "WALK"),int(player.position.x),int(player.position.y)]
 	queue_redraw()
 

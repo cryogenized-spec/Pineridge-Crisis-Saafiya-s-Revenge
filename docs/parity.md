@@ -21,3 +21,7 @@ Godot 4.4.1 is the pinned initial engine version. Run the headless scene smoke t
 ## V9 animation and scenery pass
 
 Run cadence: two brief speed troughs per 0.64 s cycle, positive speed throughout, preserving nominal average on unobstructed straight paths. Q and C are toggles as in the HTML reference. Animation phase advances on actual movement only. Layered V9 PNGs enable independent lower-body travel and upper-body look orientation for the unarmed character; fallback retains existing whole-body sprite. Scenery is a fictional non-navigable retail backdrop with roadside planting and southern greenbelt, not a building or security layout. Existing street obstacle arrangement is intentionally revised. Audio and model-specific weapon effects not ported. Visual playtesting remains required.
+
+## V10 general-purpose adult crowd art
+
+Twelve runtime-rendered wardrobe presets, varied body builds, hair, headwear, short/long trousers and footwear. Existing ambient pedestrians use these instead of uniform placeholders. Generic walk, idle and run pose rendering shares the existing motion interface; only ambient walking is wired into the scene. No external sprite downloads or image generation. Narrative-role assignment and combat behaviour are not implemented in this pass. Visual inspection in the running Godot scene remains outstanding.

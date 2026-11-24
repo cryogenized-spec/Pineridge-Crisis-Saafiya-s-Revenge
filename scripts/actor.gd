@@ -16,6 +16,8 @@ var run_texture: Texture2D
 var gait_phase := 0.0
 var gait_running := false
 var gait_moving := false
+const Wardrobe = preload("res://scripts/crowd_wardrobe.gd")
+var wardrobe_index := -1
 var hero := false
 var facing := 0.0
 var travel := 0.0
@@ -76,6 +78,9 @@ func animate(delta: float, displacement: Vector2, aim_angle: float, low: bool = 
 
 func _draw() -> void:
 	draw_circle(Vector2(2,3),10,Color(0.09,0.07,0.12,0.27),true,-1,true)
+	if not hero and wardrobe_index >= 0:
+		Wardrobe.render(self, wardrobe_index, travel, facing, stride, motion, gait_running)
+		return
 	if hero and has_layered_atlases():
 		var is_run := gait_running and gait_moving
 		var frame := sprite_frame()
