@@ -31,3 +31,22 @@ jobs:
           path: |
             import.log
             smoke.log
+      - name: Install Linux export templates
+        if: success()
+        run: |
+          curl -fsSL --retry 3 https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz -o /tmp/templates.tpz
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.4.1.stable"
+          unzip -j /tmp/templates.tpz templates/linux_release.x86_64 templates/linux_debug.x86_64 -d "$HOME/.local/share/godot/export_templates/4.4.1.stable"
+      - name: Export Linux x86_64
+        run: |
+          set -o pipefail
+          mkdir -p build
+          engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . --export-release Linux build/pineridge.x86_64 2>&1 | tee export.log
+          test -s build/pineridge.x86_64
+          chmod +x build/pineridge.x86_64
+          build/pineridge.x86_64 --headless --quit-after 90
+          tar -czf pineridge-linux-x86_64.tar.gz -C build pineridge.x86_64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pineridge-linux-x86_64
+          path: pineridge-linux-x86_64.tar.gz
