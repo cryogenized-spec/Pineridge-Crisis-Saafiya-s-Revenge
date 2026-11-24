@@ -22,6 +22,8 @@ var npc_idle: Texture2D
 var npc_walk: Texture2D
 var npc_run: Texture2D
 var npc_down: Texture2D
+var npc_down_back: Texture2D
+var fall_backward := false
 var down_phase := -1.0
 var cosmetic_accessory: Texture2D
 var show_accessory := false
@@ -42,6 +44,7 @@ func _ready() -> void:
 		npc_walk = load_npc_texture(prefix + "walk.png", Vector2(512,256))
 		npc_run = load_npc_texture(prefix + "run.png", Vector2(512,256))
 		npc_down = load_npc_texture(prefix + "down.png", Vector2(512,256))
+		npc_down_back = load_npc_texture(prefix + "down_back.png", Vector2(512,256))
 		cosmetic_accessory = load_npc_texture("res://assets/characters/accessories/backpack.png", Vector2(128,128))
 		texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	if hero:
@@ -111,10 +114,13 @@ func animate(delta: float, displacement: Vector2, aim_angle: float, low: bool = 
 
 func _draw() -> void:
 	draw_circle(Vector2(2,3),10,Color(0.09,0.07,0.12,0.27),true,-1,true)
-	if not hero and wardrobe_index >= 0 and down_phase >= 0.0 and npc_down != null:
+	if not hero and wardrobe_index >= 0 and down_phase >= 0.0 and (npc_down != null or npc_down_back != null):
 		var down_frame := mini(7,int(floor(down_phase*8.0)))
 		var source := Rect2((down_frame%4)*TILE,floori(float(down_frame)/4.0)*TILE,TILE,TILE)
-		draw_gait_layer(npc_down,source,facing,Vector2.ONE*DISPLAY_SIZE)
+		var chosen: Texture2D = npc_down_back if fall_backward and npc_down_back != null else npc_down
+		if chosen == null:
+			chosen = npc_down_back
+		draw_gait_layer(chosen,source,facing,Vector2.ONE*DISPLAY_SIZE)
 		return
 	if not hero and wardrobe_index >= 0 and has_npc_atlases():
 		var frame := int(floor(gait_phase * 8.0)) % 8 if gait_moving else 0

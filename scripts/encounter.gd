@@ -32,6 +32,8 @@ const ACTION_REACH := 480.0
 const CHARACTER_HIT_RADIUS := 18.0
 var shots: Array[Dictionary] = []
 var motes: Array[Dictionary] = []
+var contact_splashes: Array[Dictionary] = []
+const MAX_CONTACT_SPLASHES := 48
 var ground_marks: Array[Dictionary] = []
 const MAX_GROUND_MARKS := 72
 var loot: Array[Dictionary] = []
@@ -273,8 +275,10 @@ func affect_bystander(target: Dictionary) -> void:
 	feedback.marked = true
 	feedback.show_caption("Awu…")
 	feedback.select(Feedback.State.DOWN)
+	person.fall_backward = rng.randf() < 0.60
 	person.set_down_progress(0.0)
 	add_ground_mark(person.position,0.8)
+	show_contact_splash(person.position)
 	audio.play_cue("reaction")
 
 func add_shot(start: Vector2, direction: Vector2, friendly: bool, kind: String, velocity: float) -> void:
@@ -313,6 +317,20 @@ func add_ground_mark(at: Vector2, strength: float = 1.0) -> void:
 	while ground_marks.size()>MAX_GROUND_MARKS:
 		ground_marks.pop_front()
 
+func show_contact_splash(at: Vector2) -> void:
+	# Transient two-dimensional stage effect, placed at the contact point.
+	for i in range(5):
+		var direction := Vector2.from_angle(rng.randf_range(0,TAU))
+		contact_splashes.append({
+			"point":at + direction*rng.randf_range(1.0,3.0),
+			"velocity":direction*rng.randf_range(10.0,28.0),
+			"life":rng.randf_range(0.12,0.24),
+			"max":0.24,
+			"radius":rng.randf_range(1.1,2.4)
+		})
+	while contact_splashes.size()>MAX_CONTACT_SPLASHES:
+		contact_splashes.pop_front()
+
 func hit_enemy(target: Dictionary, amount: int) -> void:
 	if bool(target["down"]):
 		return
@@ -322,8 +340,11 @@ func hit_enemy(target: Dictionary, amount: int) -> void:
 	feedback.marked=true
 	feedback.show_caption("Awu…")
 	add_ground_mark(target["body"].position,1.3 if int(target["hp"]) <= 0 else 0.8)
+	show_contact_splash(target["body"].position)
 	if int(target["hp"]) <= 0:
 		target["down"]=true
+		var falling: Actor = target["body"]
+		falling.fall_backward = rng.randf() < 0.60
 		target["attachment"].visible=false
 		feedback.select(Feedback.State.DOWN)
 		defeated+=1
@@ -341,6 +362,7 @@ func hurt_player() -> void:
 	player_hp = maxi(0,player_hp-1)
 	player_invincible = 0.82
 	add_ground_mark(avatar.position,0.6)
+	show_contact_splash(avatar.position)
 	audio.play_cue("reaction")
 	if player_hp <= 0:
 		audio.play_cue("saafiya_death")
@@ -354,7 +376,7 @@ func update_character(target: Dictionary, delta: float) -> void:
 	feedback.advance(delta)
 	feedback.position=body.position
 	if bool(target["down"]):
-		if body.npc_down != null:
+		if body.npc_down != null or body.npc_down_back != null:
 			body.set_down_progress(feedback.progress())
 			body.rotation=0.0
 			body.scale=Vector2.ONE
@@ -456,6 +478,13 @@ func step_shots(delta: float) -> void:
 		motes[i]["life"]-=delta
 		if float(motes[i]["life"])<=0:
 			motes.remove_at(i)
+	for i in range(contact_splashes.size()-1,-1,-1):
+		var splash: Dictionary = contact_splashes[i]
+		splash["point"] += splash["velocity"]*delta
+		splash["velocity"] *= exp(-delta*8.0)
+		splash["life"] -= delta
+		if float(splash["life"]) <= 0.0:
+			contact_splashes.remove_at(i)
 
 func _physics_process(delta: float) -> void:
 	for item in bystanders:
@@ -489,6 +518,10 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
+	for splash in contact_splashes:
+		var alpha := clampf(float(splash["life"])/float(splash["max"]),0.0,1.0)
+		var point: Vector2 = splash["point"]
+		draw_circle(point,float(splash["radius"])*alpha,Color(0.55,0.075,0.10,alpha*0.80),true,-1,true)
 	for mark in ground_marks:
 		var p: Vector2 = mark["point"]
 		var size: float = mark["size"]
@@ -518,6 +551,7 @@ func run_test() -> void:
 		assert(ResourceLoader.exists("res://assets/audio/" + clip), "Missing audio import: " + clip)
 	assert(actors.size()==7)
 	assert(actors[0]["body"].npc_down != null)
+	assert(actors[0]["body"].npc_down_back != null)
 	assert(player_hp==3)
 	assert(bystanders.size() > 0)
 	var foe: Dictionary=actors[0]

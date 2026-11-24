@@ -48,3 +48,7 @@ Dedicated recording hooks are ready for `saafiya_death`, `beretta_84fs_shot`, `c
 
 ## Supplied sound effects (V22)
 All six audio recordings provided for the character and weapons are now committed and exported with the game: death cry, Beretta 84FS, CZ 75 P-07, AKM reload, AKM single shot, and ambient crowd shouting. The AKM single-shot recording is the original 1.63-second MP3 byte-for-byte, not a synthesized replacement. Former WAVs were converted to compact Ogg Vorbis and the crowd cue level was raised modestly. The third equipment slot is now labeled AKM and plays `akm_shot.mp3` when used. Both Linux and GitHub Pages builds verify audio checksums and test Godot asset importing. For details see `assets/audio/README.md`.
+
+
+## V23 character reactions and projectile presentation
+The gameplay now removes all bright firearm tracer lines and uses instantaneous abstract arcade interaction collisions against both enemies and ordinary ambient characters. All 13 background pedestrians are registered with the same contact-and-collapse system. A second set of twelve original-mesh, eight-frame VTK collapse animations adds alternate directions, chosen per character. Brief localized contact colour splashes are pooled and capped; ground stains remain capped. The audio files imported in V22 remain checked by CI. This is cinematic stylization, not ballistic or medical simulation.

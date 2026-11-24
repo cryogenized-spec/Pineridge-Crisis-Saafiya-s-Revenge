@@ -52,3 +52,7 @@ All 12 NPC appearances now have eight-frame pre-rendered three-dimensional fall/
 
 ## V21 visual/equipment and dialogue parity
 A separate Beretta-inspired sprite and effects layer tracks Saafiya's facing angle, biased to the left; movement atlases remain untouched. The other equipment slots retain their existing generic artwork. Event-specific audio filenames for Beretta, CZ 75, AK-pattern reload, Saafiya's death cry and generic crowd shouting are mapped but await supplied clips. Legacy HTML callout captions have been restored. Shot velocities are fictional visual gameplay values rather than real-world weapon performance.
+
+
+## V23 art and animation
+Twelve backward-fall VTK sprite atlases supplement the original twelve forward/down atlases (8 frames each). Alternate fall direction is chosen on impact. Ambient pedestrians now respond to the same generic arcade hit interactions. Firearm tracer and line visuals are gone; thrown objects remain small unlit sprites. A capped contact-colour particle effect supplements stains. All twelve new atlases are checksum-tested in native and Web workflows.
