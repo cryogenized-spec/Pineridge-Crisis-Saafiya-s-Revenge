@@ -5,11 +5,11 @@ const Actor = preload("res://scripts/actor.gd")
 const Effects = preload("res://scripts/visual_effects.gd")
 const START := Vector2(132,358)
 const WAYPOINT := Vector2(2060,350)
-var street: Node2D
-var player: Node2D
+var street: Street
+var player: Actor
 var camera: Camera2D
-var effects: Node2D
-var pedestrians: Array[Node2D] = []
+var effects: Effects
+var pedestrians: Array[Actor] = []
 var status: Label
 var objective: Label
 var elapsed := 0.0
@@ -23,7 +23,7 @@ func _ready() -> void:
 	add_child(effects)
 	var positions := [Vector2(235,177),Vector2(316,511),Vector2(484,185),Vector2(561,474),Vector2(717,515),Vector2(890,180),Vector2(998,464),Vector2(1268,149),Vector2(1620,191),Vector2(1845,507),Vector2(353,189),Vector2(1510,513),Vector2(1977,178)]
 	for i in range(positions.size()):
-		var person=Actor.new()
+		var person:=Actor.new()
 		person.position=positions[i]
 		person.jacket=[Color("#907343"),Color("#686685"),Color("#466776"),Color("#874857"),Color("#61735d")][i%5]
 		person.skin=[Color("#a36c52"),Color("#c88d6b"),Color("#8f5846")][i%3]
@@ -142,8 +142,10 @@ func _draw() -> void:
 	pass
 
 func _process(_delta:float) -> void:
+	effects.marker_visible=phase<2
 	if phase<2 and is_instance_valid(player):
 		var target:=WAYPOINT if phase==0 else START
+		effects.marker_position=target
 		if player.position.distance_to(target)<36:
 			objective.text="E · Check east marker" if phase==0 else "E · Complete return"
 		else:

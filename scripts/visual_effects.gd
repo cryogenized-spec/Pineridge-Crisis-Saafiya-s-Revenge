@@ -5,6 +5,8 @@ var decals: Array[Dictionary] = []
 var rng := RandomNumberGenerator.new()
 var pulse_time := 0.0
 var pulse_origin := Vector2.ZERO
+var marker_visible := true
+var marker_position := Vector2(2060,350)
 
 func burst(origin: Vector2) -> void:
 	pulse_origin = origin
@@ -33,6 +35,9 @@ func _process(delta:float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
+	if marker_visible:
+		draw_arc(marker_position,18,0,TAU,48,Color(0.96,0.78,0.47,0.85),1.4,true)
+		draw_circle(marker_position,4,Color(0.96,0.78,0.47,0.85),true,-1,true)
 	for mark in decals:
 		draw_circle(mark.p,mark.r,Color(0.36,0.10,0.19,0.30),true,-1,true)
 	if pulse_time>0:
