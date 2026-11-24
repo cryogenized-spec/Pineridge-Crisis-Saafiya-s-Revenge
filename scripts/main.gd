@@ -4,12 +4,14 @@ const Street = preload("res://scripts/street.gd")
 const Actor = preload("res://scripts/actor.gd")
 const Effects = preload("res://scripts/visual_effects.gd")
 const Haze = preload("res://scripts/street_haze.gd")
+const Encounter = preload("res://scripts/encounter.gd")
 const START := Vector2(132,358)
 const WAYPOINT := Vector2(2060,350)
 var street: Street
 var player: Actor
 var camera: Camera2D
 var effects: Effects
+var encounters
 var pedestrians: Array[Actor] = []
 var status: Label
 var objective: Label
@@ -45,6 +47,9 @@ func _ready() -> void:
 	player.hero=true
 	player.position=START
 	add_child(player)
+	encounters=Encounter.new()
+	encounters.configure(player,street)
+	add_child(encounters)
 	camera=Camera2D.new()
 	camera.zoom=Vector2(2,2)
 	camera.position=START
@@ -91,7 +96,7 @@ func make_hud() -> void:
 	v.add_child(status)
 	var help:=Label.new()
 	help.position=Vector2(18,684)
-	help.text="WASD / arrows: move     Q: toggle run     C: toggle crouch     E: interact     V: effects preview     F: fullscreen     F2: wardrobe   F3: props   F4: poses   Esc: reset"
+	help.text="WASD / arrows: move     Q: toggle run     C: toggle crouch     E: interact     Click: action   R: refill   1–3: slots   V: effects   F: fullscreen     F2: wardrobe   F3: props   F4: poses   Esc: reset"
 	help.add_theme_font_size_override("font_size",17)
 	help.modulate=Color("#f3ddc7")
 	layer.add_child(help)
@@ -110,21 +115,37 @@ func _unhandled_key_input(event:InputEvent) -> void:
 			KEY_F:
 				var mode:=DisplayServer.window_get_mode()
 				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if mode==DisplayServer.WINDOW_MODE_FULLSCREEN else DisplayServer.WINDOW_MODE_FULLSCREEN)
+			KEY_R:
+				encounters.refill()
+			KEY_1:
+				encounters.equip(0)
+			KEY_2:
+				encounters.equip(1)
+			KEY_3:
+				encounters.equip(2)
 			KEY_Q:
 				run_enabled = not run_enabled
 			KEY_C:
 				crouch_enabled = not crouch_enabled
 			KEY_E:
+				if encounters.collect_nearby():
+					return
 				if phase==0 and player.position.distance_to(WAYPOINT)<36:
 					phase=1
+					encounters.set_phase(1)
 					objective.text="Marker checked · return to the west marker"
 				elif phase==1 and player.position.distance_to(START)<36:
 					phase=2
+					encounters.set_phase(2)
 					objective.text="Route complete · Esc to restart"
 			KEY_V:
 				if preview_timer<=0:
 					effects.burst(player.position+Vector2(0,-19))
 					preview_timer=0.3
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_LEFT and event.pressed and not event.is_echo():
+		encounters.fire_player()
 
 func _physics_process(delta:float) -> void:
 	elapsed+=delta
@@ -142,6 +163,8 @@ func _physics_process(delta:float) -> void:
 		var midpoint := run_phase + delta / RUN_CYCLE_SECONDS * 0.5
 		cadence = 1.0 - FOOTFALL_VARIATION * cos(midpoint * TAU * 2.0)
 	var motion:=direction.normalized()*speed*cadence*delta
+	if encounters.player_hp<=0 or encounters.finished:
+		motion=Vector2.ZERO
 	var old:Vector2=player.position
 	var next:=old+Vector2(motion.x,0)
 	if not street.blocked(next):
@@ -167,7 +190,7 @@ func _physics_process(delta:float) -> void:
 			person.position=desired
 		var movement:Vector2=person.position-previous
 		person.animate(delta,movement,0.0 if cos(t)>0 else PI, false, false)
-	status.text="%s  ·  %03d:%03d  ·  Native visual prototype" % ["CROUCH" if low else ("RUN" if running else "WALK"),int(player.position.x),int(player.position.y)]
+	status.text="%s  ·  %03d:%03d  ·  Playable arcade encounter" % ["CROUCH" if low else ("RUN" if running else "WALK"),int(player.position.x),int(player.position.y)]
 	queue_redraw()
 
 func _draw() -> void:

@@ -1,7 +1,7 @@
 extends Node
 # Replaceable, deliberately abstract cues, not recordings of weapons.
 var player: AudioStreamPlayer
-const CUES := {"pickup":440.0,"set_down":280.0,"alert":660.0,"reaction":210.0,"reset":520.0}
+const CUES := {"pickup":440.0,"set_down":280.0,"alert":660.0,"reaction":210.0,"reset":520.0,"fire":350.0,"down":190.0}
 
 func _ready() -> void:
 	player = AudioStreamPlayer.new()
