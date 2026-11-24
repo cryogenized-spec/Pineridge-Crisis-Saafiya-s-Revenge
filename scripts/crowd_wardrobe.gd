@@ -22,6 +22,9 @@ static func limb(canvas: Node2D, a: Vector2, b: Vector2, color: Color, width: fl
 	canvas.draw_line(a, b, color.darkened(0.27), width + 0.8, true)
 	canvas.draw_line(a, b, color, width, true)
 	canvas.draw_circle(b, width * 0.48, color, true, -1, true)
+	var normal := (b-a).normalized().orthogonal()
+	canvas.draw_line(a+normal*width*0.19,b+normal*width*0.19,color.lightened(0.13),maxf(0.45,width*0.30),true)
+	canvas.draw_line(a-normal*width*0.28,b-normal*width*0.28,color.darkened(0.18),0.55,true)
 
 static func oval(canvas: Node2D, p: Vector2, radii: Vector2, color: Color, angle: float = 0.0) -> void:
 	var points := PackedVector2Array()
@@ -29,6 +32,14 @@ static func oval(canvas: Node2D, p: Vector2, radii: Vector2, color: Color, angle
 		var t := TAU * float(i) / 32.0
 		points.append(p + Vector2(cos(t) * radii.x, sin(t) * radii.y).rotated(angle))
 	canvas.draw_colored_polygon(points, color)
+
+# Layered tonal shading with local highlights and a rounded silhouette.
+static func shaded_oval(canvas: Node2D, p: Vector2, radii: Vector2, color: Color, angle: float = 0.0) -> void:
+	oval(canvas,p,radii,color.darkened(0.32),angle)
+	for i in range(1,7):
+		var t := float(i)/7.0
+		var shift := Vector2(0.7,-0.7)*t
+		oval(canvas,p+shift,radii*(1.0-t*0.65),color.darkened(0.18).lerp(color.lightened(0.17),t),angle)
 
 static func render(canvas: Node2D, index: int, travel: float, facing: float, phase: float, motion: float, running: bool) -> void:
 	var d := look(index)
@@ -57,9 +68,14 @@ static func render(canvas: Node2D, index: int, travel: float, facing: float, pha
 			oval(canvas, ankle + Vector2(1.0,0), Vector2(3.1,1.8), Color("#302e33"))
 			canvas.draw_line(ankle + Vector2(1.8,-1.1), ankle + Vector2(2.3,1.0), Color("#aaa09a"),0.65,true)
 	canvas.draw_set_transform(Vector2.ZERO, facing)
-	oval(canvas, Vector2(-0.8,0), Vector2(5.8,6.7*build), shirt.darkened(0.30))
-	oval(canvas, Vector2(-0.6,0), Vector2(5.1,6.2*build), shirt)
-	oval(canvas, Vector2(0.7,-1.7), Vector2(3.5,3.8*build),shirt.lightened(0.11))
+	shaded_oval(canvas, Vector2(-0.8,0), Vector2(5.8,6.7*build), shirt)
+	# Fold lines remain subtle and readable at the native scale.
+	for side in [-1,1]:
+		canvas.draw_line(Vector2(-4.2,side*2.9*build),Vector2(-2.7,side*4.7*build),shirt.darkened(0.20),0.55,true)
+		canvas.draw_line(Vector2(-2.1,side*4.8*build),Vector2(0.3,side*5.7*build),shirt.lightened(0.15),0.45,true)
+	if index == 4 or index == 8:
+		canvas.draw_line(Vector2(-2.5,-2.8),Vector2(-2.5,2.8),shirt.lightened(0.40),0.9,true)
+		canvas.draw_line(Vector2(-1.1,-1.7),Vector2(-1.1,1.7),shirt.lightened(0.25),0.7,true)
 	for side in [-1,1]:
 		var swing := sin(phase + (PI if side > 0 else 0.0)) * motion
 		var shoulder := Vector2(-0.9,side*5.0*build)
@@ -85,10 +101,13 @@ static func render(canvas: Node2D, index: int, travel: float, facing: float, pha
 	elif hair_style == 2:
 		oval(canvas,Vector2(-2.6,0),Vector2(2.5,3.3),hair)
 	if hat == 1:
-		oval(canvas,Vector2(0.7,0.5),Vector2(4.0,4.4),Color("#343642"),-0.35)
+		shaded_oval(canvas,Vector2(0.7,0.5),Vector2(4.0,4.4),Color("#343642"),-0.35)
+		for i in range(7):
+			var a := TAU*float(i)/7.0
+			canvas.draw_line(Vector2(0.7,0.5)+Vector2.from_angle(a)*2.6,Vector2(0.7,0.5)+Vector2.from_angle(a)*3.7,Color("#565660"),0.45,true)
 		canvas.draw_arc(Vector2(0.7,0.5),3.0,0,TAU,20,Color("#696673"),0.65,true)
 	elif hat == 2:
-		oval(canvas,Vector2(1.5,0),Vector2(4.2,3.9),Color("#565960"))
+		shaded_oval(canvas,Vector2(1.5,0),Vector2(4.2,3.9),Color("#565960"))
 		oval(canvas,Vector2(5.0,0),Vector2(2.2,2.7),Color("#565960"))
 	elif hat == 3:
 		canvas.draw_arc(Vector2(1.6,0),4.1,-1.25,1.25,16,Color("#b79d78"),1.3,true)

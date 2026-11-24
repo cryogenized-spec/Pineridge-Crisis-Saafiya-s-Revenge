@@ -15,3 +15,5 @@ The native player renderer now supports the approved V8 transparent walking and 
 V9 adds optional independent upper/lower gait atlases, rhythmic running motion and a landscaped retail-district backdrop. Q/C toggle their movement states. Extract the V9 asset pack into the project root; no new image-generation art was used. The separate upper-body orientation is a visual look state, not a new combat mechanic.
 
 V10 replaces uniform ambient NPC art with twelve code-drawn adult streetwear variants. The same wardrobe renderer supports idle, walk and run poses and requires no additional binary assets. It is a presentation pass; no encounter mechanics were added.
+
+Press **F2** to open the character workbench, which displays all twelve wardrobe presets. Use 1/2/3 for idle/walk/run, arrows to rotate, T for auto-turn, Z for native-scale comparison, Esc to return. V11 adds shaded garment detail and a separate automated review-scene test.

@@ -25,3 +25,7 @@ Run cadence: two brief speed troughs per 0.64 s cycle, positive speed throughout
 ## V10 general-purpose adult crowd art
 
 Twelve runtime-rendered wardrobe presets, varied body builds, hair, headwear, short/long trousers and footwear. Existing ambient pedestrians use these instead of uniform placeholders. Generic walk, idle and run pose rendering shares the existing motion interface; only ambient walking is wired into the scene. No external sprite downloads or image generation. Narrative-role assignment and combat behaviour are not implemented in this pass. Visual inspection in the running Godot scene remains outstanding.
+
+## V11 crowd review
+
+NPC art gains tonal shading, garment and headwear details. A dedicated F2 workbench renders all twelve wardrobe presets using the same actor renderer as the street and allows gait and direction review at gameplay scale. CI includes a review-scene smoke test. Visual approval and full encounter parity are still outstanding.
