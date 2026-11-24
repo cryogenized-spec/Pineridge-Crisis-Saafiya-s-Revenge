@@ -91,7 +91,7 @@ func make_hud() -> void:
 	v.add_child(status)
 	var help:=Label.new()
 	help.position=Vector2(18,684)
-	help.text="WASD / arrows: move     Q: toggle run     C: toggle crouch     E: interact     V: effects preview     F: fullscreen     F2: wardrobe   F3: props   Esc: reset"
+	help.text="WASD / arrows: move     Q: toggle run     C: toggle crouch     E: interact     V: effects preview     F: fullscreen     F2: wardrobe   F3: props   F4: poses   Esc: reset"
 	help.add_theme_font_size_override("font_size",17)
 	help.modulate=Color("#f3ddc7")
 	layer.add_child(help)
@@ -99,6 +99,8 @@ func make_hud() -> void:
 func _unhandled_key_input(event:InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:
+			KEY_F4:
+				get_tree().change_scene_to_file("res://scenes/action_review.tscn")
 			KEY_F3:
 				get_tree().change_scene_to_file("res://scenes/prop_review.tscn")
 			KEY_F2:

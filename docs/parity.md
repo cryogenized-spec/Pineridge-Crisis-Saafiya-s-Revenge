@@ -37,3 +37,6 @@ Runtime support for twelve VTK NPC idle/walk/run sprite sets, with optional sepa
 
 ## V14 prop and atmosphere pass
 The main street gains seeded decorative litter and tyre scenery, plus a separate animated haze node. No new road barricades, tactical cover or visibility rules. The F3 prop gallery contains 14 independent SVG assets including nonfunctional equipment icons and environmental objects. CI checks texture import and gallery startup. Attachment/encounter systems and final UI are not implemented in this pass. Visual review pending.
+
+## V15 animation feedback workbench
+F4 opens a presentation-only review scene, using the current NPC renderer and separately rendered prop art. Includes neutral object handling, alert symbols, startled/stumble/down previews, non-graphic colour decals, replaceable audio cues and deterministic state-transition smoke test. Whole-body pose transforms and simple object interpolation are provisional. Weapon-specific action animation, projectile mechanics, damage and encounter AI remain unimplemented. No real-world tactical behaviour is simulated.

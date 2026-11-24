@@ -21,3 +21,5 @@ Press **F2** to open the character workbench, which displays all twelve wardrobe
 V12: extract the supplied NPC asset pack into the repository root to enable the twelve 3D-rendered crowd looks. The F2 workbench shows these atlases when installed, A toggles a cosmetic accessory. Missing assets retain the older vector renderer.
 
 V14 adds 14 separately imported SVG prop textures (F3 gallery), scattered decorative roadside debris, discarded tyres and animated cinematic smoke. The equipment icons are fictional visual representations, not functional models. Road remains navigable; smoke is presentation only. V13 NPC PNGs may replace V12 without code changes. No image generator used.
+
+V15 adds an F4 animation workbench with neutral object pickup/carry/set-down previews, alert symbols, generic reaction/down states, toggleable subtle decals and replaceable synthesized audio cues. Equipment icons can be inspected independently. The poses are interim whole-body transforms, not newly rigged limb animations; there is no targeting, damage, or combat AI in this pass.

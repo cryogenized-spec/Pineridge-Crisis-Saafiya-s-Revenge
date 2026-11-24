@@ -36,6 +36,12 @@ jobs:
           engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . res://scenes/prop_review.tscn --quit-after 90 -- --prop-smoke 2>&1 | tee props.log
           if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|Assertion failed' props.log; then exit 1; fi
           grep -F 'Prop review: all 14 textures loaded.' props.log
+      - name: Exercise action review states
+        run: |
+          set -o pipefail
+          engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . res://scenes/action_review.tscn --fixed-fps 60 --quit-after 480 -- --action-smoke 2>&1 | tee action.log
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|Assertion failed' action.log; then exit 1; fi
+          grep -F 'Action review: pickup, carry, set down, alert, stumble and down states exercised.' action.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -45,6 +51,7 @@ jobs:
             smoke.log
             review.log
             props.log
+            action.log
       - name: Install Linux export templates
         if: success()
         run: |
