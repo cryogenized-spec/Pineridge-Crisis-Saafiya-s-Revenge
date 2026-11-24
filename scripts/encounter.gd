@@ -722,7 +722,7 @@ func _draw() -> void:
 func run_test() -> void:
 	for clip in ["saafiya_death.ogg","beretta_84fs_shot.ogg","cz75_shot.ogg","akm_reload.ogg","akm_shot.mp3","crowd_shout.ogg","shotgun_12ga_shot.ogg","shotgun_pump.ogg","beretta_reload.mp3","cz75_reload.ogg","male_looter_death_1.ogg","male_looter_death_2.ogg"]:
 		assert(ResourceLoader.exists("res://assets/audio/" + clip), "Missing audio import: " + clip)
-	assert(actors.size()==7)
+	assert(actors.size()==8)
 	assert(actors[0]["body"].npc_down != null)
 	assert(actors[0]["body"].npc_down_back != null)
 	assert(player_hp==3)
@@ -769,7 +769,7 @@ func run_test() -> void:
 	equip(0)
 	refill()
 	set_phase(1)
-	assert(actors.size()==11)
+	assert(actors.size()==12)
 	assert(unlocked[2])
 	add_shot(Vector2(400,300),Vector2.RIGHT,true,"spark",350.0)
 	assert(shots.size()==1)
