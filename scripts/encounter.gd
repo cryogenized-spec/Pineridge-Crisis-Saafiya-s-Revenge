@@ -287,6 +287,7 @@ func begin_collapse(target: Dictionary) -> void:
 	target["fall_tilt"] = (1.0 if style%2==0 else -1.0) * rng.randf_range(0.055,0.18)
 	target["fall_flip"] = style >= 4
 	body.fall_backward = (style%2)==1
+	body.fall_sideways = (style%3)==2
 	body.set_down_progress(0.0)
 
 func advance_collapse(target: Dictionary, delta: float) -> void:
@@ -301,7 +302,7 @@ func advance_collapse(target: Dictionary, delta: float) -> void:
 		2: frame_progress = pow(raw,1.45)
 	var settle := smoothstep(0.0,1.0,raw)
 	body.position = Vector2(target["fall_origin"]) + Vector2(target["fall_offset"])*settle
-	if body.npc_down != null or body.npc_down_back != null:
+	if body.npc_down != null or body.npc_down_back != null or body.npc_down_side != null:
 		body.set_down_progress(frame_progress)
 		body.rotation = float(target["fall_tilt"])*settle
 		body.scale = Vector2(-1.0,1.0) if bool(target["fall_flip"]) else Vector2.ONE
