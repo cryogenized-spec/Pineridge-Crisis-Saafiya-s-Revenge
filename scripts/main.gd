@@ -52,6 +52,7 @@ func _ready() -> void:
 	encounters=Encounter.new()
 	encounters.configure(player,street)
 	add_child(encounters)
+	encounters.register_bystanders(pedestrians)
 	camera=Camera2D.new()
 	camera.zoom=Vector2(2,2)
 	camera.position=START
@@ -188,6 +189,8 @@ func _physics_process(delta:float) -> void:
 		run_phase = player.gait_phase
 	camera.position=player.position
 	for person in pedestrians:
+		if person.down_phase >= 0.0:
+			continue
 		var p:Vector2=person.get_meta("home")
 		var t:float=elapsed*(0.45 + 0.08 * float(person.wardrobe_index % 5))+float(person.get_meta("offset"))
 		var desired:=p+Vector2(sin(t)*15,0)

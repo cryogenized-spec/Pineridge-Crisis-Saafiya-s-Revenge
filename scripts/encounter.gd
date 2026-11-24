@@ -27,6 +27,9 @@ var held_visual: Node2D
 var shout_cooldown := 0.0
 var rng := RandomNumberGenerator.new()
 var actors: Array[Dictionary] = []
+var bystanders: Array[Dictionary] = []
+const ACTION_REACH := 480.0
+const CHARACTER_HIT_RADIUS := 18.0
 var shots: Array[Dictionary] = []
 var motes: Array[Dictionary] = []
 var ground_marks: Array[Dictionary] = []
@@ -54,6 +57,15 @@ func configure(main_actor: Node2D, world: Node2D) -> void:
 	avatar = main_actor
 	street = world
 
+func register_bystanders(characters: Array[Actor]) -> void:
+	for character in characters:
+		var reaction := Feedback.new()
+		reaction.position = character.position
+		reaction.z_index = 4
+		add_child(reaction)
+		bystanders.append({"body":character,"feedback":reaction,"down":false})
+
+
 func _ready() -> void:
 	rng.seed = 4872011
 	audio = Audio.new()
@@ -66,7 +78,7 @@ func _ready() -> void:
 	make_hud()
 	smoke_test = "--encounter-smoke" in OS.get_cmdline_user_args()
 	if smoke_test:
-		run_test()
+		call_deferred("run_test")
 
 func spawn_group(return_wave: bool) -> void:
 	var descriptions := [
@@ -211,11 +223,59 @@ func fire_player() -> void:
 	var heading := (get_global_mouse_position()-avatar.position).normalized()
 	if heading.length_squared() < 0.01:
 		heading=Vector2.RIGHT
-	add_shot(avatar.position+heading*10.0,heading,true,"spark",float(KIT[slot]["travel"]))
+	resolve_player_action(avatar.position, heading)
 	if is_instance_valid(held_visual):
 		held_visual.burst()
 	audio.play_cue("beretta_84fs_shot" if slot == 0 else ("cz75_shot" if slot == 1 else "akm_shot"))
 	update_hud()
+
+func resolve_player_action(origin: Vector2, direction: Vector2) -> void:
+	# Immediate fictional arcade collision: no tracer or projectile rendering.
+	var reach_end := origin + direction * ACTION_REACH
+	var nearest := ACTION_REACH + 1.0
+	var candidate: Dictionary = {}
+	var ambient := false
+	for item in actors:
+		if bool(item["down"]):
+			continue
+		var body: Actor = item["body"]
+		var point := Geometry2D.get_closest_point_to_segment(body.position,origin,reach_end)
+		var along := origin.distance_to(point)
+		if body.position.distance_to(point) <= CHARACTER_HIT_RADIUS and along < nearest:
+			nearest = along
+			candidate = item
+			ambient = false
+	for item in bystanders:
+		if bool(item["down"]):
+			continue
+		var body: Actor = item["body"]
+		var point := Geometry2D.get_closest_point_to_segment(body.position,origin,reach_end)
+		var along := origin.distance_to(point)
+		if body.position.distance_to(point) <= CHARACTER_HIT_RADIUS and along < nearest:
+			nearest = along
+			candidate = item
+			ambient = true
+	if candidate.is_empty():
+		return
+	if ambient:
+		affect_bystander(candidate)
+	else:
+		hit_enemy(candidate,1)
+	shots_hit += 1
+	update_hud()
+
+func affect_bystander(target: Dictionary) -> void:
+	if bool(target["down"]):
+		return
+	target["down"] = true
+	var person: Actor = target["body"]
+	var feedback: Node2D = target["feedback"]
+	feedback.marked = true
+	feedback.show_caption("Awu…")
+	feedback.select(Feedback.State.DOWN)
+	person.set_down_progress(0.0)
+	add_ground_mark(person.position,0.8)
+	audio.play_cue("reaction")
 
 func add_shot(start: Vector2, direction: Vector2, friendly: bool, kind: String, velocity: float) -> void:
 	shots.append({"point":start,"prior":start,"vector":direction.normalized()*velocity,
@@ -398,6 +458,13 @@ func step_shots(delta: float) -> void:
 			motes.remove_at(i)
 
 func _physics_process(delta: float) -> void:
+	for item in bystanders:
+		var feedback: Node2D = item["feedback"]
+		feedback.position = item["body"].position
+		feedback.advance(delta)
+		if bool(item["down"]):
+			var person: Actor = item["body"]
+			person.set_down_progress(feedback.progress())
 	if avatar != null:
 		avatar.modulate = Color(1.0,0.55,0.55) if player_invincible>0.0 and (int(elapsed*14.0)%2)==0 else Color.WHITE
 	if smoke_test:
@@ -430,12 +497,14 @@ func _draw() -> void:
 		draw_set_transform(p,angle)
 		draw_texture_rect(BLOOD_STAIN,Rect2(-size*0.5,-size*0.5,size,size),false,Color(1,1,1,alpha))
 	draw_set_transform(Vector2.ZERO)
+	# Firearm actions have no visible beam, tracer or bullet sprite.
+	# Only visibly thrown objects remain rendered as tiny, unlit props.
 	for s in shots:
-		var p: Vector2 = s["point"]
-		var prev: Vector2 = s["prior"]
-		var color := Color("#f4ce8a") if bool(s["friendly"]) else Color("#e3a4a0")
-		draw_line(prev,p,color,1.3,true)
-		draw_circle(p,2.1,color,true,-1,true)
+		var kind: String = s["kind"]
+		if kind == "brick" or kind == "slingshot":
+			var point: Vector2 = s["point"]
+			var size := 3.0 if kind == "brick" else 1.4
+			draw_circle(point,size,Color("#ab9181") if kind == "brick" else Color("#8a888b"),true,-1,true)
 	for spark in motes:
 		var strength := float(spark["life"])/0.28
 		draw_circle(spark["point"],3.0*(1.0-strength)+1.0,Color(0.96,0.77,0.52,strength*0.55),false,0.9,true)
@@ -450,6 +519,7 @@ func run_test() -> void:
 	assert(actors.size()==7)
 	assert(actors[0]["body"].npc_down != null)
 	assert(player_hp==3)
+	assert(bystanders.size() > 0)
 	var foe: Dictionary=actors[0]
 	hit_enemy(foe,1)
 	assert(int(foe["hp"])==1)
@@ -457,6 +527,15 @@ func run_test() -> void:
 	assert(bool(foe["down"]))
 	assert(defeated==1)
 	assert(ground_marks.size()>0 and ground_marks.size()<=MAX_GROUND_MARKS)
+	var next_enemy: Dictionary = actors[1]
+	var health_before := int(next_enemy["hp"])
+	var center: Vector2 = next_enemy["body"].position
+	resolve_player_action(center-Vector2(32,0),Vector2.RIGHT)
+	assert(int(next_enemy["hp"])==health_before-1)
+	var person_state: Dictionary = bystanders[0]
+	var person_center: Vector2 = person_state["body"].position
+	resolve_player_action(person_center-Vector2(32,0),Vector2.RIGHT)
+	assert(bool(person_state["down"]))
 	hurt_player()
 	assert(player_hp==2)
 	assert(collect_nearby()==false)
