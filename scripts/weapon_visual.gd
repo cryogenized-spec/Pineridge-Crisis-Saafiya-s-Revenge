@@ -5,8 +5,8 @@ const BERETTA: Texture2D = preload("res://assets/weapons/beretta84fs_overhead.sv
 const BACKUP: Texture2D = preload("res://assets/props/modern_icon.svg")
 const LONGARM: Texture2D = preload("res://assets/props/longarm_icon.svg")
 const DISPLAY_SPAN := 13.0
-const LEFT_OFFSET := 3.1
-const FORWARD_OFFSET := 4.0
+const LEFT_OFFSET := 2.8
+const FORWARD_OFFSET := 8.0
 const FLASH_DURATION := 0.055
 const HAZE_DURATION := 0.27
 var wearer: Node2D
@@ -39,6 +39,28 @@ func _process(delta: float) -> void:
 	haze_time=maxf(0.0,haze_time-delta)
 	queue_redraw()
 
+func draw_sleeved_arm(shoulder: Vector2, elbow: Vector2, hand: Vector2, left_side: bool) -> void:
+	# Gothic fabric, cuff, skin and highlight layers at overhead sprite scale.
+	var dark := Color("#1b1723")
+	var fabric := Color("#342a3a")
+	var shine := Color("#5b495d")
+	var skin := Color("#ac7963")
+	draw_line(shoulder,elbow,dark,5.1,true)
+	draw_line(shoulder,elbow,fabric,3.6,true)
+	draw_circle(elbow,2.5,dark,true,-1,true)
+	draw_circle(elbow,1.9,fabric,true,-1,true)
+	var cuff := elbow.lerp(hand,0.69)
+	draw_line(elbow,cuff,dark,4.4,true)
+	draw_line(elbow,cuff,fabric,3.0,true)
+	draw_line(shoulder.lerp(elbow,0.20),elbow,shine,0.75,true)
+	draw_line(elbow.lerp(cuff,0.12),cuff,shine,0.60,true)
+	draw_line(cuff,hand,skin.darkened(0.22),2.9,true)
+	draw_line(cuff,hand,skin,2.1,true)
+	draw_circle(cuff,1.6,Color("#201925"),true,-1,true)
+	draw_circle(hand,1.9,skin,true,-1,true)
+	# Small dark glove/nail detail; no mechanical grip simulation.
+	draw_circle(hand+Vector2(0.6,0.2),0.55,Color("#211b24"),true,-1,true)
+
 func _draw() -> void:
 	if not is_instance_valid(wearer):
 		return
@@ -47,11 +69,16 @@ func _draw() -> void:
 	var held := forward*FORWARD_OFFSET + left*LEFT_OFFSET
 	var texture: Texture2D = BERETTA if equipment_slot==0 else (BACKUP if equipment_slot==1 else LONGARM)
 	var span := DISPLAY_SPAN if equipment_slot==0 else (DISPLAY_SPAN*1.1 if equipment_slot==1 else DISPLAY_SPAN*1.6)
-	# Left-arm bias in front of the character, without hiding the approved torso mesh.
-	var sleeve_start := forward*0.4 + left*5.0
-	draw_line(sleeve_start, held-forward*2.2,Color("#2c2632"),2.8,true)
-	draw_line(sleeve_start+left*0.3,held-forward*2.2,Color("#59425a"),0.65,true)
-	draw_circle(held-forward*2.0,1.2,Color("#b58065"))
+	# Independent, deliberately left-biased overhead costume/arm overlay.
+	# The detailed 3D torso atlas remains unchanged underneath these layers.
+	var left_shoulder := -forward*1.0 + left*5.8
+	var left_elbow := forward*2.6 + left*5.1
+	var left_hand := held-forward*2.0
+	var right_shoulder := -forward*1.0-left*5.7
+	var right_elbow := forward*2.1-left*4.1
+	var right_hand := held-forward*2.7-left*0.9
+	draw_sleeved_arm(right_shoulder,right_elbow,right_hand,false)
+	draw_sleeved_arm(left_shoulder,left_elbow,left_hand,true)
 	draw_set_transform(held,aim_angle+PI*0.5)
 	draw_texture_rect(texture,Rect2(-Vector2.ONE*span*0.5,Vector2.ONE*span),false)
 	draw_set_transform(Vector2.ZERO)

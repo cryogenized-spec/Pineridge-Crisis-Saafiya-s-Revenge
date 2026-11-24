@@ -52,3 +52,7 @@ All six audio recordings provided for the character and weapons are now committe
 
 ## V23 character reactions and projectile presentation
 The gameplay now removes all bright firearm tracer lines and uses instantaneous abstract arcade interaction collisions against both enemies and ordinary ambient characters. All 13 background pedestrians are registered with the same contact-and-collapse system. A second set of twelve original-mesh, eight-frame VTK collapse animations adds alternate directions, chosen per character. Brief localized contact colour splashes are pooled and capped; ground stains remain capped. The audio files imported in V22 remain checked by CI. This is cinematic stylization, not ballistic or medical simulation.
+
+
+## V24 visually layered left-handed equipment
+The single straight-line arm placeholder was replaced by two independently drawn, shaded upper-limb costume overlays with sleeves, cuffs and hands, placed in front of the original approved Saafiya body sprites. The detachable Beretta visual is carried left-of-centre in front of the model. This is a top-down graphical posing treatment, not an instruction model for weapon handling. No animated projectile beam is rendered.
