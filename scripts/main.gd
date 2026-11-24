@@ -11,6 +11,8 @@ var street: Street
 var player: Actor
 var camera: Camera2D
 var effects: Effects
+var haze: Node2D
+var low_fx := false
 var encounters
 var pedestrians: Array[Actor] = []
 var status: Label
@@ -27,7 +29,7 @@ const FOOTFALL_VARIATION := 0.48
 func _ready() -> void:
 	street=Street.new()
 	add_child(street)
-	var haze := Haze.new()
+	haze = Haze.new()
 	haze.origins = street.haze_origins
 	add_child(haze)
 	effects=Effects.new()
@@ -96,7 +98,7 @@ func make_hud() -> void:
 	v.add_child(status)
 	var help:=Label.new()
 	help.position=Vector2(18,684)
-	help.text="WASD / arrows: move     Q: toggle run     C: toggle crouch     E: interact     Click: action   R: refill   1–3: slots   V: effects   F: fullscreen     F2: wardrobe   F3: props   F4: poses   Esc: reset"
+	help.text="WASD / arrows: move     Q: toggle run     C: toggle crouch     E: interact     Click: action   R: refill   1–3: slots   V: effects   F: fullscreen     F2: wardrobe   F3: props   F4: poses   F6: smoke   Esc: reset"
 	help.add_theme_font_size_override("font_size",17)
 	help.modulate=Color("#f3ddc7")
 	layer.add_child(help)
@@ -104,6 +106,10 @@ func make_hud() -> void:
 func _unhandled_key_input(event:InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:
+			KEY_F6:
+				low_fx = not low_fx
+				if is_instance_valid(haze):
+					haze.visible = not low_fx
 			KEY_F4:
 				get_tree().change_scene_to_file("res://scenes/action_review.tscn")
 			KEY_F3:
@@ -190,7 +196,7 @@ func _physics_process(delta:float) -> void:
 			person.position=desired
 		var movement:Vector2=person.position-previous
 		person.animate(delta,movement,0.0 if cos(t)>0 else PI, false, false)
-	status.text="%s  ·  %03d:%03d  ·  Playable arcade encounter" % ["CROUCH" if low else ("RUN" if running else "WALK"),int(player.position.x),int(player.position.y)]
+	status.text="%s  ·  %03d:%03d  ·  %d FPS  ·  Smoke: %s" % ["CROUCH" if low else ("RUN" if running else "WALK"),int(player.position.x),int(player.position.y),Engine.get_frames_per_second(),"OFF" if low_fx else "ON"]
 	# Child actors redraw themselves; this node draws no animated geometry.
 
 func _draw() -> void:
