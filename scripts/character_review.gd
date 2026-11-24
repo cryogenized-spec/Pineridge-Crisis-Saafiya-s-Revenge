@@ -6,6 +6,7 @@ var mode := 1
 var heading := 0.0
 var auto_turn := false
 var enlarged := true
+var accessories := false
 var timer := 0.0
 var info: Label
 var smoke := false
@@ -39,9 +40,11 @@ func _ready() -> void:
 	queue_redraw()
 
 func refresh() -> void:
-	info.text = "%s   |   %s   |   1 idle · 2 walk · 3 run · Left/Right rotate · T auto-turn · Z scale · Esc return" % [["IDLE","WALK","RUN"][mode],"4× world scale" if enlarged else "Gameplay scale (2×)"]
+	info.text = "%s   |   %s   |   1 idle · 2 walk · 3 run · Left/Right rotate · T auto-turn · Z scale · A accessory · Esc return" % [["IDLE","WALK","RUN"][mode],"4× world scale" if enlarged else "Gameplay scale (2×)"]
 	for a in actors:
 		a.scale = Vector2.ONE * (4.0 if enlarged else 2.0)
+		a.show_accessory = accessories
+		a.queue_redraw()
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo:
@@ -54,6 +57,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_RIGHT: heading += PI/4.0
 		KEY_T: auto_turn = not auto_turn
 		KEY_Z: enlarged = not enlarged
+		KEY_A: accessories = not accessories
 		KEY_ESCAPE:
 			get_tree().change_scene_to_file("res://scenes/main.tscn")
 	refresh()

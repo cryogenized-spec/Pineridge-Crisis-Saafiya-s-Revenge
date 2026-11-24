@@ -18,6 +18,11 @@ var gait_running := false
 var gait_moving := false
 const Wardrobe = preload("res://scripts/crowd_wardrobe.gd")
 var wardrobe_index := -1
+var npc_idle: Texture2D
+var npc_walk: Texture2D
+var npc_run: Texture2D
+var cosmetic_accessory: Texture2D
+var show_accessory := false
 var hero := false
 var facing := 0.0
 var travel := 0.0
@@ -29,6 +34,13 @@ var skin := Color("#b68062")
 var hair := Color("#392b34")
 
 func _ready() -> void:
+	if not hero and wardrobe_index >= 0:
+		var prefix := "res://assets/characters/crowd/npc_%02d_" % posmod(wardrobe_index,12)
+		npc_idle = load_npc_texture(prefix + "idle.png", Vector2(128,128))
+		npc_walk = load_npc_texture(prefix + "walk.png", Vector2(512,256))
+		npc_run = load_npc_texture(prefix + "run.png", Vector2(512,256))
+		cosmetic_accessory = load_npc_texture("res://assets/characters/accessories/backpack.png", Vector2(128,128))
+		texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	if hero:
 		walk_texture = load_atlas(WALK_ATLAS)
 		run_texture = load_atlas(RUN_ATLAS)
@@ -37,6 +49,18 @@ func _ready() -> void:
 		run_lower = load_atlas("res://assets/characters/saafiya/run_lower_atlas.png")
 		run_upper = load_atlas("res://assets/characters/saafiya/run_upper_atlas.png")
 		texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+
+func load_npc_texture(path: String, expected_size: Vector2) -> Texture2D:
+	if not ResourceLoader.exists(path):
+		return null
+	var atlas := ResourceLoader.load(path) as Texture2D
+	if atlas == null or atlas.get_size() != expected_size:
+		push_warning("Invalid crowd asset: " + path)
+		return null
+	return atlas
+
+func has_npc_atlases() -> bool:
+	return npc_idle != null and npc_walk != null and npc_run != null
 
 func load_atlas(path: String) -> Texture2D:
 	if not ResourceLoader.exists(path):
@@ -78,6 +102,17 @@ func animate(delta: float, displacement: Vector2, aim_angle: float, low: bool = 
 
 func _draw() -> void:
 	draw_circle(Vector2(2,3),10,Color(0.09,0.07,0.12,0.27),true,-1,true)
+	if not hero and wardrobe_index >= 0 and has_npc_atlases():
+		var frame := int(floor(gait_phase * 8.0)) % 8 if gait_moving else 0
+		var atlas := (npc_run if gait_running else npc_walk) if gait_moving else npc_idle
+		var source := Rect2((frame % 4) * TILE, floori(float(frame) / 4.0) * TILE, TILE, TILE)
+		var angle := travel if gait_moving else facing
+		draw_gait_layer(atlas, source, angle, Vector2.ONE * DISPLAY_SIZE)
+		if show_accessory and cosmetic_accessory != null:
+			draw_set_transform(Vector2.ZERO, angle - PI / 2.0)
+			draw_texture_rect(cosmetic_accessory, Rect2(-5,-8,10,10),false)
+			draw_set_transform(Vector2.ZERO)
+		return
 	if not hero and wardrobe_index >= 0:
 		Wardrobe.render(self, wardrobe_index, travel, facing, stride, motion, gait_running)
 		return

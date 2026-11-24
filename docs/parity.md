@@ -29,3 +29,7 @@ Twelve runtime-rendered wardrobe presets, varied body builds, hair, headwear, sh
 ## V11 crowd review
 
 NPC art gains tonal shading, garment and headwear details. A dedicated F2 workbench renders all twelve wardrobe presets using the same actor renderer as the street and allows gait and direction review at gameplay scale. CI includes a review-scene smoke test. Visual approval and full encounter parity are still outstanding.
+
+
+## V12 crowd asset import
+Runtime support for twelve VTK NPC idle/walk/run sprite sets, with optional separate cosmetic backpack overlay. PNGs and source are supplied as a separate archive; they are not in the Git tree. Automated validation without the archive exercises fallback rendering only. Encounter logic and UI redesign are not included.

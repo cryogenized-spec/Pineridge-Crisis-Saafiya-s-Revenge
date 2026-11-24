@@ -17,3 +17,5 @@ V9 adds optional independent upper/lower gait atlases, rhythmic running motion a
 V10 replaces uniform ambient NPC art with twelve code-drawn adult streetwear variants. The same wardrobe renderer supports idle, walk and run poses and requires no additional binary assets. It is a presentation pass; no encounter mechanics were added.
 
 Press **F2** to open the character workbench, which displays all twelve wardrobe presets. Use 1/2/3 for idle/walk/run, arrows to rotate, T for auto-turn, Z for native-scale comparison, Esc to return. V11 adds shaded garment detail and a separate automated review-scene test.
+
+V12: extract the supplied NPC asset pack into the repository root to enable the twelve 3D-rendered crowd looks. The F2 workbench shows these atlases when installed, A toggles a cosmetic accessory. Missing assets retain the older vector renderer.
