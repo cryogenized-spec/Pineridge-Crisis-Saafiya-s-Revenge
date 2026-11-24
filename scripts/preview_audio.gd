@@ -1,15 +1,11 @@
 extends Node
-# Replaceable event audio. Multiple overlapping voices and sounds are supported.
+# Recorded cues only: no generated test beeps or synthetic firing substitutes.
 const CHANNELS := 7
-const CUES := {
-	"pickup":440.0,"set_down":280.0,"alert":660.0,
-	"reaction":210.0,"reset":520.0,"fire":350.0,
-	"down":190.0,"akm_shot":330.0,"beretta_84fs_shot":350.0,
-	"cz75_shot":390.0,"beretta_reload":300.0,
-	"cz75_reload":310.0,"akm_reload":270.0,
-	"saafiya_death":175.0,"crowd_shout":270.0,
-	"shotgun_12ga_shot":200.0,"shotgun_pump":320.0,
-	"male_looter_death_1":160.0,"male_looter_death_2":155.0
+const GAIN_DB := {
+	"beretta_84fs_shot": -7.0,
+	"cz75_shot": -12.0,
+	"akm_shot": -12.0,
+	"shotgun_12ga_shot": -12.0
 }
 var players: Array[AudioStreamPlayer] = []
 var cached: Dictionary = {}
@@ -17,10 +13,10 @@ var cursor := 0
 
 func _ready() -> void:
 	for i in range(CHANNELS):
-		var p := AudioStreamPlayer.new()
-		p.volume_db=-16.0
-		add_child(p)
-		players.append(p)
+		var player := AudioStreamPlayer.new()
+		player.volume_db = -16.0
+		add_child(player)
+		players.append(player)
 
 func stream_for(id: String) -> AudioStream:
 	if cached.has(id):
@@ -28,34 +24,23 @@ func stream_for(id: String) -> AudioStream:
 	for ext in ["wav","ogg","mp3"]:
 		var path := "res://assets/audio/%s.%s" % [id,ext]
 		if ResourceLoader.exists(path):
-			var found := ResourceLoader.load(path) as AudioStream
-			if found != null:
-				cached[id]=found
-				return found
-	# Explicitly placeholder tones; no weapon or language sound imitation.
-	var rate := 22050
-	var count := int(rate*0.11)
-	var bytes := PackedByteArray()
-	bytes.resize(count*2)
-	var hz := float(CUES.get(id,330.0))
-	for i in range(count):
-		var t := float(i)/float(rate)
-		var fade := sin(PI*float(i)/float(count))
-		bytes.encode_s16(i*2,int(4800.0*sin(TAU*hz*t)*fade))
-	var wave := AudioStreamWAV.new()
-	wave.format=AudioStreamWAV.FORMAT_16_BITS
-	wave.mix_rate=rate
-	wave.data=bytes
-	cached[id]=wave
-	return wave
+			var stream := ResourceLoader.load(path) as AudioStream
+			if stream != null:
+				cached[id] = stream
+				return stream
+	# Missing recordings are silent by design, never substituted with beeps.
+	return null
 
-func play_cue(id: String) -> void:
+func play_cue(id: String, offset_db: float = 0.0) -> void:
 	if players.is_empty():
 		return
-	var selected := players[cursor]
-	cursor=(cursor+1)%CHANNELS
-	selected.stop()
-	# +5 dB only for Saafiya's previously hard-to-hear Beretta clip.
-	selected.volume_db = -11.0 if id == "beretta_84fs_shot" else -16.0
-	selected.stream=stream_for(id)
-	selected.play()
+	var recording := stream_for(id)
+	if recording == null:
+		return
+	var player := players[cursor]
+	cursor = (cursor + 1) % CHANNELS
+	player.stop()
+	player.stream = recording
+	# +4 dB (~1.6× amplitude) above the prior pistol/AK cue volumes.
+	player.volume_db = float(GAIN_DB.get(id,-16.0)) + offset_db
+	player.play()

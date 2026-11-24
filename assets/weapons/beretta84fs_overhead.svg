@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
 <defs><linearGradient id="slide"><stop stop-color="#777c81"/><stop offset=".20" stop-color="#d0d1cb"/><stop offset=".51" stop-color="#f8f6ea"/><stop offset=".80" stop-color="#bbc1c2"/><stop offset="1" stop-color="#6b7378"/></linearGradient><linearGradient id="grip"><stop stop-color="#2b1b15"/><stop offset=".48" stop-color="#8b5c3e"/><stop offset="1" stop-color="#38261d"/></linearGradient></defs>
-<!-- Decorative overhead Beretta Cheetah-inspired silhouette, muzzle at top -->
+<!-- Narrower overhead nickel Cheetah silhouette, balanced around x=64 -->
+<g transform="translate(13.44 0) scale(0.79 1)">
 <path d="M42 73L46 110Q64 124 82 110L86 73Z" fill="url(#grip)" stroke="#0a0c11" stroke-width="3"/>
 <path d="M48 83L52 105Q64 111 76 105L80 83Z" fill="#76492f" stroke="#b4906b" stroke-width="1"/>
 <path d="M51 90H77M53 97H75M54 103H74" stroke="#94919b" opacity=".27" stroke-width="2"/>
@@ -12,4 +13,5 @@
 <path d="M52 28H56M72 28H76M52 69H56M72 69H76" stroke="#d4d3d9" opacity=".7" stroke-width="1.4"/>
 <path d="M46 68L40 73 45 80 49 77M82 68L88 73 83 80 79 77" fill="#adb4b6" stroke="#535a5e"/>
 <circle cx="76" cy="81" r="2.0" fill="#d2b589" stroke="#687071"/>
+</g>
 </svg>

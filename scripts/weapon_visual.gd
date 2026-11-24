@@ -4,11 +4,11 @@ extends Node2D
 const BERETTA: Texture2D = preload("res://assets/weapons/beretta84fs_overhead.svg")
 const BACKUP: Texture2D = preload("res://assets/props/modern_icon.svg")
 const LONGARM: Texture2D = preload("res://assets/props/longarm_icon.svg")
-const DISPLAY_SPAN := 10.4
+const DISPLAY_SPAN := 9.5
 const BACKUP_SPAN := 14.3
 const LONGARM_SPAN := 20.8
 const LEFT_OFFSET := 2.8
-const FORWARD_OFFSET := 8.0
+const FORWARD_OFFSET := 7.5
 const FLASH_DURATION := 0.048
 const HAZE_DURATION := 0.19
 var wearer: Node2D
