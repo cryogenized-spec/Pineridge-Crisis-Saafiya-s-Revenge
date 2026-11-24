@@ -43,3 +43,6 @@ F4 opens a presentation-only review scene, using the current NPC renderer and se
 
 ## V16 restored arcade gameplay
 Combat is now functional in the Godot main scene: role-based NPCs, alert bubbles, melee contact, stylized shots, thrown objects, player and NPC health, damage and down states, pickups, equipment slots, and two encounter phases. Original HTML route layout and overall mission structure were used as references. Not reproduced: real weapon mechanics, advanced tactics, detailed animations, original sounds, taxi sequences, scoring screen, and the exact legacy enemy timing. Noncombat civilians remain separate from combat NPCs; wardrobe appearance does not determine faction. A dedicated smoke test runs on CI. The Web build still relies on fallback graphics until the approved PNG packs are included in the repository.
+
+## V18 verified character artwork publication
+All 45 approved V9 Saafiya and V13 NPC/accessory PNGs are committed as their original exact bytes. The PNG integrity manifest and mandatory build checker validate their original SHA256 hashes, sizes and RGBA format before both native and browser builds. Older passages saying the textures are supplied separately are superseded by this section. Actual device performance and detailed animation transitions still require visual review.

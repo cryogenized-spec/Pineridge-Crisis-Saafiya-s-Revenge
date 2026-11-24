@@ -1,5 +1,8 @@
 # Pineridge Crisis — Saafiya's Revenge
 
+## Approved artwork now included in browser and Linux exports
+The six original approved V9 Saafiya transparent atlases (including separate upper/lower walking and running layers), all 36 V13 NPC idle/walk/run atlases, and three detachable cosmetic accessory PNGs are committed in `assets/characters/`. This is the real code-rendered VTK art, not re-drawn/quantized replacements. Every push validates all 45 against original SHA256 hashes before building. Clone and run the project normally; no separate sprite-archive installation is needed.
+
 First native Godot 4.4.1 / GDScript presentation prototype, derived from the existing HTML overhead game. This is not yet a full gameplay-equivalent port.
 
 Open `project.godot` in Godot 4.4.1 and press F6/F5 (F5 runs the configured main scene), or use `godot --path .`.
@@ -25,7 +28,7 @@ V14 adds 14 separately imported SVG prop textures (F3 gallery), scattered decora
 V15 adds an F4 animation workbench with neutral object pickup/carry/set-down previews, alert symbols, generic reaction/down states, toggleable subtle decals and replaceable synthesized audio cues. Equipment icons can be inspected independently. The poses are interim whole-body transforms, not newly rigged limb animations; there is no targeting, damage, or combat AI in this pass.
 
 ## Browser preview (GitHub Pages)
-The Godot Web preset uses the Compatibility renderer and disables thread support. The separate Godot Web preview workflow builds on the development branch and main, uploads the complete HTML/JS/WASM/PCK bundle, and publishes to Pages only from main. In Settings > Pages > Build and deployment select GitHub Actions. Merge the reviewed development PR into main to enable the first deployment. The current repository does not include the separately distributed character PNG atlases, so the public preview uses fallback character visuals unless those assets are added before export. This preview is the existing exploration and animation workbench, not a completed game.
+The Godot Web preset uses the Compatibility renderer and disables thread support. The separate Godot Web preview workflow builds on the development branch and main, uploads the complete HTML/JS/WASM/PCK bundle, and publishes to Pages only from main. In Settings > Pages > Build and deployment select GitHub Actions. Merge the reviewed development PR into main to enable the first deployment. The approved character PNG atlases are now included in the repository and exported with the project. This preview is the existing exploration and animation workbench, not a completed game.
 
 
 ## Arcade encounters (V16)

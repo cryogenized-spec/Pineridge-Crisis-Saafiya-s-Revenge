@@ -13,6 +13,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: Verify approved sprite artwork
+        run: python3 tools/verify_assets.py
       - name: Install Godot 4.4.1
         run: |
           set -euo pipefail

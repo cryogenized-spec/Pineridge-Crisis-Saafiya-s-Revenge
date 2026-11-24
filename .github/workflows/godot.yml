@@ -9,6 +9,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - name: Verify approved sprite artwork
+        run: python3 tools/verify_assets.py
       - name: Install pinned Godot
         run: |
           curl -fsSL --retry 3 https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip -o godot.zip
