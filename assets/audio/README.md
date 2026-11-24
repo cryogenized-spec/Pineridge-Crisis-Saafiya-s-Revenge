@@ -27,3 +27,6 @@ The shotgun sounds are separate assets rather than baked into a character animat
 Run `python3 tools/verify_audio.py` to check all twelve byte-for-byte checksums. CI verifies both binary integrity and Godot import. Keep source rights/attribution information with any commercial release.
 
 The Beretta reload sound was replaced with the Physon712 recording supplied on 25 November 2026. The previous `beretta_reload.ogg` was removed to prevent the loader from selecting it first. The existing `beretta_reload` event and the F4 **H** audio preview now use the new MP3. The reload duration follows the loaded clip's reported length.
+
+
+**V25 audio playback:** all gunshot cues use the original recorded assets exclusively, with approximately +4 dB gain over the preceding mix. The older synthesized sine-wave placeholder generator has been removed. Events without a real recording are silent until a file is supplied. No audio files or credits have been altered.

@@ -9,6 +9,8 @@ var caption := ""
 var caption_time := 0.0
 var alert_time := 0.0
 var marked := false
+var impact_marks: Array[Dictionary] = []
+const MAX_IMPACTS := 4
 var blood_enabled := true
 var carried := false
 const LENGTHS := {State.PICKUP:0.8,State.SET_DOWN:0.8,State.STARTLED:0.48,State.STUMBLE:0.6,State.DOWN:0.85}
@@ -30,10 +32,18 @@ func show_caption(value: String) -> void:
 	caption_time = 1.35
 	queue_redraw()
 
+func register_impact(local_point: Vector2, size: float = 1.0) -> void:
+	marked = true
+	impact_marks.append({"point": local_point, "radius": clampf(size,0.5,2.4)})
+	while impact_marks.size() > MAX_IMPACTS:
+		impact_marks.pop_front()
+	queue_redraw()
+
 func reset() -> void:
 	select(State.IDLE)
 	carried = false
 	marked = false
+	impact_marks.clear()
 	alert = ""
 	alert_time = 0.0
 	caption = ""
@@ -79,9 +89,11 @@ func pose() -> Dictionary:
 
 func _draw() -> void:
 	if marked and blood_enabled:
-		# Small, non-graphic cinematic colour decal.
-		draw_circle(Vector2(5,4),4,Color(0.38,0.10,0.16,0.36),true,-1,true)
-		draw_circle(Vector2(8,6),1.8,Color(0.38,0.10,0.16,0.25),true,-1,true)
+		for impact in impact_marks:
+			var p: Vector2 = impact["point"]
+			var r: float = impact["radius"]
+			draw_circle(p,r+0.8,Color(0.36,0.065,0.09,0.41),true,-1,true)
+			draw_circle(p+Vector2(0.22,0.28),r*0.57,Color(0.16,0.025,0.05,0.55),true,-1,true)
 	if alert_time > 0.0:
 		var alpha := minf(1.0,alert_time*4.0)
 		var center := Vector2(0,-20)

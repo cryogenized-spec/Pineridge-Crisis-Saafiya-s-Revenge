@@ -78,7 +78,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			feedback.show_alert("!")
 			change_state(Feedback.State.STUMBLE,"reaction")
 		KEY_8:
-			feedback.marked = true
+			feedback.register_impact(Vector2(-2.4,1.9),1.2)
 			change_state(Feedback.State.DOWN,"reaction")
 		KEY_9:
 			# Sound-design preview: shot and a slightly delayed pump cue.

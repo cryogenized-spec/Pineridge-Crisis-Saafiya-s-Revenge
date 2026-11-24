@@ -66,7 +66,7 @@ func register_bystanders(characters: Array[Actor]) -> void:
 		reaction.position = character.position
 		reaction.z_index = 4
 		add_child(reaction)
-		bystanders.append({"body":character,"feedback":reaction,"down":false})
+		bystanders.append({"body":character,"feedback":reaction,"down":false,"fall_variant":bystanders.size()%6})
 
 
 func _ready() -> void:
@@ -125,7 +125,8 @@ func spawn_character(at: Vector2, kind: String, look: int, male_voice: bool = fa
 		"max":int(ROLES[kind]["life"]),"alerted":false,
 		"cooldown":rng.randf_range(0.4,1.3),"attack":0.0,
 		"reaction":0.0,"wander":rng.randf_range(0,TAU),
-		"origin":at,"down":false,"visible_prop":true,"flee_said":false,"male_voice":male_voice
+		"origin":at,"down":false,"visible_prop":true,"flee_said":false,"male_voice":male_voice,
+		"fall_variant":(look+actors.size())%6
 	})
 
 func make_hud() -> void:
@@ -271,17 +272,54 @@ func resolve_player_action(origin: Vector2, direction: Vector2) -> void:
 	shots_hit += 1
 	update_hud()
 
+func register_character_impact(feedback: Node2D) -> void:
+	# A distinct local mark per character and per hit, not a fixed stamp.
+	var local := Vector2(rng.randf_range(-4.8,4.8),rng.randf_range(-4.8,4.8))
+	feedback.register_impact(local,rng.randf_range(0.7,1.55))
+
+func begin_collapse(target: Dictionary) -> void:
+	var body: Actor = target["body"]
+	var style: int = int(target.get("fall_variant",0))
+	target["fall_clock"] = 0.0
+	target["fall_duration"] = 0.65 + float(style%3)*0.14 + rng.randf_range(-0.07,0.07)
+	target["fall_origin"] = body.position
+	target["fall_offset"] = Vector2.from_angle(float(style)*1.7 + rng.randf_range(-0.4,0.4)) * rng.randf_range(1.2,4.7)
+	target["fall_tilt"] = (1.0 if style%2==0 else -1.0) * rng.randf_range(0.055,0.18)
+	target["fall_flip"] = style >= 4
+	body.fall_backward = (style%2)==1
+	body.set_down_progress(0.0)
+
+func advance_collapse(target: Dictionary, delta: float) -> void:
+	var body: Actor = target["body"]
+	target["fall_clock"] = float(target["fall_clock"]) + delta
+	var raw := clampf(float(target["fall_clock"])/maxf(0.1,float(target["fall_duration"])),0.0,1.0)
+	var style: int = int(target["fall_variant"])
+	var frame_progress := raw
+	match style%3:
+		0: frame_progress = smoothstep(0.0,1.0,raw)
+		1: frame_progress = pow(raw,0.75)
+		2: frame_progress = pow(raw,1.45)
+	var settle := smoothstep(0.0,1.0,raw)
+	body.position = Vector2(target["fall_origin"]) + Vector2(target["fall_offset"])*settle
+	if body.npc_down != null or body.npc_down_back != null:
+		body.set_down_progress(frame_progress)
+		body.rotation = float(target["fall_tilt"])*settle
+		body.scale = Vector2(-1.0,1.0) if bool(target["fall_flip"]) else Vector2.ONE
+	else:
+		body.set_down_progress(-1.0)
+		body.rotation = float(target["fall_tilt"])*settle
+		body.scale = Vector2.ONE * lerpf(1.0,0.78,settle)
+
 func affect_bystander(target: Dictionary) -> void:
 	if bool(target["down"]):
 		return
 	target["down"] = true
 	var person: Actor = target["body"]
 	var feedback: Node2D = target["feedback"]
-	feedback.marked = true
+	register_character_impact(feedback)
 	feedback.show_caption("Awu…")
 	feedback.select(Feedback.State.DOWN)
-	person.fall_backward = rng.randf() < 0.60
-	person.set_down_progress(0.0)
+	begin_collapse(target)
 	add_ground_mark(person.position,0.8)
 	show_contact_splash(person.position)
 	audio.play_cue("reaction")
@@ -342,16 +380,15 @@ func hit_enemy(target: Dictionary, amount: int) -> void:
 	target["hp"] = maxi(0,int(target["hp"])-amount)
 	var feedback = target["feedback"]
 	target["reaction"]=0.28
-	feedback.marked=true
+	register_character_impact(feedback)
 	feedback.show_caption("Awu…")
 	add_ground_mark(target["body"].position,1.3 if int(target["hp"]) <= 0 else 0.8)
 	show_contact_splash(target["body"].position)
 	if int(target["hp"]) <= 0:
 		target["down"]=true
-		var falling: Actor = target["body"]
-		falling.fall_backward = rng.randf() < 0.60
 		target["attachment"].visible=false
 		feedback.select(Feedback.State.DOWN)
+		begin_collapse(target)
 		defeated+=1
 		if defeated%2 == 0:
 			loot.append({"point":target["body"].position+Vector2(13,9),"age":0.0})
@@ -386,14 +423,8 @@ func update_character(target: Dictionary, delta: float) -> void:
 	feedback.advance(delta)
 	feedback.position=body.position
 	if bool(target["down"]):
-		if body.npc_down != null or body.npc_down_back != null:
-			body.set_down_progress(feedback.progress())
-			body.rotation=0.0
-			body.scale=Vector2.ONE
-		else:
-			var p: Dictionary = feedback.pose()
-			body.rotation=float(p["rotation"])
-			body.scale=Vector2.ONE*float(p["scale"])
+		advance_collapse(target,delta)
+		feedback.position=body.position
 		return
 	target["cooldown"]=maxf(0.0,float(target["cooldown"])-delta)
 	target["attack"]=maxf(0.0,float(target["attack"])-delta)
@@ -458,7 +489,8 @@ func attack_character(target: Dictionary, to_avatar: Vector2, distance: float) -
 		var direction := Vector2.from_angle(angle)
 		var speed := 230.0 if kind in ["brick","slingshot"] else 350.0
 		add_shot(target["body"].position+direction*10.0,direction,false,kind,speed)
-		audio.play_cue("fire")
+		if kind == "pistol":
+			audio.play_cue("cz75_shot",-4.0)
 
 func step_shots(delta: float) -> void:
 	for i in range(shots.size()-1,-1,-1):
@@ -502,8 +534,8 @@ func _physics_process(delta: float) -> void:
 		feedback.position = item["body"].position
 		feedback.advance(delta)
 		if bool(item["down"]):
-			var person: Actor = item["body"]
-			person.set_down_progress(feedback.progress())
+			advance_collapse(item,delta)
+			feedback.position=item["body"].position
 	if avatar != null:
 		avatar.modulate = Color(1.0,0.55,0.55) if player_invincible>0.0 and (int(elapsed*14.0)%2)==0 else Color.WHITE
 	if smoke_test:
@@ -571,6 +603,13 @@ func run_test() -> void:
 	assert(defeated==1)
 	assert(male_death_take==1)
 	assert(ground_marks.size()>0 and ground_marks.size()<=MAX_GROUND_MARKS)
+	assert(foe["feedback"].impact_marks.size()==2)
+	assert(foe.has("fall_variant") and foe.has("fall_offset"))
+	for i in range(90):
+		advance_collapse(foe,1.0/60.0)
+	assert(foe["body"].down_phase>=0.99)
+	assert(audio.stream_for("fire") == null)
+	assert(audio.stream_for("beretta_84fs_shot") != null)
 	var next_enemy: Dictionary = actors[1]
 	var health_before := int(next_enemy["hp"])
 	var center: Vector2 = next_enemy["body"].position
