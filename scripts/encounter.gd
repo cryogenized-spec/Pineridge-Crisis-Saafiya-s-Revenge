@@ -365,7 +365,7 @@ func resolve_player_action(origin: Vector2, direction: Vector2) -> void:
 	var candidate: Dictionary = {}
 	var ambient := false
 	for item in actors:
-		if bool(item["down"]):
+		if bool(item["down"]) or bool(item.get("escaped",false)):
 			continue
 		var body: Actor = item["body"]
 		var point := Geometry2D.get_closest_point_to_segment(body.position,origin,reach_end)
@@ -375,7 +375,7 @@ func resolve_player_action(origin: Vector2, direction: Vector2) -> void:
 			candidate = item
 			ambient = false
 	for item in bystanders:
-		if bool(item["down"]):
+		if bool(item["down"]) or bool(item.get("escaped",false)):
 			continue
 		var body: Actor = item["body"]
 		var point := Geometry2D.get_closest_point_to_segment(body.position,origin,reach_end)
@@ -778,7 +778,7 @@ func run_test() -> void:
 	var center: Vector2 = next_enemy["body"].position
 	resolve_player_action(center-Vector2(32,0),Vector2.RIGHT)
 	assert(int(next_enemy["hp"])==health_before-1)
-	var person_state: Dictionary = bystanders[0]
+	var person_state: Dictionary = bystanders[1]
 	var person_center: Vector2 = person_state["body"].position
 	resolve_player_action(person_center-Vector2(32,0),Vector2.RIGHT)
 	assert(bool(person_state["down"]))
