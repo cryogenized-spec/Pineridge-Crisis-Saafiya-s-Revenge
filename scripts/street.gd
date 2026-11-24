@@ -4,7 +4,10 @@ const SIZE := Vector2(2320, 700)
 const ROOFS := [Color("#8b7773"), Color("#797480"), Color("#7e7771")]
 const AWNINGS := [Color("#85534f"), Color("#526e70"), Color("#9e7858")]
 const SHOP_NAMES := ["HOME & MORE", "PINE RIDGE", "BAKERY", "RECORDS", "PHARMACY"]
+const Props = preload("res://scripts/prop_library.gd")
 var obstacles: Array[Rect2] = []
+var litter: Array[Dictionary] = []
+var haze_origins := PackedVector2Array([Vector2(580,268),Vector2(1290,435),Vector2(1880,262)])
 
 func _ready() -> void:
 	# Scenic architecture is a backdrop, not an explorable building plan.
@@ -12,6 +15,15 @@ func _ready() -> void:
 	obstacles.append(Rect2(0, 550, SIZE.x, 150))
 	for x in range(330, 2240, 342):
 		obstacles.append(Rect2(x - 22, (460 if x >= 1000 or x % 2 else 239) - 13, 44, 26))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 67204
+	for i in range(85):
+		var p := Vector2(rng.randf_range(45,2275),rng.randf_range(220,480))
+		var kinds := ["brick","rubble","bottle","carton"]
+		litter.append({"p":p,"id":kinds[i%4],"angle":rng.randf_range(0,TAU),"size":rng.randf_range(5,11)})
+	for p in haze_origins:
+		litter.append({"p":p,"id":"tyre","angle":0.0,"size":26.0})
+		litter.append({"p":p+Vector2(12,8),"id":"tyre","angle":0.6,"size":22.0})
 	queue_redraw()
 
 func blocked(p: Vector2, radius: float = 7.0) -> bool:
@@ -54,6 +66,14 @@ func _draw() -> void:
 	for x in range(80, 2320, 218):
 		tree(Vector2(x, 181), rng)
 		tree(Vector2(x + 30, 519), rng)
+	# Scattered visual scenery, not tactical cover or barricades.
+	for item in litter:
+		var p: Vector2 = item.p
+		var size: float = item.size
+		var texture := Props.texture(item.id)
+		draw_set_transform(p, float(item.angle))
+		draw_texture_rect(texture,Rect2(Vector2.ONE*(-size*0.5),Vector2.ONE*size),false)
+	draw_set_transform(Vector2.ZERO)
 
 func retail_backdrop(rng: RandomNumberGenerator) -> void:
 	draw_rect(Rect2(0, 0, SIZE.x, 146), Color("#4d515b"))

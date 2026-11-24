@@ -33,3 +33,7 @@ NPC art gains tonal shading, garment and headwear details. A dedicated F2 workbe
 
 ## V12 crowd asset import
 Runtime support for twelve VTK NPC idle/walk/run sprite sets, with optional separate cosmetic backpack overlay. PNGs and source are supplied as a separate archive; they are not in the Git tree. Automated validation without the archive exercises fallback rendering only. Encounter logic and UI redesign are not included.
+
+
+## V14 prop and atmosphere pass
+The main street gains seeded decorative litter and tyre scenery, plus a separate animated haze node. No new road barricades, tactical cover or visibility rules. The F3 prop gallery contains 14 independent SVG assets including nonfunctional equipment icons and environmental objects. CI checks texture import and gallery startup. Attachment/encounter systems and final UI are not implemented in this pass. Visual review pending.
