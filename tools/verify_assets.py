@@ -6,7 +6,7 @@ import hashlib, json, struct, sys
 ROOT = Path(__file__).resolve().parents[1]
 manifest_path = ROOT / "assets/characters/approved-manifest.json"
 manifest = json.loads(manifest_path.read_text())['sha256']
-assert len(manifest)==45, f"Expected 45 approved PNGs, got {len(manifest)}"
+assert len(manifest)==57, f"Expected 57 approved PNGs, got {len(manifest)}"
 for name, digest in manifest.items():
     path = ROOT / name
     if not path.is_file():

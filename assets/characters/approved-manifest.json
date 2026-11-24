@@ -1,5 +1,5 @@
 {
-  "description": "Approved original V9 Saafiya and V13 crowd PNGs. Integrity checks prevent substitute art.",
+  "description": "Approved original V9 Saafiya/V13 NPC and 3D-rendered V19 NPC down atlases.",
   "sha256": {
     "assets/characters/saafiya/run_atlas.png": "faf8c15252f4431546bca6766dc18041a063e0b150ba6f2cd54e3e2156034f15",
     "assets/characters/saafiya/run_lower_atlas.png": "08eba756d8318b3eac612c651e7c1a52a7fd9aa3b5aacbb943b5d1140e4547db",
@@ -45,6 +45,18 @@
     "assets/characters/crowd/npc_10_walk.png": "f658c936aa1356537c9a4e1f9595eded1aa05d2fd1ea30c0d528be2bdcfd1a8b",
     "assets/characters/crowd/npc_11_idle.png": "a011bc1c6a13269cdf0d6efa9969387e81c916def9c8ba670f6e0efa53c81db4",
     "assets/characters/crowd/npc_11_run.png": "2625379ef9d0e0c1ca894a0710dc043b7f95a1d4380e75aad65d92ace2b4ca5b",
-    "assets/characters/crowd/npc_11_walk.png": "379689ed0e77e9ced460013f34d85018e39d16e99fd863378d17f8a18b5640bd"
+    "assets/characters/crowd/npc_11_walk.png": "379689ed0e77e9ced460013f34d85018e39d16e99fd863378d17f8a18b5640bd",
+    "assets/characters/crowd/npc_00_down.png": "e0f00dd6726aa4aa372c44dff16d167eb2ce04e75d888dee791030e091331249",
+    "assets/characters/crowd/npc_01_down.png": "9ff830120f4c173cc9cd0ca854383c7e21b2d391641b397987a07c082be894c7",
+    "assets/characters/crowd/npc_02_down.png": "3984736d7adcddbc7345c71b8d4ca6c9b1ac421b3d5ad34610e0da3c818179e5",
+    "assets/characters/crowd/npc_03_down.png": "0eb84f4a571bf03e35470f573d6c107de7685c402251e8a3106aea14bd3795a6",
+    "assets/characters/crowd/npc_04_down.png": "622340cc6de69da6aaaebb45085cc1c61dc8e89ab11e5457a599ae9b24855f57",
+    "assets/characters/crowd/npc_05_down.png": "65d85b46e65ec3928ca680def077d58fc8f4e62c032775c6a7efba38e654115b",
+    "assets/characters/crowd/npc_06_down.png": "9570b2dc6c29fdfcce346e6de8e6485579d887dbdd739a8309f43eb41997ff74",
+    "assets/characters/crowd/npc_07_down.png": "a4ecf08d9d221ba5eec0d8906979b52d36b4ea092d1d2d1b7165e3409b99de37",
+    "assets/characters/crowd/npc_08_down.png": "70e9631d4abeb0883eac9f4aad5ccb756a860b008de4c8aa7dc3284ccc5b6363",
+    "assets/characters/crowd/npc_09_down.png": "08ab8e73dceacbdcd51913596f661899884073937cda2830f3aa29b49347546a",
+    "assets/characters/crowd/npc_10_down.png": "07971083e3cc29f8d289f41c0b48dd77fa7b6bd0d0b75c27e793b99924817df3",
+    "assets/characters/crowd/npc_11_down.png": "e7bf25a1824f87184ed3463eedcb3529511fffb5c3966845cd0a34485d97e940"
   }
 }
