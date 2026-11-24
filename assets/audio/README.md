@@ -11,8 +11,13 @@ These six sound files are included directly in the repository and shipped with b
 | `akm_shot.mp3` | AKM fire | Original supplied 1.63-second stereo MP3, unchanged |
 | `crowd_shout.ogg` | Periodic ambient NPC shouting | Supplied vocal WAV, converted to Vorbis, level increased for intelligibility |
 
-The user-supplied recordings replace the earlier synthesized tones for these six events. Additional missing cues (`pickup`, `reaction`, `alert`, `beretta_reload`, `cz75_reload` and others) still use placeholder tones until recordings are supplied.
+| `shotgun_12ga_shot.ogg` | 12-gauge shotgun audio event / F4 sound preview | Provided `shotgun-spas_12-RA_The_Sun_God-503834910.wav`, transcoded to stereo Vorbis 44.1 kHz, -2.4 dB level |
+| `shotgun_pump.ogg` | Pump-action audio event / F4 sound preview | Provided `Pump Shotgun-SoundBible.com-1653268682.wav`, transcoded to stereo Vorbis 44.1 kHz |
+
+The user-supplied recordings replace the earlier synthesized tones for these eight events. Additional missing cues (`pickup`, `reaction`, `alert`, `beretta_reload`, `cz75_reload` and others) still use placeholder tones until recordings are supplied.
 
 The shout is intentionally fictional, unintelligible vocal material, not a translation or authentic dialogue. The reloading clip is one complete sound sequence, and its timing may be adjusted during audio playtesting.
 
-Run `python3 tools/verify_audio.py` to check all six byte-for-byte checksums. CI verifies both binary integrity and Godot import. Keep source rights/attribution information with any commercial release.
+The shotgun sounds are separate assets rather than baked into a character animation. In F4, press **9** to preview a shot followed by the pump sound, or **0** to audition the pump sound alone. These are audio previews; the current main-story equipment list remains unchanged.
+
+Run `python3 tools/verify_audio.py` to check all eight byte-for-byte checksums. CI verifies both binary integrity and Godot import. Keep source rights/attribution information with any commercial release.

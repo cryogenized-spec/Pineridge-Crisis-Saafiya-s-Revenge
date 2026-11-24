@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check the six supplied game audio assets against the approved import bytes."""
+"""Check supplied game audio assets against the recorded import bytes."""
 from pathlib import Path
 from hashlib import sha256
 
@@ -11,6 +11,8 @@ EXPECTED = {
     "assets/audio/crowd_shout.ogg": ("819ab2bd87a9e19178d3c273a2eedcd505b488eff61f30f673191f512f14f73a", 53716),
     "assets/audio/cz75_shot.ogg": ("adba3386aaf3593ede53c26e293c7462df4a93d5206f0673e880a4458a0adf57", 65862),
     "assets/audio/saafiya_death.ogg": ("7dea5dfd7cc13d8fd46b6174f1981be0c8b3ed23f59d8f6c05944b996b083dc8", 123606),
+    "assets/audio/shotgun_12ga_shot.ogg": ("f25b3c6665517208865a8a82c13badcafe942084b3434fbeaa94e67c0f36f825", 40069),
+    "assets/audio/shotgun_pump.ogg": ("139b38862fcd208f9096c507c43b2696275231180786c90f804b4dcf093ba649", 32607),
 }
 for name, (digest, size) in EXPECTED.items():
     path = ROOT / name

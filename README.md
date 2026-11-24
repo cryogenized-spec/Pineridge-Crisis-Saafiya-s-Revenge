@@ -56,3 +56,7 @@ The gameplay now removes all bright firearm tracer lines and uses instantaneous 
 
 ## V24 visually layered left-handed equipment
 The single straight-line arm placeholder was replaced by two independently drawn, shaded upper-limb costume overlays with sleeves, cuffs and hands, placed in front of the original approved Saafiya body sprites. The detachable Beretta visual is carried left-of-centre in front of the model. This is a top-down graphical posing treatment, not an instruction model for weapon handling. No animated projectile beam is rendered.
+
+
+## V25 shotgun sound assets
+Two user-provided clips are included as compressed stereo Vorbis in `assets/audio/shotgun_12ga_shot.ogg` and `assets/audio/shotgun_pump.ogg`. Press **F4** in the game, then **9** to preview both in sequence or **0** to preview the standalone pump cue. Both event IDs are available to a future shotgun character/equipment scene; no shotgun slot or real-world weapon cycle was added to Saafiya's established loadout. Their content is locked by the audio checksum verifier and checked by CI. Original-source license and attribution should be checked before public commercial distribution.

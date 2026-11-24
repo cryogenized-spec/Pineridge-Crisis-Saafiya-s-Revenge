@@ -7,7 +7,8 @@ const CUES := {
 	"down":190.0,"akm_shot":330.0,"beretta_84fs_shot":350.0,
 	"cz75_shot":390.0,"beretta_reload":300.0,
 	"cz75_reload":310.0,"akm_reload":270.0,
-	"saafiya_death":175.0,"crowd_shout":270.0
+	"saafiya_death":175.0,"crowd_shout":270.0,
+	"shotgun_12ga_shot":200.0,"shotgun_pump":320.0
 }
 var players: Array[AudioStreamPlayer] = []
 var cached: Dictionary = {}
