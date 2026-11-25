@@ -7,6 +7,8 @@ const Props = preload("res://scripts/prop_library.gd")
 const BLOOD_STAIN = preload("res://assets/fx/blood_stain.svg")
 const Audio = preload("res://scripts/preview_audio.gd")
 const WeaponVisual = preload("res://scripts/weapon_visual.gd")
+const InventoryModel = preload("res://scripts/inventory_model.gd")
+const InventoryPanel = preload("res://scripts/inventory_panel.gd")
 const KIT := [
 	{"name":"Beretta 84FS","size":13,"interval":0.24,"travel":2400.0},
 	{"name":"CZ 75 P-07","size":12,"interval":0.31,"travel":2200.0},
@@ -45,6 +47,8 @@ const MAX_CONTACT_SPLASHES := 48
 var ground_marks: Array[Dictionary] = []
 const MAX_GROUND_MARKS := 72
 var loot: Array[Dictionary] = []
+var inventory: InventoryModel = InventoryModel.new()
+var inventory_ui: InventoryPanel
 var player_hp := 3
 var player_invincible := 0.0
 var cooldown := 0.0
@@ -92,6 +96,9 @@ func _ready() -> void:
 	add_child(held_visual)
 	spawn_group(false)
 	make_hud()
+	inventory_ui=InventoryPanel.new()
+	inventory_ui.configure(inventory)
+	add_child(inventory_ui)
 	smoke_test = "--encounter-smoke" in OS.get_cmdline_user_args()
 	if smoke_test:
 		call_deferred("run_test")
@@ -169,7 +176,8 @@ func spawn_character(at: Vector2, kind: String, look: int, male_voice: bool = fa
 		"origin":at,"down":false,"visible_prop":true,"flee_said":false,"male_voice":male_voice,
 		"fall_variant":(look+actors.size())%6,
 		"startle":0.0,"fleeing":false,"escaped":false,
-		"escape_x":0.0,"escape_lane":at.y,"escape_speed":110.0
+		"escape_x":0.0,"escape_lane":at.y,"escape_speed":110.0,
+		"cash_rand":([0,35,0,0,80,0,20,0,0,50,0,0][actors.size()%12])
 	})
 
 # The alarm propagates through the fictional level without requiring line of sight.
@@ -337,7 +345,7 @@ func set_phase(next: int) -> void:
 		return
 	phase = next
 	if next == 1:
-		unlocked[2] = true
+		# Equipment does not appear automatically at a waypoint.
 		spawn_group(true)
 		audio.play_cue("alert")
 	elif next == 2:
@@ -368,7 +376,7 @@ func refill() -> void:
 	audio.play_cue(cue)
 
 func fire_player() -> void:
-	if finished or player_hp <= 0 or cooldown > 0.0 or reload_clock > 0.0:
+	if finished or player_hp <= 0 or cooldown > 0.0 or reload_clock > 0.0 or inventory_open():
 		return
 	if rounds[slot] <= 0:
 		audio.play_cue("reset")
@@ -484,17 +492,24 @@ func collect_nearby() -> bool:
 	if avatar == null or player_hp <= 0:
 		return false
 	for i in range(loot.size()):
-		if avatar.position.distance_to(loot[i]["point"]) < 30.0:
+		if avatar.position.distance_to(loot[i]["point"]) < 34.0:
+			inventory.add_cash(int(loot[i].get("cash_rand",0)))
 			loot.remove_at(i)
-			if not unlocked[1]:
-				unlocked[1]=true
-				slot=1
-			else:
-				spares[slot]+=1
 			audio.play_cue("pickup")
 			update_hud()
 			return true
 	return false
+
+func toggle_inventory() -> void:
+	if is_instance_valid(inventory_ui):
+		inventory_ui.toggle()
+
+func show_car_boot() -> void:
+	if is_instance_valid(inventory_ui):
+		inventory_ui.show_inventory(true)
+
+func inventory_open() -> bool:
+	return is_instance_valid(inventory_ui) and inventory_ui.open
 
 func add_ground_mark(at: Vector2, strength: float = 1.0) -> void:
 	# Pre-rendered stain texture: one prominent soft mark and a few satellites.
@@ -540,8 +555,9 @@ func hit_enemy(target: Dictionary, amount: int) -> void:
 		feedback.select(Feedback.State.DOWN)
 		begin_collapse(target)
 		defeated+=1
-		if defeated%2 == 0:
-			loot.append({"point":target["body"].position+Vector2(13,9),"age":0.0})
+		var notes: int=int(target.get("cash_rand",0))
+		if notes>0:
+			loot.append({"point":target["body"].position+Vector2(11,8),"cash_rand":notes})
 		if bool(target.get("male_voice",false)):
 			var id := "male_looter_death_1" if male_death_take%2==0 else "male_looter_death_2"
 			male_death_take+=1
@@ -750,9 +766,11 @@ func _draw() -> void:
 		var strength := float(spark["life"])/0.28
 		draw_circle(spark["point"],3.0*(1.0-strength)+1.0,Color(0.96,0.77,0.52,strength*0.55),false,0.9,true)
 	for item in loot:
-		var p: Vector2 = item["point"]
-		draw_circle(p,8.5,Color(0.95,0.83,0.48,0.24),false,1.2,true)
-		draw_circle(p,3.0,Color("#f3da96"),true,-1,true)
+		var p: Vector2=item["point"]
+		# A small grounded wallet rather than a floating reward icon.
+		draw_rect(Rect2(p+Vector2(1,2),Vector2(11,7)),Color(0.07,0.06,0.07,0.35))
+		draw_rect(Rect2(p,Vector2(11,7)),Color("#53392c"))
+		draw_rect(Rect2(p+Vector2(2,2),Vector2(7,2)),Color("#b59a6e"))
 
 func run_test() -> void:
 	for clip in ["saafiya_death.ogg","beretta_84fs_shot.ogg","cz75_shot.ogg","akm_reload.ogg","akm_shot.mp3","crowd_shout.ogg","shotgun_12ga_shot.ogg","shotgun_pump.ogg","beretta_reload.mp3","cz75_reload.ogg","male_looter_death_1.ogg","male_looter_death_2.ogg"]:
@@ -817,7 +835,9 @@ func run_test() -> void:
 	refill()
 	set_phase(1)
 	assert(actors.size()==12)
-	assert(unlocked[2])
+	assert(not unlocked[2])
+	assert(inventory.bag.size()==2)
+	assert(inventory.cash_rand==0)
 	add_shot(Vector2(400,300),Vector2.RIGHT,true,"spark",350.0)
 	assert(shots.size()==1)
 	print("Encounter smoke: actors, arcade damage, defeat, pickup, return wave and projectiles initialized.")

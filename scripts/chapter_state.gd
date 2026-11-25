@@ -8,7 +8,8 @@ static func store(tree: SceneTree, battle: Node) -> void:
 		"rounds":battle.rounds.duplicate(),
 		"spares":battle.spares.duplicate(),
 		"unlocked":battle.unlocked.duplicate(),
-		"slot":int(battle.slot)
+		"slot":int(battle.slot),
+		"inventory":battle.inventory.snapshot()
 	})
 
 static func restore(tree: SceneTree, battle: Node) -> void:
@@ -29,6 +30,8 @@ static func restore(tree: SceneTree, battle: Node) -> void:
 	battle.slot=clampi(int(saved.get("slot",0)),0,2)
 	if not bool(battle.unlocked[battle.slot]):
 		battle.slot=0
+	if saved.has("inventory"):
+		battle.inventory.restore(saved["inventory"])
 	if is_instance_valid(battle.held_visual):
 		battle.held_visual.choose_slot(battle.slot)
 	battle.update_hud()
