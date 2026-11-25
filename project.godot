@@ -2,7 +2,7 @@ config_version=5
 
 [application]
 config/name="Pineridge Crisis — Saafiya's Revenge"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/upper_ridge.tscn"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 
 [display]

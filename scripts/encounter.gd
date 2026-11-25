@@ -60,6 +60,7 @@ var phase := 0
 var elapsed := 0.0
 var finished := false
 var smoke_test := false
+var level_id := "feeder"
 var hud: Label
 var notice: Label
 
@@ -96,6 +97,19 @@ func _ready() -> void:
 		call_deferred("run_test")
 
 func spawn_group(return_wave: bool) -> void:
+	if level_id == "upper_ridge":
+		# Opening chapter: compact, abstract arcade encounter, with most
+		# residential movement portrayed through neutral passersby.
+		var opening := [
+			[Vector2(565,519),"runner",0],
+			[Vector2(815,456),"brick",3],
+			[Vector2(1078,570),"knife",7],
+			[Vector2(1560,468),"pistol",9],
+			[Vector2(1920,587),"cudgel",5]
+		]
+		for item in opening:
+			spawn_character(item[0],item[1],int(item[2]),bool(item[1] in ["pistol","knife"]))
+		return
 	var descriptions := [
 		[Vector2(626,382),"knife",0,true],
 		[Vector2(492,369),"pistol",5,true],

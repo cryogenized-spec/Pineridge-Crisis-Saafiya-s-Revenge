@@ -55,10 +55,16 @@ jobs:
           engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . res://scenes/action_review.tscn --fixed-fps 60 --quit-after 480 -- --action-smoke 2>&1 | tee action.log
           if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|Error importing|Ogg Vorbis decoding failed|Error loading resource|Assertion failed' action.log; then exit 1; fi
           grep -F 'Action review: pickup, carry, set down, alert, stumble and down states exercised.' action.log
+      - name: Exercise Upper Ridge first chapter
+        run: |
+          set -o pipefail
+          engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . res://scenes/upper_ridge.tscn --fixed-fps 60 --quit-after 300 -- --upper-ridge-smoke 2>&1 | tee upper_ridge.log
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|Assertion failed' upper_ridge.log; then exit 1; fi
+          grep -F 'Upper Ridge smoke: residential map' upper_ridge.log
       - name: Exercise arcade encounters
         run: |
           set -o pipefail
-          engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . --fixed-fps 60 --quit-after 300 -- --encounter-smoke 2>&1 | tee encounter.log
+          engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . res://scenes/main.tscn --fixed-fps 60 --quit-after 300 -- --encounter-smoke 2>&1 | tee encounter.log
           if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|Error importing|Ogg Vorbis decoding failed|Error loading resource|Assertion failed' encounter.log; then exit 1; fi
           grep -F 'Encounter smoke: actors, arcade damage' encounter.log
       - uses: actions/upload-artifact@v4
@@ -72,6 +78,7 @@ jobs:
             props.log
             action.log
             encounter.log
+            upper_ridge.log
       - name: Install Linux export templates
         if: success()
         run: |
