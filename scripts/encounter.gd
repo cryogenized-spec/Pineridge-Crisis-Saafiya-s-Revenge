@@ -330,9 +330,9 @@ func update_hud() -> void:
 	for item in actors:
 		if not bool(item["down"]) and not bool(item.get("escaped",false)):
 			remaining += 1
-	hud.text="HEALTH  %s   |   %s  %02d / %02d\nACTIVE  %d    DOWN  %d    ESCAPED  %d    HITS  %d/%d" % [
+	hud.text="HEALTH  %s   |   %s  %02d / %02d\nACTIVE  %d    DOWN  %d    ESCAPED  %d    HITS  %d/%d  ·  R%d   [I]" % [
 		"♥".repeat(player_hp)+"♡".repeat(3-player_hp),
-		active["name"],rounds[slot],spares[slot],remaining,defeated,escaped_count,shots_hit,shots_fired]
+		active["name"],rounds[slot],spares[slot],remaining,defeated,escaped_count,shots_hit,shots_fired,inventory.cash_rand]
 	if finished:
 		notice.text="ROUTE COMPLETE\nEsc to restart"
 	elif player_hp <= 0:

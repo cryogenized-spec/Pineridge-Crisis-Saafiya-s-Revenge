@@ -1,4 +1,5 @@
 extends Node2D
+var traffic: Node2D
 # Segment 2: fictional house exterior near Pine Ridge mall.
 # Orthographic overhead scenery, approximately 24 display pixels/metre.
 const SIZE := Vector2(2320.0,1024.0)
@@ -41,6 +42,8 @@ func create_road_texture() -> void:
 	texture_repeat=CanvasItem.TEXTURE_REPEAT_ENABLED
 
 func blocked(p: Vector2, radius: float = 7.0) -> bool:
+	if is_instance_valid(traffic) and traffic.blocked(p,radius):
+		return true
 	if p.x < radius or p.x > SIZE.x-radius:
 		return true
 	var on_street: bool = p.y >= ROAD_TOP-22.0+radius and p.y <= ROAD_BOTTOM+25.0-radius

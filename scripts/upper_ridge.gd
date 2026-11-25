@@ -3,6 +3,7 @@ extends Node2D
 const World = preload("res://scripts/upper_ridge_world.gd")
 const Actor = preload("res://scripts/actor.gd")
 const Encounter = preload("res://scripts/encounter.gd")
+const Traffic = preload("res://scripts/ambient_traffic.gd")
 const Effects = preload("res://scripts/visual_effects.gd")
 const ChapterState = preload("res://scripts/chapter_state.gd")
 const START := Vector2(126.0,519.0)
@@ -10,6 +11,7 @@ const NEXT_SCENE := "res://scenes/house_one.tscn"
 var world: World
 var player: Actor
 var camera: Camera2D
+var traffic: Traffic
 var encounter: Encounter
 var marker: Effects
 var walkers: Array[Actor] = []
@@ -36,6 +38,10 @@ func _ready() -> void:
 	player.hero = true
 	player.position = START
 	add_child(player)
+	traffic=Traffic.new()
+	traffic.configure(player,429.0,585.0)
+	add_child(traffic)
+	world.traffic=traffic
 	encounter = Encounter.new()
 	encounter.level_id = "upper_ridge"
 	encounter.configure(player,world)
@@ -211,6 +217,9 @@ func run_smoke() -> void:
 	assert(encounter.inventory.boot_cash_rand==50)
 	assert(encounter.inventory.withdraw_cash(50))
 	assert(encounter.inventory.cash_rand==125)
+	assert(traffic!=null)
+	traffic.spawn_car()
+	assert(traffic.cars.size()==1)
 	encounter.show_car_boot()
 	assert(encounter.inventory_open())
 	encounter.inventory_ui.close_inventory()

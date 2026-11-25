@@ -4,6 +4,7 @@ extends Node2D
 const World = preload("res://scripts/house_one_world.gd")
 const Actor = preload("res://scripts/actor.gd")
 const Encounter = preload("res://scripts/encounter.gd")
+const Traffic = preload("res://scripts/ambient_traffic.gd")
 const Effects = preload("res://scripts/visual_effects.gd")
 const ChapterState = preload("res://scripts/chapter_state.gd")
 const START := Vector2(128.0,539.0)
@@ -12,6 +13,7 @@ const RUN_CYCLE := 0.64
 var world: World
 var player: Actor
 var camera: Camera2D
+var traffic: Traffic
 var encounter: Encounter
 var marker: Effects
 var walkers: Array[Actor] = []
@@ -37,6 +39,10 @@ func _ready() -> void:
 	player.hero=true
 	player.position=START
 	add_child(player)
+	traffic=Traffic.new()
+	traffic.configure(player,450.0,625.0)
+	add_child(traffic)
+	world.traffic=traffic
 	encounter=Encounter.new()
 	encounter.level_id="barricaded_house"
 	encounter.configure(player,world)
@@ -225,6 +231,8 @@ func run_smoke() -> void:
 	assert(world.CAR_WIDTH==43.0)
 	assert(walkers.size()==8)
 	assert(encounter.actors.size()==6)
+	traffic.spawn_car()
+	assert(traffic.cars.size()==1)
 	assert(not world.blocked(START))
 	assert(world.blocked(Vector2(1075,323)))
 	assert(world.blocked(Vector2(1130,190)))

@@ -75,3 +75,7 @@ Previously, ambient NPCs were moved every frame by a fixed wandering loop, irres
 
 ## V29 Segment 2 (House One)
 Added a second playable residential scene between the uphill approach and mall feeder road. Contains the closed barricaded home, fence/gate, garden, two-car carport and ordinary household clutter, an interaction with unseen residents, more NPCs and an eastern exit objective. No usable room layout is modelled. Health, spare ammunition, active weapon slot and equipment unlocks persist at transitions via a small SceneTree metadata helper; this is a temporary save mechanism, not a persistent save file. The new house-one smoke test verifies scene readiness, geometry blocking, checkpoint dialogue, transition target and restored health.
+
+
+## V30 equipment, currency, carryover
+New resource-independent inventory model and interactive equipment UI: key I, head/neck/torso/arms/belt/boots/hands/ten rings, finite 8-slot pocket capacity expandable to 18 with a backpack, wallet in ZAR and car boot storage. Car-stash inventory is available only near the starting car, and chapter transitions snapshot all cash/items/storage/equipment. A few NPCs may possess finite cash, displayed as small grounded wallets on defeat. NPCs never conjure health, magazines or weapons. The former arbitrary CZ unlock from a defeated NPC and the AKM unlock triggered by a waypoint were removed. Ambient residential traffic is optional scenery and carries no combat logic.

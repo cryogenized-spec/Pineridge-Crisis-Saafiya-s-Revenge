@@ -1,4 +1,5 @@
 extends Node2D
+var traffic: Node2D
 # Upper Pineridge: a fictional residential approach in overhead projection.
 # One world unit = one display pixel. Approximate scale is 24 px / metre.
 const SIZE := Vector2(2320.0, 1024.0)
@@ -41,6 +42,8 @@ func prepare_texture() -> void:
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 
 func blocked(p: Vector2, radius: float = 7.0) -> bool:
+	if is_instance_valid(traffic) and traffic.blocked(p,radius):
+		return true
 	# Segment-one houses are exterior scenery, not explorable interiors.
 	if p.x < radius or p.x > SIZE.x-radius or p.y < ROAD_TOP-22.0+radius or p.y > ROAD_BOTTOM+22.0-radius:
 		return true
