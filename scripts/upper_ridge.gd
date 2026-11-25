@@ -6,12 +6,12 @@ const Encounter = preload("res://scripts/encounter.gd")
 const Effects = preload("res://scripts/visual_effects.gd")
 const START := Vector2(126.0,519.0)
 const NEXT_SCENE := "res://scenes/main.tscn"
-var world: Node2D
-var player: Node2D
+var world: World
+var player: Actor
 var camera: Camera2D
-var encounter: Node2D
-var marker: Node2D
-var walkers: Array[Node2D] = []
+var encounter: Encounter
+var marker: Effects
+var walkers: Array[Actor] = []
 var heads: Array[Dictionary] = []
 var elapsed := 0.0
 var running := false
@@ -168,7 +168,7 @@ func _physics_process(delta: float) -> void:
 		phase=player.gait_phase
 	camera.position=player.position
 	for i in range(walkers.size()):
-		var npc: Node2D = walkers[i]
+		var npc: Actor = walkers[i]
 		if npc.down_phase>=0 or bool(npc.get_meta("panic_run",false)):
 			continue
 		var profile: Dictionary=heads[i]
