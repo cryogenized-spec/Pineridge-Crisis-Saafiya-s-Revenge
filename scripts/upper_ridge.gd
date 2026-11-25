@@ -184,7 +184,7 @@ func _physics_process(delta: float) -> void:
 		npc.animate(delta,walked,walked.angle() if walked.length_squared()>0.005 else npc.facing,false,false)
 	marker.marker_position=World.EXIT_POINT
 	var ready := can_advance()
-	objective.text="E  ·  Continue to the mall-side feeder road" if ready else "Follow the downhill road toward the mall district."
+	objective.text="E  ·  Continue to the barricaded house" if ready else "Follow the downhill road toward the residential block."
 	status.text="Distance to junction: %d m    •    %d FPS" % [roundi(player.position.distance_to(World.EXIT_POINT)/24.0),Engine.get_frames_per_second()]
 	subtitle.modulate.a=maxf(0.0,1.0-elapsed/9.0)
 

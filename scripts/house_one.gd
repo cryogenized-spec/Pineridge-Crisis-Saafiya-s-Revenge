@@ -120,7 +120,7 @@ func speak_with_residents() -> void:
 	dialogue_timer=9.0
 	marker.marker_position=World.EXIT_POINT
 	objective.text="The household is secure. Continue down the road toward the mall."
-	encounter.audio.play_cue("crowd_shout",-9.0)
+	# Residents speak through text until a matching dialogue recording exists.
 
 func continue_story() -> void:
 	if leaving or not can_continue():
