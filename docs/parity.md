@@ -71,3 +71,7 @@ A reproducible VTK-side lateral fall renderer creates 12 eight-frame NPC atlases
 
 ## V27 NPC response fixes
 Previously, ambient NPCs were moved every frame by a fixed wandering loop, irrespective of sounds. Now they receive stage gunfire notifications, show brief panic indicators and recorded generic crowd shouts, switch to running, and continue all the way to stage exit boundaries. Fleeing antagonists and remaining alert NPCs use separate cartoonish states. A new encounter smoke test verifies a shot causes panic, an enemy becomes alerted, and a fleeing pedestrian crosses the actual stage boundary before counting as escaped.
+
+
+## V29 Segment 2 (House One)
+Added a second playable residential scene between the uphill approach and mall feeder road. Contains the closed barricaded home, fence/gate, garden, two-car carport and ordinary household clutter, an interaction with unseen residents, more NPCs and an eastern exit objective. No usable room layout is modelled. Health, spare ammunition, active weapon slot and equipment unlocks persist at transitions via a small SceneTree metadata helper; this is a temporary save mechanism, not a persistent save file. The new house-one smoke test verifies scene readiness, geometry blocking, checkpoint dialogue, transition target and restored health.

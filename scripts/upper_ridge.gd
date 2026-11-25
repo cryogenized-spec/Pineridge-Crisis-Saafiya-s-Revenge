@@ -4,8 +4,9 @@ const World = preload("res://scripts/upper_ridge_world.gd")
 const Actor = preload("res://scripts/actor.gd")
 const Encounter = preload("res://scripts/encounter.gd")
 const Effects = preload("res://scripts/visual_effects.gd")
+const ChapterState = preload("res://scripts/chapter_state.gd")
 const START := Vector2(126.0,519.0)
-const NEXT_SCENE := "res://scenes/main.tscn"
+const NEXT_SCENE := "res://scenes/house_one.tscn"
 var world: World
 var player: Actor
 var camera: Camera2D
@@ -115,6 +116,7 @@ func advance_stage() -> void:
 	if not can_advance() or finished:
 		return
 	finished = true
+	ChapterState.store(get_tree(),encounter)
 	get_tree().change_scene_to_file(NEXT_SCENE)
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -197,5 +199,6 @@ func run_smoke() -> void:
 	assert(not can_advance())
 	player.position=World.EXIT_POINT
 	assert(can_advance())
+	assert(ResourceLoader.exists(NEXT_SCENE))
 	print("Upper Ridge smoke: residential map, NPC flow, arcade encounters, player visuals and scene transition verified.")
 	get_tree().quit()

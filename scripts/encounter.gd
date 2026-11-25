@@ -97,6 +97,20 @@ func _ready() -> void:
 		call_deferred("run_test")
 
 func spawn_group(return_wave: bool) -> void:
+	if level_id == "barricaded_house":
+		# Story staging outside the secured property. Avoid procedural
+		# entry routes: the family remains inaccessible indoors.
+		var house_group := [
+			[Vector2(950,530),"runner",0],
+			[Vector2(1225,371),"brick",2],
+			[Vector2(1470,343),"cudgel",4],
+			[Vector2(1605,491),"slingshot",6],
+			[Vector2(1760,543),"knife",7],
+			[Vector2(1955,552),"pistol",9]
+		]
+		for item in house_group:
+			spawn_character(item[0],item[1],int(item[2]),bool(item[1] in ["pistol","knife","cudgel"]))
+		return
 	if level_id == "upper_ridge":
 		# Opening chapter: compact, abstract arcade encounter, with most
 		# residential movement portrayed through neutral passersby.
