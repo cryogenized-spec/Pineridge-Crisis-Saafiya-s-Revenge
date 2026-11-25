@@ -1,5 +1,6 @@
 extends Node2D
-var traffic: Node2D
+const Traffic = preload("res://scripts/ambient_traffic.gd")
+var traffic: Traffic
 # Upper Pineridge: a fictional residential approach in overhead projection.
 # One world unit = one display pixel. Approximate scale is 24 px / metre.
 const SIZE := Vector2(2320.0, 1024.0)

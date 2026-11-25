@@ -1,5 +1,6 @@
 extends Node2D
-var traffic: Node2D
+const Traffic = preload("res://scripts/ambient_traffic.gd")
+var traffic: Traffic
 # Segment 2: fictional house exterior near Pine Ridge mall.
 # Orthographic overhead scenery, approximately 24 display pixels/metre.
 const SIZE := Vector2(2320.0,1024.0)
