@@ -72,7 +72,7 @@ func make_hud() -> void:
 	var layer:=CanvasLayer.new()
 	add_child(layer)
 	var panel:=PanelContainer.new()
-	panel.position=Vector2(18,18)
+	panel.position=Vector2(452,14)
 	panel.custom_minimum_size=Vector2(380,0)
 	var style:=StyleBoxFlat.new()
 	style.bg_color=Color(0.12,0.10,0.16,0.94)
@@ -100,9 +100,9 @@ func make_hud() -> void:
 	status.modulate=Color("#c2b4c2")
 	v.add_child(status)
 	var help:=Label.new()
-	help.position=Vector2(18,684)
-	help.text="WASD / arrows: move     Q: toggle run     C: toggle crouch     E: interact     I: inventory     Click: action   R: refill   1–3: slots   V: effects   F: fullscreen     F2: wardrobe   F3: props   F4: poses   F6: smoke   Esc: reset"
-	help.add_theme_font_size_override("font_size",17)
+	help.position=Vector2(255,688)
+	help.text="WASD MOVE    Q RUN    C CROUCH    E INTERACT    I INVENTORY    R RELOAD    [ / ] EQUIPMENT    F FULLSCREEN"
+	help.add_theme_font_size_override("font_size",12)
 	help.modulate=Color("#f3ddc7")
 	layer.add_child(help)
 

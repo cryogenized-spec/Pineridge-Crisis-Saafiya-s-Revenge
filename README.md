@@ -1,5 +1,9 @@
 # Pineridge Crisis — Saafiya's Revenge
 
+## Native Saafiya Gothic HUD (16:9)
+The game now uses the 2048×1152 Gothic HUD across Godot story chapters. It fills the four corners of the game viewport. Fullscreen is enabled on desktop; press **F** to toggle it where the browser requires a user gesture. The bronze ammunition panel displays real rounds and reserve magazines without clipping, and the minimap rotates beneath its fixed chevron. Eight supplied icons appear in two four-direction pages, while the game permits switching only to weapons unlocked in its encounter logic. The current arcade ammunition and inventory remain the source of truth. More details: [docs/hud/native-godot.md](docs/hud/native-godot.md).
+
+
 ## Approved artwork now included in browser and Linux exports
 The six original approved V9 Saafiya transparent atlases (including separate upper/lower walking and running layers), all 36 V13 NPC idle/walk/run atlases, and three detachable cosmetic accessory PNGs are committed in `assets/characters/`. This is the real code-rendered VTK art, not re-drawn/quantized replacements. Every push validates all 57 approved PNGs against SHA256 hashes before building. Clone and run the project normally; no separate sprite-archive installation is needed.
 

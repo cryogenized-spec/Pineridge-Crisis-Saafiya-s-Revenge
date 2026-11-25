@@ -85,7 +85,7 @@ func build_ui() -> void:
 	var overlay := CanvasLayer.new()
 	add_child(overlay)
 	var stack := VBoxContainer.new()
-	stack.position = Vector2(22,20)
+	stack.position = Vector2(446,19)
 	stack.add_theme_constant_override("separation",5)
 	overlay.add_child(stack)
 	title_label = Label.new()
@@ -109,9 +109,9 @@ func build_ui() -> void:
 	subtitle.modulate=Color("#e9dec7")
 	overlay.add_child(subtitle)
 	var controls := Label.new()
-	controls.text = "WASD: move  |  Q: run  |  C: crouch  |  I: inventory  |  Click: action  |  R: reload  |  E: continue  |  Esc: restart"
-	controls.position=Vector2(24,690)
-	controls.add_theme_font_size_override("font_size",14)
+	controls.text = "WASD MOVE  •  Q RUN  •  I INVENTORY  •  R RELOAD  •  [ / ] PAGE  •  F FULLSCREEN"
+	controls.position=Vector2(282,690)
+	controls.add_theme_font_size_override("font_size",12)
 	controls.modulate=Color("#b9c2ba")
 	overlay.add_child(controls)
 
@@ -141,6 +141,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_2: encounter.equip(1)
 		KEY_3: encounter.equip(2)
 		KEY_I: encounter.toggle_inventory()
+		KEY_F:
+			var mode := DisplayServer.window_get_mode()
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if mode == DisplayServer.WINDOW_MODE_FULLSCREEN else DisplayServer.WINDOW_MODE_FULLSCREEN)
 		KEY_E:
 			if encounter.inventory_open():
 				return

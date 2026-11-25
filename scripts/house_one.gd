@@ -83,7 +83,7 @@ func make_hud() -> void:
 	var overlay := CanvasLayer.new()
 	add_child(overlay)
 	var stack := VBoxContainer.new()
-	stack.position=Vector2(22,20)
+	stack.position=Vector2(438,18)
 	stack.add_theme_constant_override("separation",4)
 	overlay.add_child(stack)
 	var heading := Label.new()
@@ -105,9 +105,9 @@ func make_hud() -> void:
 	dialogue.modulate=Color("#f6e8ca")
 	overlay.add_child(dialogue)
 	var legend := Label.new()
-	legend.position=Vector2(24,686)
-	legend.text="WASD move  •  Q run  •  C crouch  •  I inventory  •  E interact  •  R reload  •  Click action  •  Esc restart"
-	legend.add_theme_font_size_override("font_size",14)
+	legend.position=Vector2(278,686)
+	legend.text="WASD MOVE  •  Q RUN  •  I INVENTORY  •  R RELOAD  •  [ / ] PAGE  •  F FULLSCREEN"
+	legend.add_theme_font_size_override("font_size",12)
 	legend.modulate=Color("#c9c7bc")
 	overlay.add_child(legend)
 	objective.text="Find the occupied house and check on the family at the front gate."
@@ -151,6 +151,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_2: encounter.equip(1)
 		KEY_3: encounter.equip(2)
 		KEY_I: encounter.toggle_inventory()
+		KEY_F:
+			var mode := DisplayServer.window_get_mode()
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if mode == DisplayServer.WINDOW_MODE_FULLSCREEN else DisplayServer.WINDOW_MODE_FULLSCREEN)
 		KEY_E:
 			if encounter.inventory_open():
 				return
