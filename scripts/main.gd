@@ -120,7 +120,10 @@ func _unhandled_key_input(event:InputEvent) -> void:
 			KEY_F2:
 				get_tree().change_scene_to_file("res://scenes/character_review.tscn")
 			KEY_ESCAPE:
-				get_tree().reload_current_scene()
+				if encounters.inventory_open():
+					encounters.inventory_ui.close_inventory()
+				else:
+					get_tree().reload_current_scene()
 			KEY_F:
 				var mode:=DisplayServer.window_get_mode()
 				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if mode==DisplayServer.WINDOW_MODE_FULLSCREEN else DisplayServer.WINDOW_MODE_FULLSCREEN)

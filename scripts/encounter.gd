@@ -305,7 +305,7 @@ func make_hud() -> void:
 	var column := VBoxContainer.new()
 	backdrop.add_child(column)
 	hud=Label.new()
-	hud.add_theme_font_size_override("font_size",18)
+	hud.add_theme_font_size_override("font_size",14)
 	hud.modulate=Color("#f3dbb8")
 	column.add_child(hud)
 	var help := Label.new()
@@ -330,7 +330,7 @@ func update_hud() -> void:
 	for item in actors:
 		if not bool(item["down"]) and not bool(item.get("escaped",false)):
 			remaining += 1
-	hud.text="HEALTH  %s   |   %s  %02d / %02d\nACTIVE  %d    DOWN  %d    ESCAPED  %d    HITS  %d/%d  ·  R%d   [I]" % [
+	hud.text="HEALTH  %s  |  %s  %02d / %02d\nACTIVE %d  •  DOWN %d  •  ESC %d\nHITS %d/%d  •  R%d  •  [I] INVENTORY" % [
 		"♥".repeat(player_hp)+"♡".repeat(3-player_hp),
 		active["name"],rounds[slot],spares[slot],remaining,defeated,escaped_count,shots_hit,shots_fired,inventory.cash_rand]
 	if finished:

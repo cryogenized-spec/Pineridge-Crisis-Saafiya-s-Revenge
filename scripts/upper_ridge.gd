@@ -129,7 +129,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
 	match event.keycode:
-		KEY_ESCAPE: get_tree().reload_current_scene()
+		KEY_ESCAPE:
+			if encounter.inventory_open():
+				encounter.inventory_ui.close_inventory()
+			else:
+				get_tree().reload_current_scene()
 		KEY_Q: running = not running
 		KEY_C: crouching = not crouching
 		KEY_R: encounter.refill()
