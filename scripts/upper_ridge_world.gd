@@ -5,6 +5,8 @@ const SIZE := Vector2(2320.0, 1024.0)
 const ROAD_TOP := 382.0
 const ROAD_BOTTOM := 652.0
 const EXIT_POINT := Vector2(2180.0, 522.0)
+const PLAYER_CAR := Rect2(213.0,457.0,108.0,43.0)
+const TRUNK_POINT := Vector2(202.0,512.0)
 const CAR_LENGTH := 108.0
 const CAR_WIDTH := 43.0
 const LOTS := [Vector2(168,93),Vector2(642,91),Vector2(1284,92),Vector2(1864,91)]
@@ -13,6 +15,7 @@ const PALETTE := [
 ]
 var road_texture: Texture2D
 var parked: Array[Rect2] = [
+	PLAYER_CAR,
 	Rect2(350,326,CAR_LENGTH,CAR_WIDTH),
 	Rect2(1110,657,CAR_LENGTH,CAR_WIDTH),
 	Rect2(1740,328,CAR_LENGTH,CAR_WIDTH)
@@ -76,6 +79,7 @@ func _draw() -> void:
 		draw_lot(Vector2(340.0+float(i)*615.0,740.0),i+1,false)
 	for r in parked:
 		draw_car(r,Color("#9b7770") if r.position.x<1000 else Color("#819496"))
+	draw_string(ThemeDB.fallback_font,TRUNK_POINT+Vector2(-18,-21),"SAAFIYA'S CAR",HORIZONTAL_ALIGNMENT_LEFT,-1,11,Color("#f1dfc3"))
 	for i in range(44):
 		var x := 50.0+float(i)*52.0
 		draw_shrub(Vector2(x,350.0+float((i*7)%13)),i)

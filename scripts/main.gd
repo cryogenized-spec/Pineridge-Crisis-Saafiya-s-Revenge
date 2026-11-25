@@ -101,7 +101,7 @@ func make_hud() -> void:
 	v.add_child(status)
 	var help:=Label.new()
 	help.position=Vector2(18,684)
-	help.text="WASD / arrows: move     Q: toggle run     C: toggle crouch     E: interact     Click: action   R: refill   1–3: slots   V: effects   F: fullscreen     F2: wardrobe   F3: props   F4: poses   F6: smoke   Esc: reset"
+	help.text="WASD / arrows: move     Q: toggle run     C: toggle crouch     E: interact     I: inventory     Click: action   R: refill   1–3: slots   V: effects   F: fullscreen     F2: wardrobe   F3: props   F4: poses   F6: smoke   Esc: reset"
 	help.add_theme_font_size_override("font_size",17)
 	help.modulate=Color("#f3ddc7")
 	layer.add_child(help)
@@ -136,7 +136,10 @@ func _unhandled_key_input(event:InputEvent) -> void:
 				run_enabled = not run_enabled
 			KEY_C:
 				crouch_enabled = not crouch_enabled
+			KEY_I: encounters.toggle_inventory()
 			KEY_E:
+				if encounters.inventory_open():
+					return
 				if encounters.collect_nearby():
 					return
 				if phase==0 and player.position.distance_to(WAYPOINT)<36:
@@ -172,6 +175,8 @@ func _physics_process(delta:float) -> void:
 		var midpoint := run_phase + delta / RUN_CYCLE_SECONDS * 0.5
 		cadence = 1.0 - FOOTFALL_VARIATION * cos(midpoint * TAU * 2.0)
 	var motion:=direction.normalized()*speed*cadence*delta
+	if encounters.inventory_open():
+		motion=Vector2.ZERO
 	if encounters.player_hp<=0 or encounters.finished:
 		motion=Vector2.ZERO
 	var old:Vector2=player.position

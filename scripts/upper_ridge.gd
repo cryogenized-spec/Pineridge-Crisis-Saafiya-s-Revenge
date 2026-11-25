@@ -103,7 +103,7 @@ func build_ui() -> void:
 	subtitle.modulate=Color("#e9dec7")
 	overlay.add_child(subtitle)
 	var controls := Label.new()
-	controls.text = "WASD: move  |  Q: run  |  C: crouch  |  Click: action  |  R: reload  |  E: continue  |  Esc: restart"
+	controls.text = "WASD: move  |  Q: run  |  C: crouch  |  I: inventory  |  Click: action  |  R: reload  |  E: continue  |  Esc: restart"
 	controls.position=Vector2(24,690)
 	controls.add_theme_font_size_override("font_size",14)
 	controls.modulate=Color("#b9c2ba")
@@ -130,7 +130,13 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_1: encounter.equip(0)
 		KEY_2: encounter.equip(1)
 		KEY_3: encounter.equip(2)
-		KEY_E: 
+		KEY_I: encounter.toggle_inventory()
+		KEY_E:
+			if encounter.inventory_open():
+				return
+			if player.position.distance_to(World.TRUNK_POINT)<47.0:
+				encounter.show_car_boot()
+				return
 			if encounter.collect_nearby():
 				return
 			advance_stage()
@@ -152,6 +158,8 @@ func _physics_process(delta: float) -> void:
 	if run and axis.length_squared()>0.0:
 		cadence=1.0-0.48*cos((phase+delta/RUN_CYCLE*0.5)*TAU*2.0)
 	var movement := axis.normalized()*speed*cadence*delta
+	if encounter.inventory_open():
+		movement=Vector2.ZERO
 	if encounter.player_hp <= 0:
 		movement=Vector2.ZERO
 	var before: Vector2=player.position
@@ -191,6 +199,21 @@ func _physics_process(delta: float) -> void:
 func run_smoke() -> void:
 	assert(World.CAR_LENGTH==108.0)
 	assert(World.CAR_WIDTH==43.0)
+	assert(not world.blocked(World.TRUNK_POINT))
+	assert(encounter.inventory.boot.has("backpack"))
+	assert(encounter.inventory.bag.has("keys"))
+	assert(encounter.inventory.take_from_boot(0))
+	assert(encounter.inventory.equip_backpack())
+	assert(encounter.inventory.capacity()==18)
+	encounter.inventory.add_cash(125)
+	assert(encounter.inventory.deposit_cash(50))
+	assert(encounter.inventory.cash_rand==75)
+	assert(encounter.inventory.boot_cash_rand==50)
+	assert(encounter.inventory.withdraw_cash(50))
+	assert(encounter.inventory.cash_rand==125)
+	encounter.show_car_boot()
+	assert(encounter.inventory_open())
+	encounter.inventory_ui.close_inventory()
 	assert(player.has_approved_atlases())
 	assert(walkers.size()==11)
 	assert(encounter.actors.size()==5)

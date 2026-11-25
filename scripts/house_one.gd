@@ -100,7 +100,7 @@ func make_hud() -> void:
 	overlay.add_child(dialogue)
 	var legend := Label.new()
 	legend.position=Vector2(24,686)
-	legend.text="WASD move  •  Q run  •  C crouch  •  E interact  •  R reload  •  Click action  •  Esc restart"
+	legend.text="WASD move  •  Q run  •  C crouch  •  I inventory  •  E interact  •  R reload  •  Click action  •  Esc restart"
 	legend.add_theme_font_size_override("font_size",14)
 	legend.modulate=Color("#c9c7bc")
 	overlay.add_child(legend)
@@ -140,7 +140,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_1: encounter.equip(0)
 		KEY_2: encounter.equip(1)
 		KEY_3: encounter.equip(2)
+		KEY_I: encounter.toggle_inventory()
 		KEY_E:
+			if encounter.inventory_open():
+				return
 			if encounter.collect_nearby():
 				return
 			if not checked_house:
@@ -170,6 +173,8 @@ func _physics_process(delta: float) -> void:
 	if fast and input_vector.length_squared()>0.0:
 		cadence=1.0-0.48*cos((phase+delta/RUN_CYCLE*0.5)*TAU*2.0)
 	var delta_move:=input_vector.normalized()*speed*cadence*delta
+	if encounter.inventory_open():
+		delta_move=Vector2.ZERO
 	if encounter.player_hp<=0:
 		delta_move=Vector2.ZERO
 	var previous: Vector2=player.position
@@ -237,6 +242,7 @@ func run_smoke() -> void:
 	encounter.player_hp=1
 	ChapterState.restore(get_tree(),encounter)
 	assert(encounter.player_hp==health_before)
+	assert(encounter.inventory.bag.has("keys"))
 	assert(ResourceLoader.exists(NEXT_SCENE))
 	print("House One smoke: residential exterior, car scale, occupied-house objective, six NPCs and story transition verified.")
 	get_tree().quit()
