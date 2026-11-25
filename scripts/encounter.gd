@@ -838,6 +838,20 @@ func run_test() -> void:
 	assert(not unlocked[2])
 	assert(inventory.bag.size()==2)
 	assert(inventory.cash_rand==0)
+	# An optional wallet is physical currency; it cannot refill ammunition.
+	var reserve_before: Array=spares.duplicate()
+	var wallet_owner: Dictionary=actors[4]
+	for j in range(int(wallet_owner["max"])):
+		hit_enemy(wallet_owner,1)
+	assert(bool(wallet_owner["down"]))
+	assert(loot.size()==1)
+	var previous_position: Vector2=avatar.position
+	avatar.position=wallet_owner["body"].position+Vector2(12,8)
+	assert(collect_nearby())
+	assert(inventory.cash_rand==80)
+	assert(loot.is_empty())
+	assert(spares==reserve_before)
+	avatar.position=previous_position
 	add_shot(Vector2(400,300),Vector2.RIGHT,true,"spark",350.0)
 	assert(shots.size()==1)
 	print("Encounter smoke: actors, arcade damage, defeat, pickup, return wave and projectiles initialized.")

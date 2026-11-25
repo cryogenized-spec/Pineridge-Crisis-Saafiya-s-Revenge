@@ -246,10 +246,14 @@ func run_smoke() -> void:
 	player.position=World.EXIT_POINT
 	assert(can_continue())
 	var health_before: int=encounter.player_hp
+	encounter.inventory.add_cash(175)
+	var wallet_before: int=encounter.inventory.cash_rand
 	ChapterState.store(get_tree(),encounter)
 	encounter.player_hp=1
+	encounter.inventory.cash_rand=0
 	ChapterState.restore(get_tree(),encounter)
 	assert(encounter.player_hp==health_before)
+	assert(encounter.inventory.cash_rand==wallet_before)
 	assert(encounter.inventory.bag.has("keys"))
 	assert(ResourceLoader.exists(NEXT_SCENE))
 	print("House One smoke: residential exterior, car scale, occupied-house objective, six NPCs and story transition verified.")
