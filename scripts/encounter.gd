@@ -9,6 +9,7 @@ const Audio = preload("res://scripts/preview_audio.gd")
 const WeaponVisual = preload("res://scripts/weapon_visual.gd")
 const InventoryModel = preload("res://scripts/inventory_model.gd")
 const InventoryPanel = preload("res://scripts/inventory_panel.gd")
+const OrnateHud = preload("res://scripts/saafiya_hud.gd")
 const KIT := [
 	{"name":"Beretta 84FS","size":13,"interval":0.24,"travel":2400.0},
 	{"name":"CZ 75 P-07","size":12,"interval":0.31,"travel":2200.0},
@@ -67,6 +68,7 @@ var smoke_test := false
 var level_id := "feeder"
 var hud: Label
 var notice: Label
+var ornate_hud
 
 func configure(main_actor: Node2D, world: Node2D) -> void:
 	avatar = main_actor
@@ -290,6 +292,8 @@ func make_hud() -> void:
 	add_child(overlay)
 	var backdrop := PanelContainer.new()
 	backdrop.position = Vector2(919,16)
+	# Replaced by the full-screen corner-anchored native ornate HUD.
+	backdrop.visible = false
 	backdrop.custom_minimum_size = Vector2(342,0)
 	var style := StyleBoxFlat.new()
 	style.bg_color=Color(0.09,0.10,0.14,0.91)
@@ -320,6 +324,9 @@ func make_hud() -> void:
 	notice.custom_minimum_size=Vector2(380,100)
 	notice.modulate=Color("#f3dcc0")
 	overlay.add_child(notice)
+	ornate_hud = OrnateHud.new()
+	ornate_hud.configure(avatar,street,self,level_id)
+	add_child(ornate_hud)
 	update_hud()
 
 func update_hud() -> void:
@@ -854,5 +861,6 @@ func run_test() -> void:
 	avatar.position=previous_position
 	add_shot(Vector2(400,300),Vector2.RIGHT,true,"spark",350.0)
 	assert(shots.size()==1)
+	ornate_hud.run_hud_smoke()
 	print("Encounter smoke: actors, arcade damage, defeat, pickup, return wave and projectiles initialized.")
 	get_tree().quit()
