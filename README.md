@@ -105,3 +105,7 @@ Press I in any playable chapter for Saafiya's Diablo-inspired equipment and inve
 Random ammunition, health and automatic weapon unlocks have been removed from NPC defeat drops; some NPCs instead leave a small visible wallet with a fixed cash amount, collected nearby using E. No automatic weapon pickup or item-based healing is implied.
 
 Residential stages 1 and 2 now show occasional code-drawn traffic (including a rare security-marked car), with an inexpensive two-car cap, slow noncombat movement and pedestrian/vehicle collision checks. These vehicles do not attack anyone, and they stop their display movement if the player is in their immediate vicinity.
+
+## Reusable sprite kit
+
+Press **K** or **F7** to inspect the new cast and overhead equipment in any chapter. Press **V** or **F8** to try the alternate Saafiya sprite in play. The sprite kit includes three rigged body templates, ten adult NPC looks, the alternate Saafiya model and nine equipment props. [Sprite kit, wallpaper, and Blender source](docs/sprite-kit/README.md)

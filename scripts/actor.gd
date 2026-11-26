@@ -2,6 +2,12 @@ extends Node2D
 
 const WALK_ATLAS := "res://assets/characters/saafiya/walk_atlas.png"
 const RUN_ATLAS := "res://assets/characters/saafiya/run_atlas.png"
+const Art = preload("res://scripts/sprite_kit_art.gd")
+const ALT_STATE := "saafiya_alternate_sprite"
+const ALT_LOWER_WALK := preload("res://assets/characters/sprite_kit/saafiya_walk_lower.png")
+const ALT_LOWER_RUN := preload("res://assets/characters/sprite_kit/saafiya_run_lower.png")
+const ALT_LOWER_IDLE := preload("res://assets/characters/sprite_kit/saafiya_idle_lower.png")
+const ALT_UPPER := preload("res://assets/characters/sprite_kit/saafiya_upper_poses.png")
 const TILE := 128
 const COUNT := 16
 const WALK_DISTANCE := 91.0 * 1.12
@@ -43,6 +49,10 @@ var reaction_duration := 0.28
 var cosmetic_accessory: Texture2D
 var show_accessory := false
 var hero := false
+var uses_alternate := false
+var gear_row := 0
+var gear_frame := 0
+var gear_heading := 0.0
 var facing := 0.0
 var travel := 0.0
 var stride := 0.0
@@ -68,6 +78,7 @@ func _ready() -> void:
 		cosmetic_accessory = load_npc_texture("res://assets/characters/accessories/backpack.png", Vector2(128,128))
 		texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	if hero:
+		uses_alternate = bool(get_tree().root.get_meta(ALT_STATE, false))
 		walk_texture = load_atlas(WALK_ATLAS)
 		run_texture = load_atlas(RUN_ATLAS)
 		walk_lower = load_atlas("res://assets/characters/saafiya/walk_lower_atlas.png")
@@ -75,6 +86,26 @@ func _ready() -> void:
 		run_lower = load_atlas("res://assets/characters/saafiya/run_lower_atlas.png")
 		run_upper = load_atlas("res://assets/characters/saafiya/run_upper_atlas.png")
 		texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+
+func use_alternate(enabled: bool) -> void:
+	uses_alternate = enabled and hero
+	queue_redraw()
+
+func set_gear_pose(row: int, frame: int, heading: float) -> void:
+	gear_row = row
+	gear_frame = frame
+	gear_heading = heading
+	if uses_alternate:
+		queue_redraw()
+
+func draw_alternate() -> void:
+	var size := Vector2(DISPLAY_SIZE, DISPLAY_SIZE * (0.82 if crouched else 1.0))
+	var lower := ALT_LOWER_IDLE
+	if gait_moving:
+		lower = ALT_LOWER_RUN if gait_running else ALT_LOWER_WALK
+	draw_gait_layer(lower, gait_cell(sprite_frame()), travel if gait_moving else gear_heading, size)
+	var upper := Rect2(gear_frame * Art.CELL, gear_row * Art.CELL, Art.CELL, Art.CELL)
+	draw_gait_layer(ALT_UPPER, upper, gear_heading, size)
 
 func load_npc_texture(path: String, expected_size: Vector2) -> Texture2D:
 	if not ResourceLoader.exists(path):
@@ -217,6 +248,9 @@ func _draw() -> void:
 		return
 	if not hero and wardrobe_index >= 0:
 		Wardrobe.render(self, wardrobe_index, travel, facing, stride, motion, gait_running)
+		return
+	if hero and uses_alternate:
+		draw_alternate()
 		return
 	if hero and has_layered_atlases():
 		var is_run := gait_running and gait_moving
