@@ -151,13 +151,13 @@ def curls(mesh, center):
 
 
 def bust_depth(x, z, frontal, pose):
-    # Saafiya’s 36DD reference has a broad, rounded slope from the underbust.
+    # Use a broad, pronounced 36DD silhouette that reads at the overhead sprite scale.
     level = (z-pose["bob"])/pose["height"]
-    height = max(0., 1.-((level-1.318)/.130)**2)**2
-    center = .086 * pose["width"]
-    radius = .075 * pose["width"]
-    width = np.exp(-((x-center)/radius)**2) + np.exp(-((x+center)/radius)**2)
-    return .055 * height * width * frontal
+    vertical = max(0., 1.-((level-1.312)/.143)**2)**2
+    center = .094 * pose["width"]
+    radius = .083 * pose["width"]
+    lateral = np.exp(-((x-center)/radius)**2) + np.exp(-((x+center)/radius)**2)
+    return .175 * vertical * lateral * frontal
 
 
 def rounded_torso(mesh, name, sections, pose, tone, group, finish, *, corset=False):
