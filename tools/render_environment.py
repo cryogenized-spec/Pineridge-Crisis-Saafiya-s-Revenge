@@ -193,12 +193,13 @@ class Model:
 
 def car(style, paint):
     model = Model()
+    fastback = style == "mustang"
     dark = "232a2f"
     glass = "405965"
     bright_glass = "6a8590"
-    chrome = "9a9b92"
-    length = 2.2 if style != "hatchback" else 2.08
-    hood = .83 if style in ("utility", "security") else .67
+    chrome = "c0bdc6" if fastback else "9a9b92"
+    length = 2.31 if fastback else 2.2 if style != "hatchback" else 2.08
+    hood = .75 if fastback else .83 if style in ("utility", "security") else .67
     shoulder = .74 if style in ("utility", "security") else .63
     width = .91 if style in ("utility", "security") else .86
     model.shadows += [(4.3, 1.76, .08, 118), (4.05, 1.6, .52, 53)]
@@ -228,13 +229,16 @@ def car(style, paint):
                 model.tube((axle, wheel_y + .168*side, .28),
                            (axle + cos(angle)*.13, wheel_y+.168*side, .28 + sin(angle)*.13),
                            .018, "cdccc3", .1, 8)
-    if style in ("utility", "security"):
+    if fastback:
+        rear, back_top, cabin_height = -1.89, -.91, 1.19
+        glass, bright_glass = "262b41", "485369"
+    elif style in ("utility", "security"):
         rear, back_top, cabin_height = -.84, -.71, 1.44
     elif style == "hatchback":
         rear, back_top, cabin_height = -1.97, -1.62, 1.35
     else:
         rear, back_top, cabin_height = -1.48, -.93, 1.29
-    front, front_top = 1.15, .48
+    front, front_top = (.83, .16) if fastback else (1.15, .48)
     base = shoulder+.038
     glass_width = width*.87
     top_width = width*.70
@@ -268,24 +272,46 @@ def car(style, paint):
     ], paint, .52)
     for side in (-1, 1):
         lower, upper = side*glass_width, side*top_width
-        model.tube((rear, lower, base+.01), (front, lower, base+.01), .034, dark, sides=10)
-        model.tube((rear, lower, base), (back_top, upper, cabin_height), .04, paint, sides=10)
-        model.tube((front, lower, base), (front_top, upper, cabin_height), .041, paint, sides=10)
+        trim = chrome if fastback else paint
+        model.tube((rear, lower, base+.01), (front, lower, base+.01), .025 if fastback else .034,
+                   trim if fastback else dark, sides=10)
+        model.tube((rear, lower, base), (back_top, upper, cabin_height), .032 if fastback else .04, trim, sides=10)
+        model.tube((front, lower, base), (front_top, upper, cabin_height), .032 if fastback else .041, trim, sides=10)
         model.tube(((rear+front)*.5, lower, base), ((back_top+front_top)*.5, upper, cabin_height),
                    .035, dark, sides=10)
         model.box((.48, side*(width+.055), base), (.19, .19, .09), paint, .26)
         model.box((-.12, side*width*.994, shoulder-.115), (.16, .029, .04), chrome, .22)
         model.tube((-1.82, side*width, .43), (1.93, side*width, .43), .018, dark, sides=8)
-        model.box((length-.077, side*width*.67, hood-.17), (.19, .32, .092), "ede2bc", .4)
-        model.box((-length+.05, side*width*.64, shoulder-.16), (.15, .37, .11), "a33837", .3)
+        if fastback:
+            lamp_y = side * width * .76
+            model.tube((length-.06, lamp_y, .59), (length+.025, lamp_y, .59), .133, chrome, .60, 18)
+            model.tube((length+.025, lamp_y, .59), (length+.043, lamp_y, .59), .107, "f6d4a4", .34, 18)
+            model.box((-length-.022, side*width*.69, .48), (.088, .38, .145), "3c2130", .2)
+            for offset in [-.113, 0, .113]:
+                model.box((-length-.077, side*width*.69 + offset, .49), (.044, .076, .104), "aa413f", .35)
+            model.quad([(-1.32, side*width, .56), (-.76, side*(width+.013), .59),
+                        (-.86, side*(width+.016), .40), (-1.25, side*width, .47)], "2b2b3c", .34)
+            model.tube((-1.84, side*(width+.01), .391), (1.89, side*(width+.012), .391),
+                       .018, "807582", .35, 8)
+        else:
+            model.box((length-.077, side*width*.67, hood-.17), (.19, .32, .092), "ede2bc", .4)
+            model.box((-length+.05, side*width*.64, shoulder-.16), (.15, .37, .11), "a33837", .3)
         bonnet_z = shoulder + .025 + (hood - shoulder - .046) * (1.23 - .58) / (length - .34 - .58)
         model.quad([(1.23, side*.49-.01, bonnet_z+.012), (1.23, side*.49+.01, bonnet_z+.012),
                     (length-.34, side*.53+.01, hood-.009), (length-.34, side*.53-.01, hood-.009)],
                    tint(paint, 1.10), .24)
-    model.box((length+.015, 0, .41), (.09, 1.47, .13), dark)
-    model.box((-length-.015, 0, .35), (.10, 1.45, .10), dark)
+    model.box((length+.015, 0, .41), (.116, 1.52, .102) if fastback else (.09, 1.47, .13),
+              chrome if fastback else dark, .5 if fastback else 0.)
+    model.box((-length-.015, 0, .35), (.116, 1.49, .10) if fastback else (.10, 1.45, .10),
+              chrome if fastback else dark, .5 if fastback else 0.)
     model.box((-length-.07, 0, .42), (.023, .41, .085), "dfdac4")
     model.box((length+.07, 0, .39), (.022, .39, .073), "e0dccc")
+    if fastback:
+        model.box((length+.004, 0, .55), (.069, 1.045, .218), chrome, .44)
+        model.box((length+.045, 0, .55), (.037, 1.012, .185), "1e1924", .29)
+        for row in range(4):
+            model.box((length+.067, 0, .49+.038*row), (.01, .996, .009), "585262", .35)
+        model.box((length+.078, 0, .553), (.025, .18, .051), chrome, .43)
     if style in ("utility", "security"):
         model.box((-1.43, 0, shoulder+.03), (1.19, 1.31, .10), "333b3d")
         for rib in range(7):
@@ -513,7 +539,7 @@ if __name__ == "__main__":
         ("hatchback_sage", "hatchback", "748b7c"),
         ("utility_ivory", "utility", "cec7ad"),
         ("security", "security", "a4aeaa"),
-        ("saafiya_car", "sedan", "725055"),
+        ("saafiya_car", "mustang", "272739"),
     ]:
         car_model = car(model, color)
         for direction, angle in [("east", 0), ("west", 180)]:

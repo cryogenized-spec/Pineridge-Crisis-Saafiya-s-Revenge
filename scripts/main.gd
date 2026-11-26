@@ -20,7 +20,6 @@ var status: Label
 var objective: Label
 var elapsed := 0.0
 var phase := 0
-var preview_timer := 0.0
 var run_phase := 0.0
 var run_enabled := false
 var crouch_enabled := false
@@ -114,8 +113,10 @@ func _unhandled_key_input(event:InputEvent) -> void:
 			KEY_I: encounters.toggle_inventory()
 			KEY_E:
 				if encounters.inventory_open():
+					if encounters.inventory_ui.taking.is_valid():
+						encounters.inventory_ui.close_inventory()
 					return
-				if encounters.collect_nearby():
+				if encounters.open_nearby_loot():
 					return
 				if phase==0 and player.position.distance_to(WAYPOINT)<36:
 					phase=1
@@ -125,10 +126,6 @@ func _unhandled_key_input(event:InputEvent) -> void:
 					phase=2
 					encounters.set_phase(2)
 					objective.text="Route complete · Esc to restart"
-			KEY_V:
-				if preview_timer<=0:
-					effects.burst(player.position+Vector2(0,-19))
-					preview_timer=0.3
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_LEFT and event.pressed:
@@ -136,7 +133,6 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(delta:float) -> void:
 	elapsed+=delta
-	preview_timer=maxf(0,preview_timer-delta)
 	var direction:=Vector2(
 		float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),
 		float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP)))

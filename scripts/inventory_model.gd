@@ -5,7 +5,9 @@ const BACKPACK_CAPACITY := 18
 const BOOT_CAPACITY := 40
 const ITEM_NAMES := {
 	"phone":"Mobile phone","keys":"Car keys","backpack":"Canvas backpack",
-	"water":"Water bottle","torch":"Battery torch","jacket":"Spare jacket"
+	"water":"Water bottle","torch":"Battery torch","jacket":"Spare jacket",
+	"pistol":"CZ 75 P-07","knife":"Knife","cudgel":"Cudgel","brick":"Brick",
+	"slingshot":"Slingshot","runner":"Glass bottle"
 }
 const EQUIPMENT_SLOTS := [
 	"Head","Neck","Torso","Arms","Belt","Boots","Left hand","Right hand",
@@ -34,6 +36,12 @@ func capacity() -> int:
 
 func add_cash(value: int) -> void:
 	cash_rand+=maxi(0,value)
+
+func stow(item: String) -> bool:
+	if bag.size() >= capacity():
+		return false
+	bag.append(item)
+	return true
 
 func take_from_boot(index: int) -> bool:
 	if index<0 or index>=boot.size() or bag.size()>=capacity():

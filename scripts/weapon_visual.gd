@@ -2,7 +2,6 @@ extends Node2D
 ## Registered overhead equipment, holding poses, and cosmetic shot cycles.
 const Actor = preload("res://scripts/actor.gd")
 const Art = preload("res://scripts/sprite_kit_art.gd")
-const ARMS := preload("res://assets/characters/sprite_kit/saafiya_arms_poses.png")
 const MUZZLE := preload("res://assets/fx/weapon_art/muzzle.png")
 const SMOKE := preload("res://assets/fx/weapon_art/smoke.png")
 const DRAW_FLASH := 0.059
@@ -10,7 +9,7 @@ const DRAW_SMOKE := 0.27
 
 var wearer: Actor
 var catalog_index := 0
-var draw_arms := true
+var hero_grip := true
 var shot_age := -1.0
 var fresh_shot := false
 var shot_heading := 0.0
@@ -19,9 +18,9 @@ var flash_variant := 0
 var service_age := -1.0
 var service_duration := 1.0
 
-func configure(actor: Actor, player_arms: bool = true) -> void:
+func configure(actor: Actor, use_hero_grip: bool = true) -> void:
 	wearer = actor
-	draw_arms = player_arms
+	hero_grip = use_hero_grip
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 
 func choose_slot(index: int) -> void:
@@ -72,7 +71,7 @@ func pose_frame() -> int:
 	return 0
 
 func grip_offset(gear: Dictionary, pose: int) -> Vector2:
-	if not draw_arms:
+	if not hero_grip:
 		return Vector2(2.9, 5.7 if pose == 0 else 4.3)
 	var point: Vector2 = gear.grips[pose]
 	if wearer.crouched:
@@ -80,7 +79,7 @@ func grip_offset(gear: Dictionary, pose: int) -> Vector2:
 	return point
 
 func prop_scale() -> float:
-	return 1.0 if draw_arms else 0.86
+	return 1.0 if hero_grip else 0.86
 
 func display_heading() -> float:
 	if shot_age >= 0.0 and shot_age < 0.095:
@@ -121,7 +120,7 @@ func _process(delta: float) -> void:
 		service_age += delta
 		if service_age >= service_duration:
 			service_age = -1.0
-	if draw_arms:
+	if hero_grip:
 		wearer.set_gear_pose(catalog_index, pose_frame(), display_heading())
 	queue_redraw()
 
@@ -131,11 +130,6 @@ func _draw() -> void:
 	var gear := entry()
 	var pose := pose_frame()
 	var aim := display_heading()
-	if draw_arms and not wearer.uses_alternate:
-		var body_size := Vector2(Actor.DISPLAY_SIZE, Actor.DISPLAY_SIZE * (0.82 if wearer.crouched else 1.0))
-		var cell := Rect2(pose * Actor.TILE, catalog_index * Actor.TILE, Actor.TILE, Actor.TILE)
-		draw_set_transform(Vector2.ZERO, aim - PI / 2.0)
-		draw_texture_rect_region(ARMS, Rect2(-body_size * 0.5, body_size), cell)
 	var grip := grip_offset(gear, pose).rotated(aim - PI / 2.0)
 	draw_set_transform(grip, aim)
 	var width := float(gear.width) * prop_scale()

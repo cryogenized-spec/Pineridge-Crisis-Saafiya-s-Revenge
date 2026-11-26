@@ -81,7 +81,6 @@ func _ready() -> void:
 	mannequin = Actor.new()
 	mannequin.hero = true
 	preview_world.add_child(mannequin)
-	mannequin.use_alternate(true)
 	held = WeaponVisual.new()
 	held.configure(mannequin)
 	held.z_index = 2
