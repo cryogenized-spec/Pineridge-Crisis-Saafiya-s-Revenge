@@ -28,6 +28,7 @@ jobs:
           xvfb-run -a -s '-screen 0 1024x768x24' python3 tools/render_crowd_side.py
           python3 tools/verify_sidefall.py
           python3 tools/verify_refinement.py
+          python3 tools/sprite_kit/verify.py
       - name: Import and check scripts
         run: |
           set -o pipefail
@@ -80,6 +81,12 @@ jobs:
           engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . --script tools/refinement_smoke.gd --quit-after 300 2>&1 | tee refinement.log
           if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|Assertion failed' refinement.log; then exit 1; fi
           grep -F 'Graphics refinement smoke: all chapter HUDs' refinement.log
+      - name: Exercise sprite kit and persistent effects
+        run: |
+          set -o pipefail
+          engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . --script tools/sprite_kit_smoke.gd --quit-after 300 2>&1 | tee sprite-kit.log
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|Assertion failed' sprite-kit.log; then exit 1; fi
+          grep -F 'Sprite kit smoke: live slide' sprite-kit.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -94,6 +101,7 @@ jobs:
             upper_ridge.log
             house_one.log
             refinement.log
+            sprite-kit.log
       - name: Install Linux export templates
         if: success()
         run: |

@@ -4,12 +4,14 @@ extends Node2D
 const Actor = preload("res://scripts/actor.gd")
 const Feedback = preload("res://scripts/character_feedback.gd")
 const Props = preload("res://scripts/prop_library.gd")
-const BLOOD_STAIN = preload("res://assets/fx/blood_stain.svg")
+const GroundDecals = preload("res://scripts/ground_decals.gd")
+const ChapterState = preload("res://scripts/chapter_state.gd")
 const Audio = preload("res://scripts/preview_audio.gd")
 const WeaponVisual = preload("res://scripts/weapon_visual.gd")
 const InventoryModel = preload("res://scripts/inventory_model.gd")
 const InventoryPanel = preload("res://scripts/inventory_panel.gd")
 const OrnateHud = preload("res://scripts/saafiya_hud.gd")
+const SpriteKitReview := preload("res://scenes/sprite_kit_review.tscn")
 const KIT := [
 	{"name":"Beretta 84FS","size":13,"interval":0.24,"travel":2400.0},
 	{"name":"CZ 75 P-07","size":12,"interval":0.31,"travel":2200.0},
@@ -26,7 +28,8 @@ const ROLES := {
 var avatar: Node2D
 var street: Node2D
 var audio: Node
-var held_visual: Node2D
+var held_visual: WeaponVisual
+var stage_decals: GroundDecals
 var shout_cooldown := 0.0
 var gunfire_events := 0
 var escaped_count := 0
@@ -43,10 +46,6 @@ const ACTION_REACH := 480.0
 const CHARACTER_HIT_RADIUS := 18.0
 var shots: Array[Dictionary] = []
 var motes: Array[Dictionary] = []
-var contact_splashes: Array[Dictionary] = []
-const MAX_CONTACT_SPLASHES := 48
-var ground_marks: Array[Dictionary] = []
-const MAX_GROUND_MARKS := 72
 var loot: Array[Dictionary] = []
 var inventory: InventoryModel = InventoryModel.new()
 var inventory_ui: InventoryPanel
@@ -67,6 +66,7 @@ var finished := false
 var smoke_test := false
 var level_id := "feeder"
 var ornate_hud
+var kit_review: CanvasLayer
 
 func configure(main_actor: Node2D, world: Node2D) -> void:
 	avatar = main_actor
@@ -90,8 +90,11 @@ func _ready() -> void:
 	rng.seed = 4872011
 	audio = Audio.new()
 	add_child(audio)
+	stage_decals = GroundDecals.new()
+	stage_decals.configure(ChapterState.stage_decals(get_tree(), level_id), level_id)
+	street.add_child(stage_decals)
 	held_visual = WeaponVisual.new()
-	held_visual.configure(avatar)
+	held_visual.configure(avatar as Actor)
 	held_visual.z_index = 6
 	add_child(held_visual)
 	spawn_group(false)
@@ -102,6 +105,26 @@ func _ready() -> void:
 	smoke_test = "--encounter-smoke" in OS.get_cmdline_user_args()
 	if smoke_test:
 		call_deferred("run_test")
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+	if event.keycode in [KEY_K, KEY_F7]:
+		kit_review = SpriteKitReview.instantiate()
+		kit_review.close_requested.connect(close_sprite_kit)
+		add_child(kit_review)
+		get_tree().paused = true
+		get_viewport().set_input_as_handled()
+	elif event.keycode in [KEY_V, KEY_F8]:
+		var hero := avatar as Actor
+		hero.use_alternate(not hero.uses_alternate)
+		get_tree().root.set_meta(Actor.ALT_STATE, hero.uses_alternate)
+		get_viewport().set_input_as_handled()
+
+func close_sprite_kit() -> void:
+	kit_review.queue_free()
+	kit_review = null
+	get_tree().paused = false
 
 func spawn_group(return_wave: bool) -> void:
 	if level_id == "barricaded_house":
@@ -157,13 +180,21 @@ func spawn_character(at: Vector2, kind: String, look: int, male_voice: bool = fa
 	character.wardrobe_index = look
 	character.z_index = 2
 	add_child(character)
-	var attachment := Sprite2D.new()
-	attachment.texture = Props.texture(ROLES[kind]["prop"])
-	attachment.scale = Vector2.ONE * (0.105 if kind in ["slingshot", "cudgel"] else 0.095)
-	attachment.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	var attachment: Node2D
+	if kind == "pistol":
+		var firearm := WeaponVisual.new()
+		firearm.configure(character, false)
+		firearm.choose_slot(1)
+		attachment = firearm
+	else:
+		var prop := Sprite2D.new()
+		prop.texture = Props.texture(ROLES[kind]["prop"])
+		prop.scale = Vector2.ONE * (0.105 if kind in ["slingshot", "cudgel"] else 0.095)
+		prop.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		attachment = prop
+		position_held_prop(character, prop, false, 0.0)
 	attachment.z_index = 1
 	character.add_child(attachment)
-	position_held_prop(character, attachment, false, 0.0)
 	var feedback := Feedback.new()
 	feedback.position = at
 	feedback.z_index = 4
@@ -326,7 +357,7 @@ func equip(number: int) -> void:
 
 func refill() -> void:
 	if player_hp <= 0:
-		get_tree().reload_current_scene()
+		restart_stage()
 		return
 	if reload_clock > 0.0 or spares[slot] <= 0 or rounds[slot] >= int(KIT[slot]["size"]):
 		return
@@ -335,7 +366,12 @@ func refill() -> void:
 	# Avoid completing early and layering a synthesized 'reset' tone over it.
 	var stream: AudioStream = audio.stream_for(cue)
 	reload_clock = clampf(stream.get_length(),0.65,4.0)
+	held_visual.begin_service(reload_clock)
 	audio.play_cue(cue)
+
+func restart_stage() -> void:
+	ChapterState.clear_stage_decals(get_tree(), level_id)
+	get_tree().reload_current_scene()
 
 func fire_player() -> void:
 	if finished or player_hp <= 0 or cooldown > 0.0 or reload_clock > 0.0 or inventory_open():
@@ -350,8 +386,7 @@ func fire_player() -> void:
 	if heading.length_squared() < 0.01:
 		heading=Vector2.RIGHT
 	resolve_player_action(avatar.position, heading)
-	if is_instance_valid(held_visual):
-		held_visual.burst()
+	stage_decals.eject(held_visual.burst(heading))
 	audio.play_cue("beretta_84fs_shot" if slot == 0 else ("cz75_shot" if slot == 1 else "akm_shot"))
 	on_gunfire(avatar.position)
 	update_hud()
@@ -385,9 +420,9 @@ func resolve_player_action(origin: Vector2, direction: Vector2) -> void:
 	if candidate.is_empty():
 		return
 	if ambient:
-		affect_bystander(candidate)
+		affect_bystander(candidate, direction)
 	else:
-		hit_enemy(candidate,1)
+		hit_enemy(candidate, 1, direction)
 	shots_hit += 1
 	update_hud()
 
@@ -402,6 +437,10 @@ func begin_collapse(target: Dictionary) -> void:
 	target["fall_clock"] = 0.0
 	target["fall_duration"] = Actor.COLLAPSE_TIMES[style] * (0.94 + 0.025 * posmod(body.wardrobe_index, 6))
 	body.start_collapse(style)
+	var lean := Vector2.from_angle(body.collapse_facing)
+	var rest_offset: Vector2 = [lean * 3.0, -lean * 3.0, lean.orthogonal() * 3.0,
+		-lean.orthogonal() * 3.0, lean * 2.0, -lean * 2.0][style]
+	stage_decals.pool(body.global_position + rest_offset, body.collapse_facing, float(target["fall_duration"]) * 0.55)
 
 func advance_collapse(target: Dictionary, delta: float) -> void:
 	var body: Actor = target["body"]
@@ -409,7 +448,7 @@ func advance_collapse(target: Dictionary, delta: float) -> void:
 	target["fall_clock"] = minf(float(target["fall_clock"]) + delta, duration)
 	body.set_down_progress(float(target["fall_clock"]) / duration)
 
-func affect_bystander(target: Dictionary) -> void:
+func affect_bystander(target: Dictionary, direction: Vector2 = Vector2.ZERO) -> void:
 	if bool(target["down"]):
 		return
 	target["down"] = true
@@ -419,8 +458,7 @@ func affect_bystander(target: Dictionary) -> void:
 	feedback.show_caption("Awu…")
 	feedback.select(Feedback.State.DOWN)
 	begin_collapse(target)
-	add_ground_mark(person.position,0.8)
-	show_contact_splash(person.position)
+	stage_decals.impact(person.global_position, direction, 0.83)
 	audio.play_cue("reaction")
 
 func add_shot(start: Vector2, direction: Vector2, friendly: bool, kind: String, velocity: float) -> void:
@@ -452,35 +490,7 @@ func show_car_boot() -> void:
 func inventory_open() -> bool:
 	return is_instance_valid(inventory_ui) and inventory_ui.open
 
-func add_ground_mark(at: Vector2, strength: float = 1.0) -> void:
-	# Pre-rendered stain texture: one prominent soft mark and a few satellites.
-	# Store only descriptors in a capped list; don't allocate sprite nodes.
-	for i in range(5):
-		var offset := Vector2.ZERO if i==0 else Vector2.from_angle(rng.randf_range(0.0,TAU))*rng.randf_range(5.0,13.0)
-		ground_marks.append({
-			"point":at+offset,
-			"size":(13.0 if i==0 else rng.randf_range(2.5,6.0))*strength,
-			"angle":rng.randf_range(0,TAU),
-			"alpha":(0.80 if i==0 else rng.randf_range(0.35,0.65))
-		})
-	while ground_marks.size()>MAX_GROUND_MARKS:
-		ground_marks.pop_front()
-
-func show_contact_splash(at: Vector2) -> void:
-	# Transient two-dimensional stage effect, placed at the contact point.
-	for i in range(5):
-		var direction := Vector2.from_angle(rng.randf_range(0,TAU))
-		contact_splashes.append({
-			"point":at + direction*rng.randf_range(1.0,3.0),
-			"velocity":direction*rng.randf_range(10.0,28.0),
-			"life":rng.randf_range(0.12,0.24),
-			"max":0.24,
-			"radius":rng.randf_range(1.1,2.4)
-		})
-	while contact_splashes.size()>MAX_CONTACT_SPLASHES:
-		contact_splashes.pop_front()
-
-func hit_enemy(target: Dictionary, amount: int) -> void:
+func hit_enemy(target: Dictionary, amount: int, direction: Vector2 = Vector2.ZERO) -> void:
 	if bool(target["down"]):
 		return
 	target["hp"] = maxi(0,int(target["hp"])-amount)
@@ -488,8 +498,7 @@ func hit_enemy(target: Dictionary, amount: int) -> void:
 	target["reaction"]=0.28
 	register_character_impact(feedback)
 	feedback.show_caption("Awu…")
-	add_ground_mark(target["body"].position,1.3 if int(target["hp"]) <= 0 else 0.8)
-	show_contact_splash(target["body"].position)
+	stage_decals.impact(target["body"].global_position, direction, 1.14 if int(target["hp"]) <= 0 else 0.82)
 	if int(target["hp"]) <= 0:
 		target["down"]=true
 		target["attachment"].visible=false
@@ -511,21 +520,21 @@ func hit_enemy(target: Dictionary, amount: int) -> void:
 		audio.play_cue("reaction")
 	update_hud()
 
-func hurt_player() -> void:
+func hurt_player(direction: Vector2 = Vector2.ZERO) -> void:
 	if player_invincible > 0.0 or player_hp <= 0:
 		return
 	player_hp = maxi(0,player_hp-1)
 	player_invincible = 0.82
-	add_ground_mark(avatar.position,0.6)
-	show_contact_splash(avatar.position)
+	stage_decals.impact(avatar.global_position, direction, 0.78)
 	audio.play_cue("reaction")
 	if player_hp <= 0:
+		stage_decals.pool(avatar.global_position, float(avatar.facing), 0.18, 0.87)
 		audio.play_cue("saafiya_death")
 	update_hud()
 
 func update_character(target: Dictionary, delta: float) -> void:
 	var body: Actor = target["body"]
-	var accessory: Sprite2D = target["attachment"]
+	var accessory: Node2D = target["attachment"]
 	var feedback: Node2D = target["feedback"]
 	target["reaction"]=maxf(0.0,float(target["reaction"])-delta)
 	feedback.advance(delta)
@@ -591,7 +600,8 @@ func update_character(target: Dictionary, delta: float) -> void:
 		body.modulate=Color(1.0,0.61,0.61)
 	else:
 		body.modulate=Color.WHITE
-	position_held_prop(body, accessory, float(target["attack"]) > 0.0, float(target["attack"]))
+	if accessory is Sprite2D:
+		position_held_prop(body, accessory, float(target["attack"]) > 0.0, float(target["attack"]))
 	feedback.position=body.position
 
 func position_held_prop(body: Actor, accessory: Sprite2D, gesturing: bool, attack_clock: float) -> void:
@@ -617,6 +627,8 @@ func attack_character(target: Dictionary, to_avatar: Vector2, distance: float) -
 		var speed := 230.0 if kind in ["brick","slingshot"] else 350.0
 		add_shot(target["body"].position+direction*10.0,direction,false,kind,speed)
 		if kind == "pistol":
+			var weapon: WeaponVisual = target["attachment"]
+			stage_decals.eject(weapon.burst(direction))
 			audio.play_cue("cz75_shot",-4.0)
 			on_gunfire(target["body"].position)
 
@@ -634,12 +646,12 @@ func step_shots(delta: float) -> void:
 			if bool(s["friendly"]):
 				for enemy in actors:
 					if not bool(enemy["down"]) and Geometry2D.get_closest_point_to_segment(enemy["body"].position,previous,p).distance_to(enemy["body"].position) < 12.0:
-						hit_enemy(enemy,1)
+						hit_enemy(enemy, 1, Vector2(s["vector"]).normalized())
 						shots_hit+=1
 						remove=true
 						break
 			elif player_hp>0 and p.distance_to(avatar.position) < 10.0:
-				hurt_player()
+				hurt_player(Vector2(s["vector"]).normalized())
 				remove=true
 		if remove:
 			motes.append({"point":p,"life":0.28})
@@ -648,14 +660,6 @@ func step_shots(delta: float) -> void:
 		motes[i]["life"]-=delta
 		if float(motes[i]["life"])<=0:
 			motes.remove_at(i)
-	for i in range(contact_splashes.size()-1,-1,-1):
-		var splash: Dictionary = contact_splashes[i]
-		splash["point"] += splash["velocity"]*delta
-		splash["velocity"] *= exp(-delta*8.0)
-		splash["life"] -= delta
-		if float(splash["life"]) <= 0.0:
-			contact_splashes.remove_at(i)
-
 func _physics_process(delta: float) -> void:
 	for item in bystanders:
 		if bool(item["escaped"]):
@@ -676,8 +680,6 @@ func _physics_process(delta: float) -> void:
 	cooldown=maxf(0.0,cooldown-delta)
 	player_invincible=maxf(0.0,player_invincible-delta)
 	shout_cooldown=maxf(0.0,shout_cooldown-delta)
-	if is_instance_valid(held_visual):
-		held_visual.reload_amount = clampf(reload_clock,0.0,1.0)
 	if reload_clock>0:
 		reload_clock=maxf(0.0,reload_clock-delta)
 		if reload_clock<=0:
@@ -691,18 +693,6 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	for splash in contact_splashes:
-		var alpha := clampf(float(splash["life"])/float(splash["max"]),0.0,1.0)
-		var point: Vector2 = splash["point"]
-		draw_circle(point,float(splash["radius"])*alpha,Color(0.55,0.075,0.10,alpha*0.80),true,-1,true)
-	for mark in ground_marks:
-		var p: Vector2 = mark["point"]
-		var size: float = mark["size"]
-		var alpha: float = mark["alpha"]
-		var angle: float = mark["angle"]
-		draw_set_transform(p,angle)
-		draw_texture_rect(BLOOD_STAIN,Rect2(-size*0.5,-size*0.5,size,size),false,Color(1,1,1,alpha))
-	draw_set_transform(Vector2.ZERO)
 	# Firearm actions have no visible beam, tracer or bullet sprite.
 	# Only visibly thrown objects remain rendered as tiny, unlit props.
 	for s in shots:
@@ -761,7 +751,7 @@ func run_test() -> void:
 	assert(bool(foe["down"]))
 	assert(defeated==1)
 	assert(male_death_take==1)
-	assert(ground_marks.size()>0 and ground_marks.size()<=MAX_GROUND_MARKS)
+	assert(stage_decals.records.any(func(record: Dictionary) -> bool: return record.kind == "pool"))
 	assert(foe["feedback"].impact_marks.size()==2)
 	assert(foe.has("fall_variant") and foe.has("fall_duration"))
 	var downed: Actor = foe["body"]
