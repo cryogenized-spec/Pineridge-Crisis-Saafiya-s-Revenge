@@ -70,7 +70,7 @@ func _draw() -> void:
 		draw_shrub(Vector2(x+15,702.0+float((i*5)%13)),i+11)
 	for i in range(parked.size()):
 		Art.vehicle(self, parked[i], PARKED_ART[i], -1 if i == 2 else 1)
-	draw_string(ThemeDB.fallback_font,TRUNK_POINT+Vector2(-18,-21),"SAAFIYA'S CAR",HORIZONTAL_ALIGNMENT_LEFT,-1,11,Color("#f1dfc3"))
+	draw_string(ThemeDB.fallback_font,TRUNK_POINT+Vector2(-18,-21),"SAAFIYA'S MUSTANG",HORIZONTAL_ALIGNMENT_LEFT,-1,11,Color("#f1dfc3"))
 	# Environmental signposting, not tactical markers.
 	draw_sign(Vector2(192,390),"UPPER RIDGE")
 	draw_sign(Vector2(1960,666),"MALL DISTRICT")

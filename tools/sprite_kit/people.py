@@ -292,8 +292,9 @@ def legs(mesh, look, pose, bare, inner):
                       .0048,color(look.footwear,1.62),shoe,"fabric")
 
 
-def person(look, gait="idle", phase=0., hands=None, bare=False, layer="all", inner=False):
-    pose = joints(look, gait, phase, hands)
+def person(look, gait="idle", phase=0., hands=None, bare=False, layer="all", inner=False, pose=None):
+    if pose is None:
+        pose = joints(look, gait, phase, hands)
     mesh = Mesh()
     skin = color(look.skin)
     slices = torso_slices(look, pose)

@@ -9,7 +9,7 @@
 ## In the game
 
 - **K** or **F7** opens the sprite workbench. Choose **Cast** or **Equipment** and use the arrows to change the preview. In Cast, **1–3** switches idle, walk and run for the ten NPCs. In Equipment, **Space** cycles the selected prop and **R** previews servicing it. **Esc** returns to the same chapter.
-- **V** or **F8** switches Saafiya between the approved campaign sprite and the alternate model. The choice follows the player through chapter changes during the session.
+- Saafiya uses the redesigned model in every campaign chapter. Her 16-frame defeat animation is rendered from the same model.
 - Campaign weapon animations are wired to the Beretta, CZ and AKM slots. All nine props are available in the workbench. The pump shotgun model designation remains provisional.
 
 The pistols use separate slide layers, the AKM uses an animated action layer, and the pump shotgun preview animates its fore-end. Brief muzzle sprites and smoke use the shot location. Brass falls and settles at a fixed world point. Contact splashes leave ground marks, and downed characters have an expanding puddle at their resting position. Settled brass, marks and pools stay with the chapter during the run. Restarting that chapter clears its decals.

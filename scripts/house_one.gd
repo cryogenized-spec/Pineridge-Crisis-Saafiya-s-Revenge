@@ -47,6 +47,7 @@ func _ready() -> void:
 	encounter.level_id="barricaded_house"
 	encounter.configure(player,world)
 	add_child(encounter)
+	encounter.gunfire.connect(traffic.react_to_gunfire)
 	ChapterState.restore(get_tree(),encounter)
 	var locations := [
 		Vector2(230,481),Vector2(450,683),Vector2(708,475),
@@ -134,8 +135,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if mode == DisplayServer.WINDOW_MODE_FULLSCREEN else DisplayServer.WINDOW_MODE_FULLSCREEN)
 		KEY_E:
 			if encounter.inventory_open():
+				if encounter.inventory_ui.taking.is_valid():
+					encounter.inventory_ui.close_inventory()
 				return
-			if encounter.collect_nearby():
+			if encounter.open_nearby_loot():
 				return
 			if not checked_house:
 				speak_with_residents()
@@ -211,7 +214,7 @@ func _physics_process(delta: float) -> void:
 	]
 
 func run_smoke() -> void:
-	assert(player.has_approved_atlases())
+	assert(player.has_hero_atlases())
 	assert(world.CAR_LENGTH==108.0)
 	assert(world.CAR_WIDTH==43.0)
 	assert(walkers.size()==8)

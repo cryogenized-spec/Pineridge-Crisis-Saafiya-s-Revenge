@@ -7,8 +7,8 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-from mesh import CELL, ROOT, Renderer, atlas, overhead_point
-from people import bones, person
+from mesh import BODY_VIEW, CELL, ROOT, Renderer, atlas, overhead_point
+from people import bones, joints, person, v
 from presets import BODY_BASES, GEAR, HERO, LOOKS, POSE_NAMES, Look, pose_hands
 from weapons import FOCUS, SIZE, VIEW, casing, weapon
 
@@ -59,6 +59,36 @@ def render_saafiya(renderer):
                   for gear in GEAR for pose in POSE_NAMES]
         save(atlas(frames, (CELL, CELL), POSE_COLUMNS), SPRITES / f"saafiya_{layer}_poses.png")
     print("Rendered Saafiya’s replacement and grip poses", flush=True)
+
+
+def render_defeat(renderer):
+    """Animate a brace, dip, sideways fall and settle using the live model."""
+    frames = []
+    cell = 192
+    for frame in range(16):
+        progress = frame / 15
+        dip = np.interp(progress, [0, .14, .39, .66, 1], [0, .045, .29, .20, .08])
+        tilt = np.interp(progress, [0, .13, .34, .74, .84, 1], [0, -.07, .27, 1.49, 1.40, 1.48])
+        pose = joints(HERO, "walk", .23)
+        pose["bob"] -= dip
+        pose["head"][2] -= dip
+        pose["hips"][2] -= dip
+        for side, suffix in [(1, "R"), (-1, "L")]:
+            for joint in ["hip", "shoulder", "elbow", "hand"]:
+                pose[f"{joint}.{suffix}"][2] -= dip
+            pose[f"knee.{suffix}"] += v(side * dip * .21, -dip * .90, -dip * .48)
+            pose[f"hand.{suffix}"] += v(side * sin(tilt) * .13, dip * -.83, dip * -.45)
+        model = person(HERO, pose=pose)
+        pivot = v(0, 0, .87 - dip)
+        roll = np.array([[cos(tilt), 0, sin(tilt)], [0, 1, 0], [-sin(tilt), 0, cos(tilt)]])
+        for part in model.parts:
+            part.points = (part.points - pivot) @ roll.T + pivot
+        ground = min(part.points[:, 2].min() for part in model.parts)
+        contact = np.clip((progress - .37) / .32, 0, 1)
+        for part in model.parts:
+            part.points[:, 2] -= ground * contact
+        frames.append(renderer.render(model, pixels=(cell, cell), view=BODY_VIEW * cell / CELL))
+    save(atlas(frames, (cell, cell), 4), SPRITES / "saafiya_defeat.png")
 
 
 def render_weapons(renderer):
@@ -265,7 +295,7 @@ def hero_sheet(renderer):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mesh-dump", type=Path, help="Path for editable model geometry used by Blender.")
-    parser.add_argument("--part", choices=["all","cast","hero","weapons","previews","models"], default="all")
+    parser.add_argument("--part", choices=["all","cast","hero","defeat","weapons","previews","models"], default="all")
     args = parser.parse_args()
     if args.part != "models":
         stage = Renderer()
@@ -273,6 +303,8 @@ if __name__ == "__main__":
         render_characters(stage)
     if args.part in ["all","hero"]:
         render_saafiya(stage)
+    if args.part in ["all","hero","defeat"]:
+        render_defeat(stage)
     if args.part in ["all","weapons"]:
         render_weapons(stage)
         render_effects()

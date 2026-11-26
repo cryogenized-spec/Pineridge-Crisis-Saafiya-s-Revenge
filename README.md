@@ -108,4 +108,6 @@ Residential stages 1 and 2 now show occasional code-drawn traffic (including a r
 
 ## Reusable sprite kit
 
-Press **K** or **F7** to inspect the new cast and overhead equipment in any chapter. Press **V** or **F8** to try the alternate Saafiya sprite in play. The sprite kit includes three rigged body templates, ten adult NPC looks, the alternate Saafiya model and nine equipment props. [Sprite kit, wallpaper, and Blender source](docs/sprite-kit/README.md)
+The campaign uses the redesigned Saafiya sprite throughout, including a new animated collapse. Press **E** near a downed opponent to search them, click each item to transfer it, and press **2** to equip a recovered pistol. Saafiya's black 1967 Mustang is parked at the start of Upper Pineridge, where **E** opens its boot. Nearby traffic accelerates away from shots. Armed opponents fire short, telegraphed volleys from range, while knife and cudgel opponents rush into a short wind-up.
+
+Press **K** or **F7** to inspect the cast and overhead equipment in any chapter. The sprite kit includes three rigged body templates, ten adult NPC looks, the Saafiya model and nine equipment props. [Sprite kit, wallpaper, and Blender source](docs/sprite-kit/README.md)

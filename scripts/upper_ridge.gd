@@ -44,6 +44,7 @@ func _ready() -> void:
 	encounter.level_id = "upper_ridge"
 	encounter.configure(player,world)
 	add_child(encounter)
+	encounter.gunfire.connect(traffic.react_to_gunfire)
 	# A continuous stream of ordinary people travels along the road while
 	# a smaller set lingers. These are NPCs, not collision or combat targets.
 	for i in range(11):
@@ -120,11 +121,13 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if mode == DisplayServer.WINDOW_MODE_FULLSCREEN else DisplayServer.WINDOW_MODE_FULLSCREEN)
 		KEY_E:
 			if encounter.inventory_open():
+				if encounter.inventory_ui.taking.is_valid():
+					encounter.inventory_ui.close_inventory()
+				return
+			if encounter.open_nearby_loot():
 				return
 			if player.position.distance_to(World.TRUNK_POINT)<47.0:
 				encounter.show_car_boot()
-				return
-			if encounter.collect_nearby():
 				return
 			advance_stage()
 
@@ -204,7 +207,7 @@ func run_smoke() -> void:
 	encounter.show_car_boot()
 	assert(encounter.inventory_open())
 	encounter.inventory_ui.close_inventory()
-	assert(player.has_approved_atlases())
+	assert(player.has_hero_atlases())
 	assert(walkers.size()==11)
 	assert(encounter.actors.size()==5)
 	assert(world.blocked(Vector2(200,180)))

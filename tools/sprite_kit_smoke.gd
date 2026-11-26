@@ -15,6 +15,7 @@ func run() -> void:
 	var battle: Node = level.encounter
 	battle.set_physics_process(false)
 	var hero: Actor = level.player
+	assert(hero.has_hero_atlases())
 	var visual: Node2D = battle.held_visual
 	var ground: Node2D = battle.stage_decals
 	var records: Array[Dictionary] = ground.records
@@ -38,7 +39,58 @@ func run() -> void:
 
 	battle.equip(1)
 	assert(battle.slot == 0)
-	battle.unlocked[1] = true
+	var pistol_carrier: Dictionary = battle.actors[3]
+	var pistol_body: Actor = pistol_carrier.body
+	hero.position = pistol_body.position + Vector2(-300, 0)
+	var car: Dictionary
+	level.traffic.spawn_car()
+	car = level.traffic.cars[0]
+	car.pos = pistol_body.position + Vector2(-50, -65)
+	pistol_carrier.cooldown = 0.0
+	pistol_carrier.startle = 0.0
+	var firing_position := pistol_body.position
+	battle.update_character(pistol_carrier, 0.01)
+	assert(pistol_body.position == firing_position and pistol_carrier.windup > 0.0)
+	battle.update_character(pistol_carrier, 0.30)
+	assert(battle.shots.size() == 1 and car.hurrying)
+	level.traffic._process(0.25)
+	assert(car.pace > car.speed)
+	battle.update_character(pistol_carrier, 0.17)
+	assert(battle.shots.size() == 2)
+	battle.step_shots(0.40)
+	assert(battle.player_hp == 3)
+	battle.step_shots(0.06)
+	assert(battle.player_hp == 2)
+	var melee: Dictionary = battle.actors[2]
+	melee.body.position = hero.position + Vector2(36, 0)
+	melee.cooldown = 0.0
+	melee.startle = 0.0
+	battle.update_character(melee, 0.15)
+	assert(melee.body.position.distance_to(hero.position) < 20.0)
+	battle.update_character(melee, 0.01)
+	assert(melee.windup > 0.0)
+	hero.position += Vector2(0, 45)
+	battle.player_invincible = 0.0
+	battle.update_character(melee, 0.39)
+	assert(battle.player_hp == 2 and melee.cooldown > 0.0)
+	hero.position = firing_position + Vector2(16, 0)
+	battle.hit_enemy(pistol_carrier, int(pistol_carrier.hp), Vector2.RIGHT)
+	var loot_key := InputEventKey.new()
+	loot_key.keycode = KEY_E
+	loot_key.pressed = true
+	level._unhandled_key_input(loot_key)
+	assert(battle.inventory_open() and battle.inventory_ui.contents.size() == 2)
+	var pistol: Button = battle.inventory_ui.boot_col.get_child(1)
+	var pistol_name := pistol.text
+	pistol.pressed.emit()
+	pistol.pressed.emit()
+	assert(battle.unlocked[1] and battle.inventory.equipment["Backup"] == pistol_name)
+	assert(battle.rounds[1] == battle.KIT[1].size and battle.inventory_ui.contents.size() == 1)
+	var magazine: Button = battle.inventory_ui.boot_col.get_child(1)
+	magazine.pressed.emit()
+	assert(battle.spares[1] == 1 and battle.inventory_ui.contents.is_empty())
+	level._unhandled_key_input(loot_key)
+	assert(not battle.inventory_open())
 	battle.equip(1)
 	battle.cooldown = 0.0
 	battle.fire_player()
@@ -73,9 +125,6 @@ func run() -> void:
 
 	var key := InputEventKey.new()
 	key.pressed = true
-	key.keycode = KEY_F8
-	battle._unhandled_key_input(key)
-	assert(hero.uses_alternate)
 	key.keycode = KEY_F7
 	battle._unhandled_key_input(key)
 	assert(paused and is_instance_valid(battle.kit_review))
@@ -85,11 +134,23 @@ func run() -> void:
 		assert(battle.kit_review.held.entry().id == Art.CATALOGUE[index].id)
 	battle.kit_review.close()
 	assert(not paused)
+	ChapterState.store(self, battle)
+	battle.player_hp = 1
+	battle.player_invincible = 0.0
+	battle.hurt_player(Vector2.DOWN)
+	assert(battle.player_hp == 0 and not visual.visible and hero.defeat_elapsed == 0.0)
+	battle._physics_process(0.33)
+	assert(hero.defeat_elapsed > 0.0 and hero.defeat_elapsed < Actor.DEFEAT_DURATION)
+	battle._physics_process(1.0)
+	assert(hero.defeat_elapsed == Actor.DEFEAT_DURATION)
+	battle._physics_process(0.33)
+	assert(hero.defeat_elapsed == Actor.DEFEAT_DURATION)
 	level.free()
 
 	var house := HOUSE.instantiate()
 	root.add_child(house)
-	assert(house.player.uses_alternate)
+	assert(house.player.has_hero_atlases())
+	assert(house.encounter.unlocked[1] and house.encounter.inventory.equipment["Backup"] == pistol_name)
 	assert(house.encounter.stage_decals.records.is_empty())
 	house.free()
 	var revisit := UPPER.instantiate()
@@ -101,6 +162,5 @@ func run() -> void:
 	assert(ChapterState.stage_decals(self, "upper_ridge").is_empty())
 	revisit.free()
 	ChapterState.reset(self)
-	root.remove_meta(Actor.ALT_STATE)
-	print("Sprite kit smoke: live slide, casing persistence, impact and pool, nine poses, alternate character and chapter isolation.")
+	print("Sprite kit smoke: live slide, decals, nine poses, default Saafiya, collapse, looting, ranged volleys and traffic reaction.")
 	quit()
