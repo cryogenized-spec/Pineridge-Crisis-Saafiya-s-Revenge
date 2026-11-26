@@ -150,41 +150,74 @@ def curls(mesh, center):
               center+v(.013,-.078,.148)],.0044,"c5b4b0","Sunglasses/head","metal")
 
 
-def top(mesh, look, pose):
+def bust_depth(x, z, frontal, pose):
+    # Saafiya’s 36DD reference has a broad, rounded slope from the underbust.
+    level = (z-pose["bob"])/pose["height"]
+    height = max(0., 1.-((level-1.318)/.130)**2)**2
+    center = .086 * pose["width"]
+    radius = .075 * pose["width"]
+    width = np.exp(-((x-center)/radius)**2) + np.exp(-((x+center)/radius)**2)
+    return .055 * height * width * frontal
+
+
+def rounded_torso(mesh, name, sections, pose, tone, group, finish, *, corset=False):
+    data = np.asarray(sections)
+    levels = data[:, 2]
+
+    def surface(z, theta):
+        cx, cy, rx, ry = (np.interp(z, levels, data[:, i]) for i in (0, 1, 3, 4))
+        x = cx + rx*cos(theta)
+        front = max(0., -sin(theta))
+        if corset:
+            # Gentle sweetheart neckline follows the continuous corset shell.
+            upper = max(0., 1. - (levels[-1]-z)/.060)
+            dip = .030 * np.exp(-(x/.037)**2)
+            lift = .017 * np.exp(-((abs(x)-.089)/.055)**2)
+            z += (lift-dip)*front*upper
+        y = cy + ry*sin(theta) - bust_depth(x,z,front,pose)
+        return v(x,y,z)
+
+    angles = np.linspace(0, 2*pi, 64, endpoint=False)
+    fine_levels = np.linspace(levels[0], levels[-1], 34)
+    rings = [[surface(z,theta) for theta in angles] for z in sorted(set(levels) | set(fine_levels))]
+    mesh.add(name,polygon_rings(rings),tone,group,finish)
+    return surface
+
+
+def top(mesh, look, pose, body_surface):
     owner = "Corset/spine"
-    fabric = "2b232d"
     waist, hips = pose["waist"], pose["pelvis_width"]
     height, lean, bob = pose["height"], pose["lean"], pose["bob"]
-    x, y = 0, -.014-lean*.39
+    y = -.014-lean*.39
     low = 1.00*height+bob
-    high = 1.34*height+bob
+    high = 1.355*height+bob
     corset_sections = [
-        (x,y,low-.05,hips*.93,.105),(x,y,low,hips*.99,.113),
-        (x,y,low+.091,waist*1.10,.105),(x,y-.012,low+.192,waist*1.23,.122),
-        (x,y-.013,high,pose["shoulder_width"]*.89,.141),
+        (0,y,low-.05,hips*.93,.105),(0,y,low,hips*.99,.113),
+        (0,y,low+.091,waist*1.10,.105),(0,y-.009,1.22*height+bob,waist*1.23,.116),
+        (0,y-.013,1.305*height+bob,pose["shoulder_width"]*.96,.128),
+        (0,y-.013,high,pose["shoulder_width"]*.96,.135),
     ]
-    mesh.loft("Darted corset",corset_sections,fabric,owner,"leather",32)
-    for side in [-1,1]:
-        center = v(side*.086,y-.102,high-.009)
-        mesh.ellipsoid("Scalloped corset upper",center,(.088,.054,.056),
-                       "302530",owner,"fabric",22)
-        arc = [center+v(-.081+i*.020,-.045+.016*abs(i-4)/4,.026+.023*sin(pi*i/8))
-               for i in range(9)]
-        mesh.pipe("Corset binding",arc,.0058,"4c3847",owner,"leather")
-        for xoff in [.058,.106]:
-            mesh.pipe("Vertical boning",[
-                v(side*xoff,y-.119,high-.054),
-                v(side*xoff*.74,y-.109,low+.145),
-                v(side*xoff*.88,y-.104,low+.035),
-                v(side*xoff,y-.108,low-.017)],
-                .006,"4d3a48",owner,"leather")
-    for index, z in enumerate([low+.04,low+.104,low+.177]):
-        band = "Belts/spine"
-        mesh.sweep("Corset buckle strap",[(v(-.089,y-.104,z),.018),
-                   (v(-.034,y-.121,z),.015), (v(.033,y-.121,z),.015),
-                   (v(.089,y-.105,z),.018)],"211c27",band,"leather",count=10)
-        buckle(mesh,"Front corset buckle",v(.015,y-.136,z),.020,.015,band,"b4a79f")
-        mesh.ellipsoid("Strap stud",v(-.058,y-.123,z),(.007,.005,.007),
+    surface = rounded_torso(mesh,"Rounded corset",corset_sections,pose,
+                           "302630",owner,"leather",corset=True)
+
+    def front_trim(z, theta):
+        return surface(z,theta) + v(0,-.005,0)
+
+    binding = [front_trim(high,theta) + v(0,0,.0015)
+               for theta in np.linspace(-pi,0,32)]
+    mesh.pipe("Corset binding",binding,.0048,"574250",owner,"leather",count=9)
+    for theta in [-2.20,-1.88,-1.25,-.93]:
+        path = [front_trim(z,theta) for z in np.linspace(low-.017,high-.018,16)]
+        mesh.pipe("Vertical boning",path,.0037,"503d4b",owner,"leather",count=8)
+
+    band = "Belts/spine"
+    for height_offset in [.04,.104,.177]:
+        z = low+height_offset
+        path = [front_trim(z,theta) for theta in np.linspace(-2.29,-.85,9)]
+        mesh.pipe("Corset buckle strap",path,.012,"211c27",band,"leather",count=10)
+        buckle(mesh,"Front corset buckle",front_trim(z,-1.55)+v(.011,-.015,0),
+               .020,.015,band,"b4a79f")
+        mesh.ellipsoid("Strap stud",front_trim(z,-1.94)+v(0,-.013,0),(.007,.005,.007),
                        SILVER,band,"metal")
     # The fitted lace runs around the upper back and frames the open neckline.
     lace_torso(mesh,pose)
@@ -205,12 +238,14 @@ def top(mesh, look, pose):
     for x in [-.047,.047]:
         mesh.ellipsoid("Choker stud",v(x,neck_y-.051,neck_z+.008),(.007,.004,.006),
                        SILVER,neck,"metal")
-    chain = [v(-.076,neck_y-.055,neck_z-.015),v(-.046,neck_y-.079,neck_z-.085),
-             v(0,neck_y-.083,neck_z-.112),v(.047,neck_y-.079,neck_z-.079),
-             v(.075,neck_y-.052,neck_z-.016)]
+    chain = [body_surface(neck_z-.016-.096*sin(pi*t)**.86,-2.57+2.*t) + v(0,-.007,0)
+             for t in np.linspace(0,1,25)]
     mesh.pipe("Necklace",chain,.0037,"c3b4a8",neck,"metal")
-    pendant = chain[2] + v(0,-.003,-.017)
-    crescent = [pendant+v(.016*cos(.55+i*.37),0,.020*sin(.55+i*.37)) for i in range(15)]
+    crescent = [
+        body_surface(neck_z-.129+.020*sin(.55+i*.37),-pi/2+.088*cos(.55+i*.37))
+        + v(0,-.009,0)
+        for i in range(15)
+    ]
     mesh.sweep("Crescent pendant",[(pt,.003+.004*sin(pi*i/14)) for i,pt in enumerate(crescent)],
                "e1d1c4",neck,"metal",count=8)
     jacket_tails(mesh, pose)

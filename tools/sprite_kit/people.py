@@ -300,7 +300,16 @@ def person(look, gait="idle", phase=0., hands=None, bare=False, layer="all", inn
     is_saafiya = look.key == "saafiya"
     if layer != "lower":
         if layer != "arms":
-            if bare or inner:
+            if is_saafiya:
+                if bare or inner:
+                    torso_sections = slices if layer == "all" else slices[2:]
+                    torso_name = "Torso"
+                else:
+                    torso_sections = slices[4:]
+                    torso_name = "Shoulders and clavicle"
+                body_surface = costume.rounded_torso(mesh,torso_name,torso_sections,
+                                                      pose,skin,"Body/spine","skin")
+            elif bare or inner:
                 mesh.loft("Torso",slices if layer == "all" else slices[2:],
                           skin,"Body/spine","skin",28)
             neck_center = pose["head"] - v(0,-.018,.128)
@@ -309,9 +318,7 @@ def person(look, gait="idle", phase=0., hands=None, bare=False, layer="all", inn
             make_face(mesh,look,pose,bare)
             if not bare:
                 if is_saafiya:
-                    if not inner:
-                        mesh.loft("Shoulders and clavicle",slices[4:],skin,"Body/spine","skin",28)
-                    costume.top(mesh,look,pose)
+                    costume.top(mesh,look,pose,body_surface)
                 else:
                     garment(mesh,look,pose,slices)
         if is_saafiya and not bare:
