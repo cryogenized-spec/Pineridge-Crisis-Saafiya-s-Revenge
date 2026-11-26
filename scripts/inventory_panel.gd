@@ -120,7 +120,7 @@ func toggle() -> void:
 func refresh() -> void:
 	if not open or model==null:
 		return
-	headline.text="SAAFIYA  /  CAR BOOT" if at_car else "SAAFIYA  /  EQUIPMENT & INVENTORY"
+	headline.text="SAAFIYA  /  MUSTANG BOOT" if at_car else "SAAFIYA  /  EQUIPMENT & INVENTORY"
 	hint.text="I or Esc to close   •   E by parked car to open boot"
 	if taking.is_valid():
 		headline.text = "SEARCH  /  SAAFIYA'S INVENTORY"
@@ -166,6 +166,18 @@ func loot_buttons() -> void:
 		var button := action(boot_col, entry.label, Callable(),
 			entry.item not in ["cash", "magazine"] and model.bag.size() >= model.capacity()
 			and not (entry.item == "pistol" and model.equipment["Backup"].is_empty()))
+		button.custom_minimum_size.y = 38
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		for state in ["normal", "hover", "pressed", "disabled"]:
+			var edge := Color("#bc9d73") if state in ["hover", "pressed"] else Color("#64564f")
+			var face := Color("#352c34") if state in ["hover", "pressed"] else Color("#25232c")
+			var card := StyleBoxFlat.new()
+			card.bg_color = face
+			card.border_color = edge
+			card.set_border_width_all(1)
+			card.set_corner_radius_all(4)
+			card.content_margin_left = 11
+			button.add_theme_stylebox_override(state, card)
 		button.pressed.connect(_take_loot.bind(entry, button))
 
 func _take_loot(entry: Dictionary, button: Button) -> void:
