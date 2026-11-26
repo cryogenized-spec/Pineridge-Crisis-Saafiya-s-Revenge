@@ -42,19 +42,23 @@ func make_actor() -> void:
 		actor.queue_free()
 	actor = Actor.new()
 	actor.wardrobe_index = wardrobe
-	actor.fall_backward = fall_mode == 1
-	actor.fall_sideways = fall_mode == 2
 	actor.position = CENTER
 	actor.scale = Vector2.ONE*6.0
 	add_child(actor)
 	actor.z_index = 1
+	if feedback.state == Feedback.State.DOWN:
+		actor.start_collapse(fall_mode)
 
 func refresh() -> void:
-	status.text = "Look %02d   |   %s   |   Prop: %s   |   Fall: %s   |   Decals: %s" % [wardrobe+1,Feedback.State.keys()[feedback.state],Props.ITEMS[prop_index].label,["FRONT","BACK","SIDE"][fall_mode],"ON" if feedback.blood_enabled else "OFF"]
+	status.text = "Look %02d   |   %s   |   Prop: %s   |   Fall: %s   |   Decals: %s" % [wardrobe+1,Feedback.State.keys()[feedback.state],Props.ITEMS[prop_index].label,Actor.COLLAPSE_NAMES[fall_mode],"ON" if feedback.blood_enabled else "OFF"]
 	queue_redraw()
 
 func change_state(next: Feedback.State, cue: String = "") -> void:
 	feedback.select(next)
+	if next == Feedback.State.DOWN:
+		actor.start_collapse(fall_mode)
+	elif next == Feedback.State.STUMBLE:
+		actor.start_reaction(Feedback.LENGTHS[Feedback.State.STUMBLE])
 	if not cue.is_empty():
 		audio.play_cue(cue)
 	refresh()
@@ -94,11 +98,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_K: audio.play_cue("male_looter_death_2")
 		KEY_B: feedback.blood_enabled = not feedback.blood_enabled
 		KEY_N:
-			fall_mode = (fall_mode + 1) % 3
-			actor.fall_backward = fall_mode == 1
-			actor.fall_sideways = fall_mode == 2
-			if feedback.state==Feedback.State.DOWN:
-				feedback.select(Feedback.State.DOWN)
+			fall_mode = (fall_mode + 1) % Actor.COLLAPSE_NAMES.size()
+			if feedback.state == Feedback.State.DOWN:
+				change_state(Feedback.State.DOWN)
 		KEY_R:
 			feedback.reset()
 			audio.play_cue("reset")
@@ -132,7 +134,7 @@ func _physics_process(delta: float) -> void:
 	actor.animate(delta,Vector2.from_angle(heading)*speed*delta if moving else Vector2.ZERO,heading,false,running)
 	var pose := feedback.pose()
 	actor.set_down_progress(feedback.progress() if feedback.state==Feedback.State.DOWN else -1.0)
-	if feedback.state==Feedback.State.DOWN and (actor.npc_down!=null or actor.npc_down_back!=null):
+	if feedback.state in [Feedback.State.DOWN, Feedback.State.STUMBLE] and actor.npc_reactions != null:
 		actor.scale=Vector2.ONE*6.0
 		actor.rotation=0.0
 		actor.position=CENTER
@@ -172,7 +174,7 @@ func _physics_process(delta: float) -> void:
 			assert(not feedback.carried)
 			assert(feedback.state == Feedback.State.DOWN)
 			assert(actor.npc_down_back != null)
-			assert(actor.npc_down_side != null)
+			assert(actor.npc_reactions != null)
 			print("Action review: pickup, carry, set down, alert, stumble and down states exercised.")
 			get_tree().quit()
 	refresh()

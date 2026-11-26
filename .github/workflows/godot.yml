@@ -27,6 +27,7 @@ jobs:
           python3 -m pip install -q --disable-pip-version-check vtk numpy Pillow
           xvfb-run -a -s '-screen 0 1024x768x24' python3 tools/render_crowd_side.py
           python3 tools/verify_sidefall.py
+          python3 tools/verify_refinement.py
       - name: Import and check scripts
         run: |
           set -o pipefail
@@ -73,6 +74,12 @@ jobs:
           engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . res://scenes/main.tscn --fixed-fps 60 --quit-after 300 -- --encounter-smoke 2>&1 | tee encounter.log
           if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|Error importing|Ogg Vorbis decoding failed|Error loading resource|Assertion failed' encounter.log; then exit 1; fi
           grep -F 'Encounter smoke: actors, arcade damage' encounter.log
+      - name: Exercise HUD and character reactions
+        run: |
+          set -o pipefail
+          engine/Godot_v4.4.1-stable_linux.x86_64 --headless --path . --script tools/refinement_smoke.gd --quit-after 300 2>&1 | tee refinement.log
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|Assertion failed' refinement.log; then exit 1; fi
+          grep -F 'Graphics refinement smoke: all chapter HUDs' refinement.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -86,6 +93,7 @@ jobs:
             encounter.log
             upper_ridge.log
             house_one.log
+            refinement.log
       - name: Install Linux export templates
         if: success()
         run: |

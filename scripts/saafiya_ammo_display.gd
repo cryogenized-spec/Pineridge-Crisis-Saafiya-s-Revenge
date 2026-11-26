@@ -16,6 +16,9 @@ const SEGMENTS := {
 	"-": [6]
 }
 
+func _ready() -> void:
+	resized.connect(queue_redraw)
+
 func set_values(round_count: int, reserve_count: int, reloading: bool, has_ammo: bool) -> void:
 	if current_rounds == round_count and magazine_reserve == reserve_count and is_reloading == reloading and firearm == has_ammo:
 		return
@@ -25,34 +28,32 @@ func set_values(round_count: int, reserve_count: int, reloading: bool, has_ammo:
 	firearm = has_ammo
 	queue_redraw()
 
+func counter_bounds(area: Vector2, rounds_text: String, reserve_text: String) -> Rect2:
+	var cells := rounds_text.length() + reserve_text.length()
+	var width_in_cells := 1.18 * float(cells - 2) + 2.0 + 0.72
+	var unit := minf(area.x * 0.96 / width_in_cells, area.y * 0.56)
+	var total := Vector2(unit * width_in_cells, unit * 1.5)
+	return Rect2((area - total) * 0.5, total)
+
 func _draw() -> void:
-	if not firearm:
+	if not firearm or size.x < 10 or size.y < 10:
 		return
-	var area := size
-	if area.x < 10 or area.y < 10:
-		return
-	var rounds_text := str(maxi(0,current_rounds)).pad_zeros(2)
-	var mags_text := str(maxi(0,magazine_reserve)).pad_zeros(2)
-	# Compact groups are dimensioned from the real available drawing width.
-	var cells := rounds_text.length() + mags_text.length()
-	var unit := minf(area.x / (float(cells) * 1.18 + 0.95),area.y * 0.53)
-	var height := unit * 1.5
-	var gap := unit * 0.18
-	var separator_width := unit * 0.65
-	var total := float(cells) * unit + float(cells - 2) * gap + separator_width + unit * 0.32
-	var x := (area.x - total) / 2.0
-	var y := (area.y - height) * 0.38
+	var rounds_text := str(maxi(0, current_rounds)).pad_zeros(2)
+	var reserve_text := str(maxi(0, magazine_reserve)).pad_zeros(2)
+	var bounds := counter_bounds(size, rounds_text, reserve_text)
+	var unit := bounds.size.y / 1.5
+	var cursor := bounds.position
 	var lit := GLOW if is_reloading else ON
 	for digit in rounds_text:
-		_draw_digit(digit, Vector2(x,y),unit,height,lit)
-		x += unit + gap
-	x += separator_width * 0.28
-	var mid_y := y + height * 0.5
-	draw_line(Vector2(x,mid_y+unit*0.12),Vector2(x+unit*0.35,mid_y-unit*0.12),Color("#b48e77"),maxf(1.2,unit*0.08),true)
-	x += separator_width
-	for digit in mags_text:
-		_draw_digit(digit,Vector2(x,y),unit,height,lit)
-		x += unit + gap
+		_draw_digit(digit, cursor, unit, bounds.size.y, lit)
+		cursor.x += unit * 1.18
+	var slash := cursor + Vector2(0.04 * unit, bounds.size.y * 0.5)
+	draw_line(slash + Vector2(0, unit * 0.24), slash + Vector2(unit * 0.25, -unit * 0.24),
+		Color("#b48e77"), unit * 0.08, true)
+	cursor.x += unit * 0.54
+	for digit in reserve_text:
+		_draw_digit(digit, cursor, unit, bounds.size.y, lit)
+		cursor.x += unit * 1.18
 
 func _draw_digit(number: String, p: Vector2, w: float, h: float, lit: Color) -> void:
 	var start := [
@@ -65,7 +66,7 @@ func _draw_digit(number: String, p: Vector2, w: float, h: float, lit: Color) -> 
 		[Vector2(.21,.50),Vector2(.79,.50)]
 	]
 	var active: Array = SEGMENTS.get(number, [])
-	var thick := maxf(1.1,w*0.13)
+	var thick := w * 0.12
 	for i in range(7):
 		var one: Vector2 = p+start[i][0]*Vector2(w,h)
 		var two: Vector2 = p+start[i][1]*Vector2(w,h)
