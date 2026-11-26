@@ -85,6 +85,6 @@ const PEOPLE := [
 	{"key": "base_slim", "name": "Slim body", "body": "slim", "hair": "shaved"},
 	{"key": "base_balanced", "name": "Balanced body", "body": "balanced", "hair": "shaved"},
 	{"key": "base_broad", "name": "Broad body", "body": "broad", "hair": "shaved"},
-	{"key": "saafiya", "name": "Saafiya", "body": "balanced", "hair": "saafiya_curls"},
+	{"key": "saafiya", "name": "Saafiya", "body": "balanced", "hair": "piled_burgundy_curls"},
 	{"key": "saafiya_base", "name": "Saafiya anatomy base", "body": "balanced", "hair": "neutral"}
 ]

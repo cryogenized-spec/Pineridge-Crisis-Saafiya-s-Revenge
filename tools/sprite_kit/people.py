@@ -6,6 +6,7 @@ import numpy as np
 
 from mesh import Mesh, color
 from presets import BODY_BASES
+import saafiya as costume
 
 
 def v(x, y, z):
@@ -68,7 +69,7 @@ def make_head(mesh, look, pose, bare):
     mesh.ellipsoid("Nose", head + v(0,-.105,-.014), (.017,.026,.028),
                    color(look.skin, 1.05), head_group, "skin")
     mesh.ellipsoid("Lips", head+v(0,-.098,-.069), (.031,.012,.006),
-                   color(look.skin,.70 if look.key == "saafiya" else .79), head_group, "skin")
+                   color(look.skin,.79), head_group, "skin")
     for side in [-1, 1]:
         mesh.ellipsoid("Ear", head + v(side*.106,.003,-.007), (.022,.027,.040),
                        color(look.skin,.92), head_group, "skin")
@@ -82,14 +83,11 @@ def make_head(mesh, look, pose, bare):
         mesh.ellipsoid("Short beard", head + v(0,-.056,-.085), (.083,.065,.050),
                        "423137", "Accessories/head", "hair")
     make_hair(mesh, look, head)
-    if look.detail in ["signature", "hoops"]:
+    if look.detail == "hoops":
         for side in [-1,1]:
             center = head + v(side*.120,-.001,-.070)
             ring = [center+v(0,.034*cos(t*2*pi/18),.044*sin(t*2*pi/18)) for t in range(19)]
             mesh.pipe("Bronze hoop", ring, .0055, "d0a776", "Accessories/head", "metal")
-    if look.detail == "signature":
-        mesh.bar("Copper hair clasp", head+v(.098,.004,.112), (.027,.044,.015),
-                 "c79f76", "Accessories/head")
     if look.detail == "glasses":
         for side in [-1,1]:
             p = head + v(side*.051,-.108,.012)
@@ -101,17 +99,17 @@ def make_head(mesh, look, pose, bare):
 def make_hair(mesh, look, head):
     style = look.hair
     group = "Hair/head"
-    deep = "241b26" if style == "saafiya_curls" else ("382d30" if style == "waves" else "2b2529")
+    deep = "382d30" if style == "waves" else "2b2529"
     if style == "shaved":
         mesh.ellipsoid("Close shave", head+v(0,.011,.063), (.103,.095,.082),
                        color(look.skin,.63), group, "hair")
         return
-    base_radii = (.112,.112,.106) if style in ["saafiya_curls", "coils"] else (.106,.107,.092)
+    base_radii = (.112,.112,.106) if style == "coils" else (.106,.107,.092)
     mesh.ellipsoid("Scalp silhouette", head+v(0,.026,.067), base_radii, deep, group, "hair", 22)
     rng = random.Random(style)
-    if style in ["saafiya_curls","coils","puff","twists","waves"]:
-        count = 40 if style == "saafiya_curls" else 29
-        top_tone = "4f303d" if style == "saafiya_curls" else ("514038" if style == "waves" else "393032")
+    if style in ["coils","puff","twists","waves"]:
+        count = 29
+        top_tone = "514038" if style == "waves" else "393032"
         for index in range(count):
             angle = index * 2.399
             radius = .104*((index+1)/count)**.5
@@ -125,7 +123,7 @@ def make_hair(mesh, look, head):
             y = -.065+row*.024
             mesh.pipe("Fade texture", [head+v(-.073,y,.119),head+v(0,y,.144),head+v(.074,y,.124)],
                       .010, color(deep,1.17), group, "hair")
-    if style in ["puff","bun","ponytail","saafiya_curls","braids"]:
+    if style in ["puff","bun","ponytail","braids"]:
         if style == "puff":
             center = head+v(0,.104,.117)
             mesh.ellipsoid("Afro puff",center,(.105,.093,.085),deep,group,"hair",20)
@@ -144,7 +142,7 @@ def make_hair(mesh, look, head):
                            (head+v(.047,.201,-.145),.039),(head+v(.061,.17,-.233),.011)],
                            "382932",group,"hair")
         else:
-            count = 8 if style == "saafiya_curls" else 10
+            count = 10
             for i in range(count):
                 direction = (i / (count-1) - .5) * pi * 1.08
                 x, y = sin(direction), cos(direction)
@@ -152,18 +150,12 @@ def make_hair(mesh, look, head):
                 for step in range(8):
                     t = step / 7
                     spread = .103 + .04*t
-                    wiggle = (.019 if style == "saafiya_curls" else .009)*sin(step*1.9+i)
+                    wiggle = .009*sin(step*1.9+i)
                     stations.append((head+v(x*spread+wiggle,.025+y*spread,.098-.28*t),.027-.009*t))
-                mesh.sweep("Hanging curl" if style == "saafiya_curls" else "Braid", stations,
-                           color("4a293a" if style == "saafiya_curls" else deep,.8+.07*(i%4)),group,"hair",12)
+                mesh.sweep("Braid",stations,color(deep,.8+.07*(i%4)),group,"hair",12)
                 if style == "braids":
                     mesh.ellipsoid("Braided end", stations[-1][0],(.015,.018,.024),
                                    color(look.accent,.79+.06*(i%4)), group,"fabric")
-    if style == "saafiya_curls":
-        for side in [-1,1]:
-            mesh.sweep("Face framing curl", [(head+v(side*.083,-.055,.144),.028),
-                       (head+v(side*.113,-.084,.070),.028), (head+v(side*.103,-.099,.015),.022),
-                       (head+v(side*.129,-.072,-.056),.015)], "482c3b",group,"hair")
 
 
 def garment(mesh, look, pose, slices):
@@ -208,15 +200,6 @@ def garment(mesh, look, pose, slices):
         x,y,z,rx,ry = fitted_slices[0]
         mesh.loft("Structured hem",[(x,y,z-.009,rx*.96,ry*.98),(x,y,z+.018,rx,ry)],
                   color(look.top,.73),groups,"leather" if look.style == "leather" else "fabric")
-    if look.key == "saafiya":
-        mesh.loft("High choker",[(0,neck_y,neck_z+.038,.074,.067),(0,neck_y,neck_z+.074,.065,.060)],
-                  "302130","Accessories/neck","leather")
-        mesh.bar("Jacket closure", (0,-.134,1.188), (.025,.015,.052), "ad8261",groups,"metal")
-        for side in [-1,1]:
-            mesh.pipe("Leather panel seam", [v(side*.151,-.093,1.38),v(side*.109,-.121,1.26),
-                      v(side*.092,-.111,1.11),v(side*.126,-.096,1.02)],.0065,"534050",groups)
-            mesh.pipe("Pocket trim", [v(side*.117,-.109,1.09),v(side*.080,-.127,1.039)],
-                      .006,"7d606b",groups,"leather")
 
 
 def arms(mesh, look, pose, bare, weapon_ready, inner):
@@ -263,9 +246,6 @@ def arms(mesh, look, pose, bare, weapon_ready, inner):
         if look.style in ["leather","denim","windbreaker","bomber"]:
             mesh.pipe("Shoulder piping", [shoulder+v(0,-.04,.077), shoulder*.66+elbow*.34+v(0,-.054,.067),
                       elbow+v(0,-.041,.035)],.007,color(look.top,1.34),"Sleeves/upper_arm."+suffix,"fabric")
-        if look.key == "saafiya":
-            mesh.ellipsoid("Cuff stud", forearm+v(side*.018,-.017,.036),(.010,.013,.008),
-                           "c2a07a",cuff_group,"metal")
 
 
 def legs(mesh, look, pose, bare, inner):
@@ -297,13 +277,13 @@ def legs(mesh, look, pose, bare, inner):
         mesh.pipe("Side seam", [hip+v(side*.096,0,.011), (hip+knee)*.5+v(outside,-.02,0),
                   knee+v(side*.059,-.008,.04)],.006,color(look.pants,1.23),"Trousers/thigh."+suffix)
         shoe = "Footwear/foot."+suffix
-        tread = "2c2831" if look.key == "saafiya" else "74675d"
+        tread = "74675d"
         mesh.ellipsoid("Outsole", ankle+v(0,-.079,-.069),(.065,.141,.021),tread,shoe,"fabric")
         mesh.ellipsoid("Upper shoe", ankle+v(0,-.075,-.041),(.061,.132,.042),
                        look.footwear,shoe,"leather",18)
         mesh.ellipsoid("Toe reinforcement", ankle+v(0,-.138,-.030),(.055,.066,.034),
                        color(look.footwear,1.23),shoe,"leather")
-        if look.key == "saafiya" or look.style in ("workwear","raincoat","denim"):
+        if look.style in ("workwear","raincoat","denim"):
             mesh.loft("Boot shaft",[(ankle[0],ankle[1],ankle[2]-.02,.055,.065),
                       (ankle[0],ankle[1]+.014,ankle[2]+.108,.052,.066)],look.footwear,shoe,"leather")
         for index in range(3):
@@ -317,6 +297,7 @@ def person(look, gait="idle", phase=0., hands=None, bare=False, layer="all", inn
     mesh = Mesh()
     skin = color(look.skin)
     slices = torso_slices(look, pose)
+    is_saafiya = look.key == "saafiya"
     if layer != "lower":
         if layer != "arms":
             if bare or inner:
@@ -324,23 +305,38 @@ def person(look, gait="idle", phase=0., hands=None, bare=False, layer="all", inn
                           skin,"Body/spine","skin",28)
             neck_center = pose["head"] - v(0,-.018,.128)
             mesh.ellipsoid("Neck",neck_center,(.062,.063,.088),skin,"Body/neck","skin")
-            make_head(mesh,look,pose,bare)
+            make_face = costume.head if is_saafiya else make_head
+            make_face(mesh,look,pose,bare)
             if not bare:
-                garment(mesh,look,pose,slices)
-        arms(mesh,look,pose,bare,hands is not None,inner)
-    if layer in ("all","lower"):
-        if layer == "lower":
-            pelvis = [(x,y,z,rx+.011,ry+.015) for x,y,z,rx,ry in slices[:4]]
+                if is_saafiya:
+                    if not inner:
+                        mesh.loft("Shoulders and clavicle",slices[4:],skin,"Body/spine","skin",28)
+                    costume.top(mesh,look,pose)
+                else:
+                    garment(mesh,look,pose,slices)
+        if is_saafiya and not bare:
+            if inner:
+                skin_mesh = Mesh()
+                arms(skin_mesh,look,pose,True,hands is not None,True)
+                for part in skin_mesh.parts:
+                    if part.name == "Arm":
+                        part.group = part.group.replace("Arms/","Body/")
+                        mesh.parts.append(part)
+            costume.arms(mesh,look,pose)
         else:
-            pelvis = [(x,y,z,rx+.012,ry+.016) for x,y,z,rx,ry in slices[:3]]
-        if not bare:
-            mesh.loft("Waist of trousers",pelvis,color(look.pants),"Trousers/pelvis")
-            if look.key == "saafiya":
-                x, y, z, rx, ry = pelvis[-2]
-                mesh.loft("Leather belt",[(x,y,z-.017,rx+.008,ry+.007),(x,y,z+.019,rx+.006,ry+.010)],
-                          "2e242b","Trousers/pelvis","leather")
-                mesh.bar("Belt buckle",(0,y-ry-.009,z),(.054,.018,.034),"a98260","Trousers/pelvis")
-        legs(mesh,look,pose,bare,inner)
+            arms(mesh,look,pose,bare,hands is not None,inner)
+    if layer in ("all","lower"):
+        if is_saafiya and not bare:
+            costume.skirt(mesh,pose)
+            if inner:
+                legs(mesh,look,pose,True,True)
+            costume.legs(mesh,look,pose,inner)
+        else:
+            if not bare:
+                cut = 4 if layer == "lower" else 3
+                pelvis = [(x,y,z,rx+.012,ry+.016) for x,y,z,rx,ry in slices[:cut]]
+                mesh.loft("Waist of trousers",pelvis,color(look.pants),"Trousers/pelvis")
+            legs(mesh,look,pose,bare,inner)
     return mesh
 
 

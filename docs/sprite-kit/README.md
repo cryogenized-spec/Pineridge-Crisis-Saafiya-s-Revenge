@@ -1,6 +1,6 @@
 # Saafiya’s Revenge sprite kit
 
-[Cast and overhead weapon sheet](cast-and-weapons.jpg) · [1920×1080 wallpaper](wallpaper-1920x1080.jpg) · [Editable Blender kit](source/saafiya-sprite-kit.blend)
+[Saafiya model turnaround](saafiya-turnaround.jpg) · [Cast and overhead weapon sheet](cast-and-weapons.jpg) · [1920×1080 wallpaper](wallpaper-1920x1080.jpg) · [Editable Blender kit](source/saafiya-sprite-kit.blend)
 
 [Ready-to-use character sprites](../../assets/characters/sprite_kit) · [Overhead weapon layers](../../assets/weapons/overhead)
 
@@ -16,11 +16,11 @@ The pistols use separate slide layers, the AKM uses an animated action layer, an
 
 ## Reuse the models and atlases
 
-The Blender file has slim, balanced and broad body template collections, Saafiya’s alternate rig, five male and five female adult presets, and nine overhead props with named layer objects. Hide the clothing, sleeves, trousers, footwear and accessories to work with the bare body. Hair is a separate collection. Saafiya has nine pose actions with keyframes for the ready, recoil, service and return silhouettes.
+The Blender file has slim, balanced and broad body template collections, Saafiya’s alternate rig, five male and five female adult presets, and nine overhead props with named layer objects. Saafiya’s alternate model follows the supplied Cape Town street-goth sheet. The corset, lace top, oversized jacket, pleated skirt, belts, stockings, thigh strap, platform boots, hair, sunglasses and jewelry have separate collections. In Blender, leave the Body and rig visible to work with the underlying anatomy. The nine pose actions have keyframes for the ready, recoil, service and return silhouettes.
 
 `tools/sprite_kit/presets.py` defines the reusable body proportions, costume palettes, hairstyles and art-space grip positions. Copy a preset and change those fields to generate matching sprites. Body sprites use 128×128 RGBA cells and a centered pivot. Turn atlases have four columns and two rows, beginning south and turning clockwise in screen space. Walk and run are eight-frame south-facing loops. Saafiya’s split locomotion uses 16 lower-body frames and four upper-body frames in each equipment row. The weapons use 256×96 cells for receiver, moving part and magazine.
 
-To regenerate, use Python 3.10 or later with VTK, NumPy and Pillow, DejaVu fonts and an OpenGL display. The Blender file was built with Blender 4.3.2.
+To regenerate, use Python 3.10 or later with VTK, NumPy and Pillow, DejaVu fonts and an OpenGL display. The Blender file was built with Blender 4.3.2. Use `--part hero` to regenerate Saafiya’s atlases, turnaround and wallpaper.
 
 ```sh
 python3 tools/sprite_kit/generate.py --mesh-dump /tmp/saafiya-sprite-kit.json

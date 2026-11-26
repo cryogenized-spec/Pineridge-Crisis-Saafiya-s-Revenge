@@ -24,8 +24,8 @@ class Look:
     detail: str = ""
 
 
-HERO = Look("saafiya", "Saafiya", "female", "balanced", "a6704e",
-            "saafiya_curls", "4a354b", "3b2a3d", "27202c", "leather", "b98a61", "signature")
+HERO = Look("saafiya", "Saafiya", "female", "balanced", "bb7b51",
+            "piled_burgundy_curls", "342733", "2b2330", "28212b", "leather", "c0b6b2")
 LOOKS = [
     Look("male_01", "Charcoal commuter", "male", "slim", "76513c", "fade",
          "464d58", "494854", "282931", "bomber", "a3a6a4", "glasses"),

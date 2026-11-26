@@ -136,7 +136,8 @@ def add_person(record, category, location):
     for part in record["parts"]:
         buckets[part["group"].split("/")[0]].append(part)
     for title, parts in buckets.items():
-        mesh_object(record["name"]+" / "+title,parts,collection(title,group),rig,rig)
+        layer = collection(record["name"]+" / "+title,group)
+        mesh_object(layer.name,parts,layer,rig,rig)
     if record.get("poses"):
         make_actions(rig,record["poses"],record["bones"])
     return rig
@@ -191,8 +192,8 @@ def build(dump, destination):
     notes.write(
         "Saafiya’s Revenge / original sprite kit\n\n"
         "Three adult body templates and ten NPC wardrobe presets share the same named rig.\n"
-        "The Saafiya collection has body, hair, accessories, jacket, trousers and footwear objects.\n"
-        "Toggle clothing collections to see the neutral anatomy base, or copy compatible garments.\n"
+        "Saafiya has separate corset, lace, jacket, skirt, belt, stocking, boot, hair and jewelry collections.\n"
+        "Toggle wardrobe collections to reveal the underlying neutral body, or copy compatible garments.\n"
         "Nine Saafiya action assets contain ready, recoil, service and return poses.\n"
         "Weapon geometry is display art. The display, action and magazine objects are separate.\n"
     )

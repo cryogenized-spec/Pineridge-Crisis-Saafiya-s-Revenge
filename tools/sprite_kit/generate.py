@@ -1,6 +1,5 @@
 """Generate the registered Godot sprites and the editable Blender kit geometry."""
 import argparse
-from dataclasses import replace
 import json
 from math import cos, pi, sin
 from pathlib import Path
@@ -44,6 +43,9 @@ def render_characters(renderer):
             frames = [renderer.render(person(look, gait, i/8)) for i in range(8)]
             save(atlas(frames, (CELL, CELL), 4), SPRITES / f"{look.key}_{gait}.png")
         print(f"Rendered {look.label}", flush=True)
+
+
+def render_saafiya(renderer):
     for gait in ("walk", "run"):
         frames = [renderer.render(person(HERO, gait, frame/16, layer="lower")) for frame in range(16)]
         save(atlas(frames, (CELL, CELL), 4), SPRITES / f"saafiya_{gait}_lower.png")
@@ -224,8 +226,7 @@ def wallpaper(renderer):
     for inset in [0,12,35,54]:
         halo.ellipse((913+inset,94+inset,1771-inset,952-inset), outline=(160,101,71,125-inset),width=2)
     image.paste(blurred, mask=blurred)
-    look = replace(HERO, top="452d40")
-    figure = renderer.render(person(look),pixels=(930,1030),view=1.85,
+    figure = renderer.render(person(HERO),pixels=(930,1030),view=1.85,
                              focus=(0,0,.925),elevation=.43,heading=.33,supersample=1.15)
     image.paste(figure,(847,23),figure)
     draw = ImageDraw.Draw(image)
@@ -242,21 +243,47 @@ def wallpaper(renderer):
     image.save(DOCS / "wallpaper-1920x1080.jpg",quality=94,subsampling=0)
 
 
+def hero_sheet(renderer):
+    image = Image.new("RGB",(1610,795),"#2a222c")
+    draw = ImageDraw.Draw(image)
+    title = ImageFont.truetype("DejaVuSerif-Bold.ttf",36)
+    label = ImageFont.truetype("DejaVuSans.ttf",17)
+    draw.text((48,32),"Saafiya  /  Model turnaround",font=title,fill="#f2dbc2")
+    draw.text((49,81),"Cape Town street goth",font=label,fill="#d4bbb0")
+    model = person(HERO)
+    views = [("FRONT",0),("THREE-QUARTER",.61),("PROFILE",pi/2),("BACK",pi),("OVERHEAD",.25)]
+    for index,(caption,angle) in enumerate(views):
+        x = 47+index*304
+        draw.rounded_rectangle((x,125,x+286,729),radius=7,fill="#cdc1bf",outline="#a97d73")
+        view = renderer.render(model,pixels=(280,515),view=1.31,focus=(0,0,1.0),
+                               elevation=.115 if index < 4 else 1.38,heading=angle)
+        image.paste(view,(x+3,160),view)
+        draw.text((x+20,690),caption,font=label,fill="#33242c")
+    image.save(DOCS / "saafiya-turnaround.jpg",quality=94,subsampling=0)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mesh-dump", type=Path, help="Path for editable model geometry used by Blender.")
-    parser.add_argument("--part", choices=["all","cast","weapons","previews","models"], default="all")
+    parser.add_argument("--part", choices=["all","cast","hero","weapons","previews","models"], default="all")
     args = parser.parse_args()
     if args.part != "models":
         stage = Renderer()
     if args.part in ["all","cast"]:
         render_characters(stage)
+    if args.part in ["all","hero"]:
+        render_saafiya(stage)
     if args.part in ["all","weapons"]:
         render_weapons(stage)
         render_effects()
         write_catalogue()
     if args.part in ["all","previews"]:
         contact_sheet(stage)
+    if args.part in ["all","previews","hero"]:
+        DOCS.mkdir(parents=True,exist_ok=True)
+        hero_sheet(stage)
         wallpaper(stage)
+    if args.part == "hero":
+        write_catalogue()
     if args.mesh_dump:
         dump_models(args.mesh_dump)
