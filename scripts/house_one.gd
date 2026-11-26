@@ -80,37 +80,15 @@ func _ready() -> void:
 		call_deferred("run_smoke")
 
 func make_hud() -> void:
-	var overlay := CanvasLayer.new()
-	add_child(overlay)
-	var stack := VBoxContainer.new()
-	stack.position=Vector2(438,18)
-	stack.add_theme_constant_override("separation",4)
-	overlay.add_child(stack)
-	var heading := Label.new()
-	heading.text="02 / THE BARRICADED HOUSE"
-	heading.add_theme_font_size_override("font_size",26)
-	heading.modulate=Color("#efdfbe")
-	stack.add_child(heading)
-	objective=Label.new()
-	objective.add_theme_font_size_override("font_size",17)
-	objective.modulate=Color("#d8c7ad")
-	stack.add_child(objective)
-	status=Label.new()
-	status.add_theme_font_size_override("font_size",13)
-	status.modulate=Color("#c6beb5")
-	stack.add_child(status)
-	dialogue=Label.new()
-	dialogue.position=Vector2(26,605)
-	dialogue.add_theme_font_size_override("font_size",19)
-	dialogue.modulate=Color("#f6e8ca")
-	overlay.add_child(dialogue)
-	var legend := Label.new()
-	legend.position=Vector2(278,686)
-	legend.text="WASD MOVE  •  Q RUN  •  I INVENTORY  •  R RELOAD  •  [ / ] PAGE  •  F FULLSCREEN"
-	legend.add_theme_font_size_override("font_size",12)
-	legend.modulate=Color("#c9c7bc")
-	overlay.add_child(legend)
-	objective.text="Find the occupied house and check on the family at the front gate."
+	encounter.ornate_hud.configure_story(
+		"02  /  THE BARRICADED HOUSE",
+		"Find the occupied house and check on the family at the front gate.",
+		"",
+		"WASD MOVE  •  Q RUN  •  E INTERACT  •  I INVENTORY  •  R RELOAD  •  [ / ] EQUIPMENT  •  F FULLSCREEN"
+	)
+	objective = encounter.ornate_hud.story_objective
+	status = encounter.ornate_hud.story_status
+	dialogue = encounter.ornate_hud.story_subtitle
 
 func check_gate() -> bool:
 	return player.position.distance_to(World.GATE_POINT)<=55.0 and encounter.player_hp>0

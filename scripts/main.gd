@@ -69,42 +69,14 @@ func _ready() -> void:
 	make_hud()
 
 func make_hud() -> void:
-	var layer:=CanvasLayer.new()
-	add_child(layer)
-	var panel:=PanelContainer.new()
-	panel.position=Vector2(452,14)
-	panel.custom_minimum_size=Vector2(380,0)
-	var style:=StyleBoxFlat.new()
-	style.bg_color=Color(0.12,0.10,0.16,0.94)
-	style.border_color=Color("#a18a82")
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(7)
-	style.content_margin_left=16
-	style.content_margin_right=16
-	style.content_margin_top=10
-	style.content_margin_bottom=10
-	panel.add_theme_stylebox_override("panel",style)
-	layer.add_child(panel)
-	var v:=VBoxContainer.new()
-	panel.add_child(v)
-	var title:=Label.new()
-	title.text="SAAFIYA  /  PINE RIDGE"
-	title.add_theme_font_size_override("font_size",22)
-	title.modulate=Color("#f3ddc7")
-	v.add_child(title)
-	objective=Label.new()
-	objective.text="Explore the street · reach the east marker"
-	objective.modulate=Color("#e5c496")
-	v.add_child(objective)
-	status=Label.new()
-	status.modulate=Color("#c2b4c2")
-	v.add_child(status)
-	var help:=Label.new()
-	help.position=Vector2(255,688)
-	help.text="WASD MOVE    Q RUN    C CROUCH    E INTERACT    I INVENTORY    R RELOAD    [ / ] EQUIPMENT    F FULLSCREEN"
-	help.add_theme_font_size_override("font_size",12)
-	help.modulate=Color("#f3ddc7")
-	layer.add_child(help)
+	encounters.ornate_hud.configure_story(
+		"03  /  MALL APPROACH",
+		"Explore the street · reach the east marker",
+		"",
+		"WASD MOVE  •  Q RUN  •  C CROUCH  •  E INTERACT  •  I INVENTORY  •  R RELOAD  •  [ / ] EQUIPMENT  •  F FULLSCREEN"
+	)
+	objective = encounters.ornate_hud.story_objective
+	status = encounters.ornate_hud.story_status
 
 func _unhandled_key_input(event:InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:

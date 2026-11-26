@@ -4,16 +4,21 @@ extends Control
 var avatar: Node2D
 var world: Node2D
 var chapter: String = "upper_ridge"
-const BRONZE := Color("#a7856a")
 const MAP_BG := Color("#171b25")
 const MAP_ROAD := Color("#55545b")
 const MAP_WALL := Color("#938174")
+
+func _ready() -> void:
+	resized.connect(queue_redraw)
 
 func configure(player: Node2D, stage_world: Node2D, chapter_id: String) -> void:
 	avatar = player
 	world = stage_world
 	chapter = chapter_id
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+func world_rotation(facing: float) -> float:
+	return -facing - PI / 2.0
 
 func _physics_process(_delta: float) -> void:
 	if is_instance_valid(avatar):
@@ -28,7 +33,7 @@ func _draw() -> void:
 		return
 	# These original game scenes use Y-down coordinates and the Actor.facing
 	# field is its current direction. Turn the WORLD, not the fixed arrow.
-	var world_rotation: float = -float(avatar.get("facing")) - PI / 2.0
+	var spin := world_rotation(float(avatar.get("facing")))
 	var zoom := minf(size.x, size.y) / 460.0
 	var perimeter := PackedVector2Array()
 	for i in range(48):
@@ -40,13 +45,13 @@ func _draw() -> void:
 		road = Rect2(0,405,2320,274)
 	else:
 		road = Rect2(0,208,2320,284)
-	_world_rect(road, MAP_ROAD, center, zoom, world_rotation, perimeter)
+	_world_rect(road, MAP_ROAD, center, zoom, spin, perimeter)
 	# Tinted roadside boundaries and the actual authored building footprints.
 	if chapter == "upper_ridge":
 		for p in [Vector2(168,93),Vector2(642,91),Vector2(1284,92),Vector2(1864,91),Vector2(340,740),Vector2(955,740),Vector2(1570,740)]:
-			_world_rect(Rect2(p + Vector2(38,37),Vector2(238,148)),Color("#6d726d"),center,zoom,world_rotation,perimeter)
+			_world_rect(Rect2(p + Vector2(38,37),Vector2(238,148)),Color("#6d726d"),center,zoom,spin,perimeter)
 	elif chapter == "barricaded_house":
-		_world_rect(Rect2(1048,75,515,208),Color("#797c7d"),center,zoom,world_rotation,perimeter)
+		_world_rect(Rect2(1048,75,515,208),Color("#797c7d"),center,zoom,spin,perimeter)
 	if is_instance_valid(world):
 		# Obstacle arrays belong to the current Godot world, not copied HUD art.
 		for property_name in ["parked", "fixed_obstacles", "obstacles", "solid"]:
@@ -54,7 +59,7 @@ func _draw() -> void:
 			if objects is Array:
 				for item in objects:
 					if item is Rect2:
-						_world_rect(item, MAP_WALL, center,zoom,world_rotation,perimeter)
+						_world_rect(item, MAP_WALL, center,zoom,spin,perimeter)
 	# Subtle compass centre halo and the unrotated chevron. Never transform the
 	# chevron with world_rotation; its apex stays at twelve o'clock.
 	draw_circle(center, 8.5, Color(0.06,0.07,0.11,0.65))

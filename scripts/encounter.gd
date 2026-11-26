@@ -66,8 +66,6 @@ var elapsed := 0.0
 var finished := false
 var smoke_test := false
 var level_id := "feeder"
-var hud: Label
-var notice: Label
 var ornate_hud
 
 func configure(main_actor: Node2D, world: Node2D) -> void:
@@ -161,10 +159,11 @@ func spawn_character(at: Vector2, kind: String, look: int, male_voice: bool = fa
 	add_child(character)
 	var attachment := Sprite2D.new()
 	attachment.texture = Props.texture(ROLES[kind]["prop"])
-	attachment.scale = Vector2.ONE * 0.115
+	attachment.scale = Vector2.ONE * (0.105 if kind in ["slingshot", "cudgel"] else 0.095)
+	attachment.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	attachment.z_index = 1
-	attachment.position = Vector2(0,9)
 	character.add_child(attachment)
+	position_held_prop(character, attachment, false, 0.0)
 	var feedback := Feedback.new()
 	feedback.position = at
 	feedback.z_index = 4
@@ -288,64 +287,20 @@ func advance_escape(state: Dictionary, delta: float) -> void:
 		update_hud()
 
 func make_hud() -> void:
-	var overlay := CanvasLayer.new()
-	add_child(overlay)
-	var backdrop := PanelContainer.new()
-	backdrop.position = Vector2(919,16)
-	# Replaced by the full-screen corner-anchored native ornate HUD.
-	backdrop.visible = false
-	backdrop.custom_minimum_size = Vector2(342,0)
-	var style := StyleBoxFlat.new()
-	style.bg_color=Color(0.09,0.10,0.14,0.91)
-	style.border_color=Color("#ac9180")
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(6)
-	style.content_margin_left=12
-	style.content_margin_right=12
-	style.content_margin_top=10
-	style.content_margin_bottom=10
-	backdrop.add_theme_stylebox_override("panel",style)
-	overlay.add_child(backdrop)
-	var column := VBoxContainer.new()
-	backdrop.add_child(column)
-	hud=Label.new()
-	hud.add_theme_font_size_override("font_size",14)
-	hud.modulate=Color("#f3dbb8")
-	column.add_child(hud)
-	var help := Label.new()
-	help.text="Click: action  •  R: refill  •  1–3: equipment  •  E: collect"
-	help.add_theme_font_size_override("font_size",12)
-	help.modulate=Color("#d3c3b1")
-	column.add_child(help)
-	notice=Label.new()
-	notice.position=Vector2(450,312)
-	notice.add_theme_font_size_override("font_size",29)
-	notice.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
-	notice.custom_minimum_size=Vector2(380,100)
-	notice.modulate=Color("#f3dcc0")
-	overlay.add_child(notice)
 	ornate_hud = OrnateHud.new()
-	ornate_hud.configure(avatar,street,self,level_id)
+	ornate_hud.configure(avatar, street, self, level_id)
 	add_child(ornate_hud)
 	update_hud()
 
 func update_hud() -> void:
-	if not is_instance_valid(hud):
+	if not is_instance_valid(ornate_hud):
 		return
-	var active: Dictionary = KIT[slot]
-	var remaining := 0
-	for item in actors:
-		if not bool(item["down"]) and not bool(item.get("escaped",false)):
-			remaining += 1
-	hud.text="HEALTH  %s  |  %s  %02d / %02d\nACTIVE %d  •  DOWN %d  •  ESC %d\nHITS %d/%d  •  R%d  •  [I] INVENTORY" % [
-		"♥".repeat(player_hp)+"♡".repeat(3-player_hp),
-		active["name"],rounds[slot],spares[slot],remaining,defeated,escaped_count,shots_hit,shots_fired,inventory.cash_rand]
+	var message := ""
 	if finished:
-		notice.text="ROUTE COMPLETE\nEsc to restart"
+		message = "ROUTE COMPLETE\nEsc to restart"
 	elif player_hp <= 0:
-		notice.text="SAAFIYA DOWN\nPress R to restart"
-	else:
-		notice.text=""
+		message = "SAAFIYA DOWN\nPress R to restart"
+	ornate_hud.show_encounter_notice(message)
 
 func set_phase(next: int) -> void:
 	if next == phase:
@@ -443,37 +398,16 @@ func register_character_impact(feedback: Node2D) -> void:
 
 func begin_collapse(target: Dictionary) -> void:
 	var body: Actor = target["body"]
-	var style: int = int(target.get("fall_variant",0))
+	var style := posmod(int(target.get("fall_variant", 0)), Actor.COLLAPSE_NAMES.size())
 	target["fall_clock"] = 0.0
-	target["fall_duration"] = 0.65 + float(style%3)*0.14 + rng.randf_range(-0.07,0.07)
-	target["fall_origin"] = body.position
-	target["fall_offset"] = Vector2.from_angle(float(style)*1.7 + rng.randf_range(-0.4,0.4)) * rng.randf_range(1.2,4.7)
-	target["fall_tilt"] = (1.0 if style%2==0 else -1.0) * rng.randf_range(0.055,0.18)
-	target["fall_flip"] = style >= 4
-	body.fall_backward = (style%2)==1
-	body.fall_sideways = (style%3)==2
-	body.set_down_progress(0.0)
+	target["fall_duration"] = Actor.COLLAPSE_TIMES[style] * (0.94 + 0.025 * posmod(body.wardrobe_index, 6))
+	body.start_collapse(style)
 
 func advance_collapse(target: Dictionary, delta: float) -> void:
 	var body: Actor = target["body"]
-	target["fall_clock"] = float(target["fall_clock"]) + delta
-	var raw := clampf(float(target["fall_clock"])/maxf(0.1,float(target["fall_duration"])),0.0,1.0)
-	var style: int = int(target["fall_variant"])
-	var frame_progress := raw
-	match style%3:
-		0: frame_progress = smoothstep(0.0,1.0,raw)
-		1: frame_progress = pow(raw,0.75)
-		2: frame_progress = pow(raw,1.45)
-	var settle := smoothstep(0.0,1.0,raw)
-	body.position = Vector2(target["fall_origin"]) + Vector2(target["fall_offset"])*settle
-	if body.npc_down != null or body.npc_down_back != null or body.npc_down_side != null:
-		body.set_down_progress(frame_progress)
-		body.rotation = float(target["fall_tilt"])*settle
-		body.scale = Vector2(-1.0,1.0) if bool(target["fall_flip"]) else Vector2.ONE
-	else:
-		body.set_down_progress(-1.0)
-		body.rotation = float(target["fall_tilt"])*settle
-		body.scale = Vector2.ONE * lerpf(1.0,0.78,settle)
+	var duration: float = target["fall_duration"]
+	target["fall_clock"] = minf(float(target["fall_clock"]) + delta, duration)
+	body.set_down_progress(float(target["fall_clock"]) / duration)
 
 func affect_bystander(target: Dictionary) -> void:
 	if bool(target["down"]):
@@ -573,6 +507,7 @@ func hit_enemy(target: Dictionary, amount: int) -> void:
 			audio.play_cue("down")
 	else:
 		feedback.select(Feedback.State.STUMBLE)
+		target["body"].start_reaction(float(target["reaction"]))
 		audio.play_cue("reaction")
 	update_hud()
 
@@ -656,11 +591,18 @@ func update_character(target: Dictionary, delta: float) -> void:
 		body.modulate=Color(1.0,0.61,0.61)
 	else:
 		body.modulate=Color.WHITE
-	var pose_progress := 1.0-float(target["attack"])/0.38
-	var angle := heading + sin(clampf(pose_progress,0.0,1.0)*PI)*0.85 if float(target["attack"])>0 else heading
-	accessory.rotation = angle - PI*0.5
-	accessory.position = Vector2(0,9).rotated(angle)
+	position_held_prop(body, accessory, float(target["attack"]) > 0.0, float(target["attack"]))
 	feedback.position=body.position
+
+func position_held_prop(body: Actor, accessory: Sprite2D, gesturing: bool, attack_clock: float) -> void:
+	var angle := body.travel if body.gait_moving else body.facing
+	var motion := sin(body.gait_phase * TAU) * 1.6 if body.gait_moving else 0.0
+	var gesture := sin(clampf(1.0 - attack_clock / 0.38, 0.0, 1.0) * PI) if gesturing else 0.0
+	var pivot := Vector2(8.0 + gesture * 4.0, 5.0 + motion + gesture * 4.0)
+	accessory.position = pivot.rotated(angle - PI / 2.0)
+	# Rendered props point up in their source texture. Follow the same facing
+	# as the body atlas while keeping the grip at the near hand.
+	accessory.rotation = angle + PI / 2.0 + gesture * 0.55
 
 func attack_character(target: Dictionary, to_avatar: Vector2, distance: float) -> void:
 	var kind: String = target["kind"]
@@ -814,16 +756,21 @@ func run_test() -> void:
 	var foe: Dictionary=actors[0]
 	hit_enemy(foe,1)
 	assert(int(foe["hp"])==1)
+	assert(foe["body"].reaction_phase == 0.0)
 	hit_enemy(foe,1)
 	assert(bool(foe["down"]))
 	assert(defeated==1)
 	assert(male_death_take==1)
 	assert(ground_marks.size()>0 and ground_marks.size()<=MAX_GROUND_MARKS)
 	assert(foe["feedback"].impact_marks.size()==2)
-	assert(foe.has("fall_variant") and foe.has("fall_offset"))
+	assert(foe.has("fall_variant") and foe.has("fall_duration"))
+	var downed: Actor = foe["body"]
+	var fall_origin := downed.position
+	assert(downed.npc_reactions != null and downed.down_phase == 0.0)
 	for i in range(90):
 		advance_collapse(foe,1.0/60.0)
-	assert(foe["body"].down_phase>=0.99)
+	assert(downed.down_phase == 1.0 and downed.position == fall_origin)
+	assert(downed.rotation == 0.0 and downed.scale == Vector2.ONE)
 	assert(audio.stream_for("fire") == null)
 	assert(audio.stream_for("beretta_84fs_shot") != null)
 	var next_enemy: Dictionary = actors[1]

@@ -7,6 +7,12 @@ const COUNT := 16
 const WALK_DISTANCE := 91.0 * 1.12
 const RUN_DISTANCE := 148.0 * 0.64
 const DISPLAY_SIZE := 42.0
+const REACTION_TILE := 176
+const REACTION_COLUMNS := 5
+const REACTION_FRAMES := 10
+const COLLAPSE_NAMES := ["FORWARD", "BACKWARD", "LEFT", "RIGHT", "KNEELING", "SEATED"]
+const COLLAPSE_TIMES := [0.80, 0.91, 0.76, 0.82, 1.04, 1.16]
+const STUMBLE := 6
 var walk_lower: Texture2D
 var walk_upper: Texture2D
 var run_lower: Texture2D
@@ -24,9 +30,16 @@ var npc_run: Texture2D
 var npc_down: Texture2D
 var npc_down_back: Texture2D
 var npc_down_side: Texture2D
-var fall_backward := false
-var fall_sideways := false
+var npc_reactions: Texture2D
+var collapse_style := 0
 var down_phase := -1.0
+var collapse_facing := 0.0
+var entry_atlas: Texture2D
+var entry_frame := 0
+var entry_reaction := -1
+var entry_reaction_weight := 0.0
+var reaction_phase := -1.0
+var reaction_duration := 0.28
 var cosmetic_accessory: Texture2D
 var show_accessory := false
 var hero := false
@@ -48,6 +61,10 @@ func _ready() -> void:
 		npc_down = load_npc_texture(prefix + "down.png", Vector2(512,256))
 		npc_down_back = load_npc_texture(prefix + "down_back.png", Vector2(512,256))
 		npc_down_side = load_npc_texture(prefix + "down_side.png", Vector2(512,256))
+		npc_reactions = load_npc_texture(
+			"res://assets/characters/reactions/npc_%02d.png" % posmod(wardrobe_index, 12),
+			Vector2(REACTION_TILE * REACTION_COLUMNS, REACTION_TILE * 2 * (STUMBLE + 1))
+		)
 		cosmetic_accessory = load_npc_texture("res://assets/characters/accessories/backpack.png", Vector2(128,128))
 		texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	if hero:
@@ -89,18 +106,86 @@ func has_approved_atlases() -> bool:
 func has_layered_atlases() -> bool:
 	return walk_lower != null and walk_upper != null and run_lower != null and run_upper != null
 
-func draw_gait_layer(atlas: Texture2D, source: Rect2, angle: float, size: Vector2) -> void:
+func draw_gait_layer(atlas: Texture2D, source: Rect2, angle: float, size: Vector2, opacity: float = 1.0) -> void:
 	draw_set_transform(Vector2.ZERO, angle - PI / 2.0)
-	draw_texture_rect_region(atlas, Rect2(-size / 2.0, size), source)
+	draw_texture_rect_region(atlas, Rect2(-size / 2.0, size), source, Color(1, 1, 1, opacity), false, true)
 	draw_set_transform(Vector2.ZERO)
 
+func npc_gait_frame() -> int:
+	return floori(gait_phase * 8.0) % 8 if gait_moving else 0
+
+func npc_gait_atlas() -> Texture2D:
+	return (npc_run if gait_running else npc_walk) if gait_moving else npc_idle
+
+func gait_cell(frame: int) -> Rect2:
+	return Rect2((frame % 4) * TILE, floori(float(frame) / 4.0) * TILE, TILE, TILE)
+
+func reaction_frame(phase: float) -> int:
+	return clampi(floori(phase * REACTION_FRAMES), 0, REACTION_FRAMES - 1)
+
+func reaction_cell(style: int, frame: int) -> Rect2:
+	return Rect2((frame % REACTION_COLUMNS) * REACTION_TILE,
+		(style * 2 + floori(float(frame) / float(REACTION_COLUMNS))) * REACTION_TILE, REACTION_TILE, REACTION_TILE)
+
+func reaction_opacity() -> float:
+	if reaction_phase < 0.0:
+		return 0.0
+	return smoothstep(0.0, 0.24, reaction_phase) * (1.0 - smoothstep(0.67, 1.0, reaction_phase))
+
+func start_reaction(duration: float) -> void:
+	if npc_reactions != null and down_phase < 0.0:
+		reaction_phase = 0.0
+		reaction_duration = duration
+
+func start_collapse(style: int) -> void:
+	collapse_style = posmod(style, COLLAPSE_NAMES.size())
+	collapse_facing = travel if gait_moving else facing
+	entry_atlas = npc_gait_atlas()
+	entry_frame = npc_gait_frame()
+	entry_reaction = reaction_frame(reaction_phase) if reaction_phase >= 0.0 else -1
+	entry_reaction_weight = reaction_opacity()
+	reaction_phase = -1.0
+	down_phase = 0.0
+	queue_redraw()
+
 func set_down_progress(value: float) -> void:
-	var next := clampf(value,0.0,1.0) if value >= 0.0 else -1.0
-	if not is_equal_approx(down_phase,next):
-		down_phase=next
+	var next := clampf(value, 0.0, 1.0) if value >= 0.0 else -1.0
+	if not is_equal_approx(down_phase, next):
+		down_phase = next
 		queue_redraw()
 
+func draw_reaction(style: int, frame: int, angle: float, opacity: float = 1.0) -> void:
+	var sprite_size := DISPLAY_SIZE * float(REACTION_TILE) / float(TILE)
+	draw_gait_layer(npc_reactions, reaction_cell(style, frame), angle, Vector2.ONE * sprite_size, opacity)
+
+func draw_collapse() -> bool:
+	if npc_reactions != null:
+		var blend := smoothstep(0.0, 0.18, down_phase)
+		if blend < 1.0:
+			var remaining := 1.0 - blend
+			if entry_atlas != null and entry_reaction_weight < 1.0:
+				draw_gait_layer(entry_atlas, gait_cell(entry_frame), collapse_facing,
+					Vector2.ONE * DISPLAY_SIZE, remaining * (1.0 - entry_reaction_weight))
+			if entry_reaction_weight > 0.0:
+				draw_reaction(STUMBLE, entry_reaction, collapse_facing, remaining * entry_reaction_weight)
+		if blend > 0.0:
+			draw_reaction(collapse_style, reaction_frame(down_phase), collapse_facing, blend)
+		return true
+	var legacy := npc_down
+	if collapse_style == 1 or collapse_style == 5:
+		legacy = npc_down_back if npc_down_back != null else legacy
+	elif collapse_style == 2 or collapse_style == 3:
+		legacy = npc_down_side if npc_down_side != null else legacy
+	if legacy != null:
+		draw_gait_layer(legacy, gait_cell(mini(7, floori(down_phase * 8.0))), collapse_facing, Vector2.ONE * DISPLAY_SIZE)
+		return true
+	return false
+
 func animate(delta: float, displacement: Vector2, aim_angle: float, low: bool = false, running: bool = false) -> void:
+	if reaction_phase >= 0.0:
+		reaction_phase += delta / reaction_duration
+		if reaction_phase >= 1.0:
+			reaction_phase = -1.0
 	var dist := displacement.length()
 	gait_running = running and not low
 	gait_moving = dist > 0.01
@@ -117,20 +202,14 @@ func animate(delta: float, displacement: Vector2, aim_angle: float, low: bool = 
 
 func _draw() -> void:
 	draw_circle(Vector2(2,3),10,Color(0.09,0.07,0.12,0.27),true,-1,true)
-	if not hero and wardrobe_index >= 0 and down_phase >= 0.0 and (npc_down != null or npc_down_back != null or npc_down_side != null):
-		var down_frame := mini(7,int(floor(down_phase*8.0)))
-		var source := Rect2((down_frame%4)*TILE,floori(float(down_frame)/4.0)*TILE,TILE,TILE)
-		var chosen: Texture2D = npc_down_side if fall_sideways and npc_down_side != null else (npc_down_back if fall_backward and npc_down_back != null else npc_down)
-		if chosen == null:
-			chosen = npc_down_back if npc_down_back != null else npc_down_side
-		draw_gait_layer(chosen,source,facing,Vector2.ONE*DISPLAY_SIZE)
+	if not hero and wardrobe_index >= 0 and down_phase >= 0.0 and draw_collapse():
 		return
 	if not hero and wardrobe_index >= 0 and has_npc_atlases():
-		var frame := int(floor(gait_phase * 8.0)) % 8 if gait_moving else 0
-		var atlas := (npc_run if gait_running else npc_walk) if gait_moving else npc_idle
-		var source := Rect2((frame % 4) * TILE, floori(float(frame) / 4.0) * TILE, TILE, TILE)
 		var angle := travel if gait_moving else facing
-		draw_gait_layer(atlas, source, angle, Vector2.ONE * DISPLAY_SIZE)
+		var blend := reaction_opacity()
+		draw_gait_layer(npc_gait_atlas(), gait_cell(npc_gait_frame()), angle, Vector2.ONE * DISPLAY_SIZE, 1.0 - blend)
+		if blend > 0.0:
+			draw_reaction(STUMBLE, reaction_frame(reaction_phase), angle, blend)
 		if show_accessory and cosmetic_accessory != null:
 			draw_set_transform(Vector2.ZERO, angle - PI / 2.0)
 			draw_texture_rect(cosmetic_accessory, Rect2(-5,-8,10,10),false)

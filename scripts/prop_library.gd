@@ -1,7 +1,7 @@
 extends RefCounted
 # Visual-only assets: no weapon mechanics or physical dimensions.
 const ITEMS := [
-	{"id":"brick","label":"Brick","texture":preload("res://assets/props/brick.svg")},
+	{"id":"brick","label":"Brick","texture":preload("res://assets/props/rendered/brick.png")},
 	{"id":"rubble","label":"Rubble","texture":preload("res://assets/props/rubble.svg")},
 	{"id":"tyre","label":"Discarded tyre","texture":preload("res://assets/props/tyre.svg")},
 	{"id":"bottle","label":"Discarded bottle","texture":preload("res://assets/props/bottle.svg")},
@@ -13,8 +13,8 @@ const ITEMS := [
 	{"id":"revolver_icon","label":"Ornate sidearm","texture":preload("res://assets/props/revolver_icon.svg")},
 	{"id":"longarm_icon","label":"Long-arm icon","texture":preload("res://assets/props/longarm_icon.svg")},
 	{"id":"blade_icon","label":"Blade icon","texture":preload("res://assets/props/blade_icon.svg")},
-	{"id":"club_icon","label":"Wooden club icon","texture":preload("res://assets/props/club_icon.svg")},
-	{"id":"slingshot_icon","label":"Slingshot icon","texture":preload("res://assets/props/slingshot_icon.svg")}
+	{"id":"club_icon","label":"Wooden club icon","texture":preload("res://assets/props/rendered/club_icon.png")},
+	{"id":"slingshot_icon","label":"Slingshot icon","texture":preload("res://assets/props/rendered/slingshot_icon.png")}
 ]
 
 static func texture(id: String) -> Texture2D:

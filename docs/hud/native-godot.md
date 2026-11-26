@@ -1,14 +1,11 @@
-# Pineridge Crisis — Saafiya's Revenge native HUD integration
+# Saafiya's Revenge HUD
 
-This **Godot 4.4.1** patch targets `cryogenized-spec/Pineridge-Crisis-Saafiya-s-Revenge`, **not** Hero-shooter.
+The ornamental overlay fills the 16:9 logical viewport. The four corner groups, central chapter text, lower dialogue and control hint use anchors derived from the overlay's 2048×1152 coordinates. The desktop build starts fullscreen. The web build can enter fullscreen with **F**.
 
-- The full 2048×1152 RGBA overlay anchors to the **exact four corners** of the Godot 16:9 game viewport (1280×720 logical) with zero margins. Desktop opens fullscreen; web fullscreen requires a user gesture (F).
-- The top-right compass centre is transparent; a native mini-map shows actual scene road/building/obstacle data, rotated around the avatar. The chevron always points up.
-- Hearts use `Encounter.player_hp` and ammunition directly reads `Encounter.rounds`, `spares`, `slot` and `reload_clock`. No counters or weapon thumbnails are baked into the artwork.
-- The right bronze plate contains a proportional, custom seven-segment digital readout with dynamic digit fitting. It never overlaps the ornamental slashes. The adjacent left plate labels the selected weapon.
-- The bottom-left selector cycles two pages of the eight supplied PNG icons. Only equipment wired to and unlocked by the existing arcade encounter can be selected. Beretta 84FS maps to slot 0; AKM to slot 2. Other new icons remain visibly locked because those weapons are not implemented in this repository's existing 3-item KIT. Existing CZ 75 P-07 is preserved by its pre-existing 1–3 controls (native KIT slot 1).
-- The user's existing combat, NPC, inventory, sound and story scenes are preserved.
+- Health reads `Encounter.player_hp` and displays RGBA heart sprites. The artwork provides full, half and empty states.
+- The minimap draws chapter scenery and obstacles through the transparent compass aperture. The map rotates with Saafiya's heading and the chevron remains stationary.
+- The equipment nameplate changes with `Encounter.slot`. The fitted seven-segment readout uses the current rounds, reserve magazines and reload clock.
+- The quick selector shows the eight equipment icons across two pages. Its buttons check the encounter's unlock flags. CZ 75 P-07 keeps its game slot, key binding and nameplate.
+- Upper Pineridge, the Barricaded House and the Mall Approach share the same story text regions. Inventory remains a separate modal overlay.
 
-Godot scripts: `scripts/saafiya_hud.gd`, `scripts/saafiya_minimap.gd`, `scripts/saafiya_ammo_display.gd`. UI assets: `assets/ui/saafiya_hud_overlay.png` plus eight transparent PNGs under `assets/ui/icons/`.
-
-The web version uses the project's existing Godot Pages workflow. Check GitHub Actions deployment status before asserting that the new link is live.
+See the graphics refinement notes for the gameplay captures and source renderers. [Graphics and animation refinement](../graphics-refinement.md)

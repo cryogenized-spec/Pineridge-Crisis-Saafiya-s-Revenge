@@ -21,10 +21,8 @@ var running := false
 var crouching := false
 var phase := 0.0
 var finished := false
-var title_label: Label
 var objective: Label
 var status: Label
-var subtitle: Label
 const RUN_CYCLE := 0.64
 
 func _ready() -> void:
@@ -82,38 +80,14 @@ func _ready() -> void:
 		call_deferred("run_smoke")
 
 func build_ui() -> void:
-	var overlay := CanvasLayer.new()
-	add_child(overlay)
-	var stack := VBoxContainer.new()
-	stack.position = Vector2(446,19)
-	stack.add_theme_constant_override("separation",5)
-	overlay.add_child(stack)
-	title_label = Label.new()
-	title_label.text = "01  /  UPPER PINERIDGE"
-	title_label.add_theme_font_size_override("font_size",27)
-	title_label.modulate=Color("#f4dfbe")
-	stack.add_child(title_label)
-	objective = Label.new()
-	objective.text = "Follow the downhill road toward the mall district."
-	objective.add_theme_font_size_override("font_size",17)
-	objective.modulate=Color("#e5d2ae")
-	stack.add_child(objective)
-	status = Label.new()
-	status.add_theme_font_size_override("font_size",13)
-	status.modulate=Color("#c9bcb1")
-	stack.add_child(status)
-	subtitle = Label.new()
-	subtitle.text = "Saafiya left her car uphill. The shopping district lies further along the road."
-	subtitle.position=Vector2(24,627)
-	subtitle.add_theme_font_size_override("font_size",16)
-	subtitle.modulate=Color("#e9dec7")
-	overlay.add_child(subtitle)
-	var controls := Label.new()
-	controls.text = "WASD MOVE  •  Q RUN  •  I INVENTORY  •  R RELOAD  •  [ / ] PAGE  •  F FULLSCREEN"
-	controls.position=Vector2(282,690)
-	controls.add_theme_font_size_override("font_size",12)
-	controls.modulate=Color("#b9c2ba")
-	overlay.add_child(controls)
+	encounter.ornate_hud.configure_story(
+		"01  /  UPPER PINERIDGE",
+		"Follow the downhill road toward the mall district.",
+		"Saafiya left her car uphill. The shopping district lies further along the road.",
+		"WASD MOVE  •  Q RUN  •  E INTERACT  •  I INVENTORY  •  R RELOAD  •  [ / ] EQUIPMENT  •  F FULLSCREEN"
+	)
+	objective = encounter.ornate_hud.story_objective
+	status = encounter.ornate_hud.story_status
 
 func can_advance() -> bool:
 	return player.position.distance_to(World.EXIT_POINT) <= 48.0 and encounter.player_hp > 0
@@ -207,7 +181,7 @@ func _physics_process(delta: float) -> void:
 	var ready := can_advance()
 	objective.text="E  ·  Continue to the barricaded house" if ready else "Follow the downhill road toward the residential block."
 	status.text="Distance to junction: %d m    •    %d FPS" % [roundi(player.position.distance_to(World.EXIT_POINT)/24.0),Engine.get_frames_per_second()]
-	subtitle.modulate.a=maxf(0.0,1.0-elapsed/9.0)
+	encounter.ornate_hud.story_subtitle.modulate.a=maxf(0.0,1.0-elapsed/9.0)
 
 func run_smoke() -> void:
 	assert(World.CAR_LENGTH==108.0)
