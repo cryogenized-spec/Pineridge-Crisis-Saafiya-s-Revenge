@@ -144,3 +144,13 @@ This section links additional director-discussed details missed or compressed in
 - **[D]** The aftermath of the **Farsha lavatory confrontation** is developed beyond the blow itself: **30–60 minutes later a female matric prefect summons Saafiya to the office; Farsha is seen in sickbay; Aunt Isadora is summoned to the principal, thanks staff, accepts responsibility and takes Saafiya out for the day**.
 - **[D]** Isadora and Saafiya then visit **McDonald's for a subdued second breakfast** (Saafiya scarcely eats; Isadora suggests a bran muffin and coffee). Saafiya first sees **Sarah outside**, waiting with companions to meet a Dark Mountain contact; actual friendship develops afterward, particularly in art class.
 - Full scene sequence, attribution correction and alternative artwork status: [fifth-pass recovery](fifth-pass-recovery-and-corrections-2026-11-28.md).
+
+
+## Sixth-pass notes: Heather's words and Pine Ridge prototype (28 November 2026)
+
+- **[D/P]** The quiet grey Renault journey has **two suitcases plus a further bag Heather supplies**. Earlier suggested advice includes **"Your heart will guide you"** and **"Don't do yourself injustice"** alongside a less exact "follow your heart" variant. The glass-ball metaphor remains subject to dialogue approval.
+- **[L/O]** An archived **PINE RIDGE AT DAWN** portable prototype describes a dawn street outside Pine Ridge Mall, an independently modelled crowd including noncombatants, a **white minibus taxi at a rank releasing three characters**, and an eastern-end boss/exit. These are documented *historical gameplay beats*, **not confirmation of final Godot story chronology**.
+- **[D/P]** One earlier Fayeem-hunt comic's Afrikaans angry thought reads **"Fayeem, as ek jou met daardie gemors gaan vang, maak ek jou self vrek."** Preserve as draft character speech, not an adopted commitment or definitive outcome.
+- **[V]** Period and tone illustrations include a burgundy-velvet **Cape Town Gothic Introduction**, a hopeful adult **Stay a Little Longer** scene with lilies/ankh mug and a morning-doorway follow-up, and a rainy-city Mustang portrait. These are mood references, not settled chapters or romantic biographies.
+- **[D/O]** The **Sophia/Sofia** name discussion also considered Turkish/Byzantine associations. This does not make Saafiya etymologically identical or resolve a legal name.
+- The full preserved detail and source/version distinctions are in the [sixth-pass audit](sixth-pass-recovery-2026-11-28.md).
