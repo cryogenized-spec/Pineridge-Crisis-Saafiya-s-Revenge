@@ -33,6 +33,9 @@ static func restore(tree: SceneTree, battle: Node) -> void:
 		battle.slot=0
 	if saved.has("inventory"):
 		battle.inventory.restore(saved["inventory"])
+	for i in range(battle.unlocked.size()):
+		if battle.unlocked[i]:
+			battle.inventory.unlock_quick(i)
 	if is_instance_valid(battle.held_visual):
 		battle.held_visual.choose_slot(battle.slot)
 	battle.update_hud()

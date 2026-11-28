@@ -11,15 +11,10 @@ const HEARTS := [
 	preload("res://assets/ui/vitality/full.png"),
 ]
 const ANKH := preload("res://assets/ui/vitality/ankh.png")
-const ITEMS := [
-	{"id":"beretta_84fs","title":"BERETTA 84FS","subtitle":".380 ACP","kit":0},
-	{"id":"pump_shotgun","title":"MOSSBERG-STYLE PUMP SHOTGUN","subtitle":"12 GA","kit":-1},
-	{"id":"norinco_akm","title":"NORINCO AKM","subtitle":"7.62×39 mm","kit":2},
-	{"id":"canik_tp9","title":"CANIK TP9","subtitle":"9×19 mm","kit":-1},
-	{"id":"sw_revolver_engraved","title":"S&W MODEL 640","subtitle":".357 MAGNUM","kit":-1},
-	{"id":"fairbairn_sykes","title":"FAIRBAIRN–SYKES","subtitle":"FIGHTING KNIFE","kit":-1},
-	{"id":"spetsnaz_sf","title":"SPETSNAZ SF","subtitle":"COMBAT KNIFE","kit":-1},
-	{"id":"akm_bayonet","title":"AKM BAYONET","subtitle":"CUBAN ISSUE","kit":-1},
+const QUICK_ART := [
+	preload("res://assets/ui/icons/beretta_84fs.png"),
+	preload("res://assets/ui/nameplates/cz75_p07.png"),
+	preload("res://assets/ui/icons/norinco_akm.png")
 ]
 const EQUIPPED_NAMEPLATES := [
 	preload("res://assets/ui/nameplates/beretta_84fs.png"),
@@ -52,9 +47,7 @@ var story_status: Label
 var story_subtitle: Label
 var notice: Label
 var slot_buttons: Array[TextureButton] = []
-var icon_cache: Array[Texture2D] = []
-var page_label: Label
-var page := 0
+var previous_quick := []
 var previous_equipped := -99
 var previous_health := -1.0
 var previous_reload := false
@@ -118,9 +111,6 @@ func _ready() -> void:
 	# Right panel has decorative slashes near x=1990: leave these visible.
 	_set_art_rect(ammo_display,Rect2(1814,985,151,84))
 
-	for i in range(ITEMS.size()):
-		var tex: Texture2D = load("res://assets/ui/icons/%s.png" % ITEMS[i]["id"])
-		icon_cache.append(tex)
 	for i in range(4):
 		var b := TextureButton.new()
 		b.name = "QuickDirection%d" % i
@@ -131,17 +121,10 @@ func _ready() -> void:
 		layer_root.add_child(b)
 		_set_art_rect(b,SELECTOR_RECTS[i])
 		slot_buttons.append(b)
-	page_label = Label.new()
-	page_label.name = "EquipmentPage"
-	page_label.text = "1/2"
-	page_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	page_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	page_label.add_theme_color_override("font_color",Color("#d9b19a"))
-	page_label.add_theme_font_size_override("font_size", 11)
-	page_label.add_theme_constant_override("outline_size", 4)
-	page_label.add_theme_color_override("font_outline_color", Color("#201719"))
-	layer_root.add_child(page_label)
-	_set_art_rect(page_label,Rect2(302,980,40,41))
+		var number := _label(str(i + 1), 11, Color("#d9b19a"))
+		layer_root.add_child(number)
+		var bounds := Rect2(SELECTOR_RECTS[i])
+		_set_art_rect(number, Rect2(bounds.position + Vector2(3, 3), Vector2(25, 25)))
 	notice = _label("", 25, Color("#f3dcc0"))
 	notice.add_theme_constant_override("outline_size", 6)
 	layer_root.add_child(notice)
@@ -236,56 +219,31 @@ func _refresh_data() -> void:
 		last_counts = counts
 		previous_reload = reload_now
 		ammo_display.set_values(counts.x, counts.y, reload_now, true)
-	if choice != previous_equipped or encounter.unlocked != previous_unlocks:
+	if choice != previous_equipped or encounter.unlocked != previous_unlocks or encounter.inventory.quick_slots != previous_quick:
 		previous_equipped = choice
 		previous_unlocks = encounter.unlocked.duplicate()
+		previous_quick = encounter.inventory.quick_slots.duplicate()
 		weapon_nameplate.texture = EQUIPPED_NAMEPLATES[choice]
-		_update_page()
+		_update_quick_slots()
 
-func _update_page() -> void:
+func _update_quick_slots() -> void:
 	for i in range(slot_buttons.size()):
-		var item_index := page*4+i
-		var definition: Dictionary = ITEMS[item_index]
-		var b: TextureButton = slot_buttons[i]
-		b.texture_normal = icon_cache[item_index]
-		var equipment_slot: int = int(definition["kit"])
-		var available: bool = equipment_slot>=0 and equipment_slot<encounter.unlocked.size() and bool(encounter.unlocked[equipment_slot])
+		var equipment_slot: int = encounter.inventory.quick_slots[i]
+		var b := slot_buttons[i]
+		var available: bool = equipment_slot >= 0 and bool(encounter.unlocked[equipment_slot])
+		b.texture_normal = QUICK_ART[equipment_slot] if available else null
 		b.disabled = not available
-		var caption := "%s · %s" % [definition["title"], definition["subtitle"]]
-		b.tooltip_text = caption if available else caption + "\nNot acquired"
-		if available and equipment_slot == int(encounter.slot):
-			b.modulate=Color("#ffd1bc")
-		elif available:
-			b.modulate=Color(0.9,0.82,0.8,0.9)
-		else:
-			b.modulate=Color(0.48,0.41,0.43,0.36)
-	page_label.text="%d/2" % (page+1)
+		b.tooltip_text = "%d · %s" % [i + 1, encounter.KIT[equipment_slot].name if available else "Empty"]
+		b.modulate = Color("#ffd1bc") if available and equipment_slot == int(encounter.slot) else Color.WHITE
 
 func _on_quick_pressed(direction: int) -> void:
-	var item_index := page*4+direction
-	var equipment_slot: int = int(ITEMS[item_index]["kit"])
-	if equipment_slot < 0 or not bool(encounter.unlocked[equipment_slot]):
-		return
-	encounter.equip(equipment_slot)
+	encounter.equip_quick(direction)
 	_refresh_data()
-
-func change_page(step: int) -> void:
-	page=posmod(page+step,2)
-	_update_page()
-
-func _unhandled_key_input(event: InputEvent) -> void:
-	if not (event is InputEventKey and event.pressed and not event.echo):
-		return
-	if event.keycode == KEY_BRACKETLEFT:
-		change_page(-1)
-	elif event.keycode == KEY_BRACKETRIGHT:
-		change_page(1)
 
 func run_hud_smoke() -> void:
 	assert(is_instance_valid(minimap))
 	assert(is_instance_valid(ammo_display))
 	assert(slot_buttons.size()==4)
-	assert(icon_cache.size()==8)
 	assert(layer_root.anchor_right==1.0 and layer_root.anchor_bottom==1.0)
 	assert(artwork.anchor_left == 0.0 and artwork.anchor_top == 0.0)
 	assert(artwork.anchor_right == 1.0 and artwork.anchor_bottom == 1.0)
@@ -304,8 +262,6 @@ func run_hud_smoke() -> void:
 	assert(Rect2(Vector2.ZERO, available).encloses(ammo_display.counter_bounds(available, "123456", "987654")))
 	assert(minimap.world_rotation(PI / 2.0) == -PI)
 	assert(Vector2.RIGHT.rotated(minimap.world_rotation(0)).is_equal_approx(Vector2.UP))
-	change_page(1)
-	assert(page==1 and slot_buttons[0].disabled)
-	change_page(1)
-	assert(page==0)
-	print("Saafiya HUD smoke: fullscreen 16:9 corners, 8 icons, live ammo and rotating map ready.")
+	assert(slot_buttons[0].texture_normal == QUICK_ART[0])
+	assert(slot_buttons[3].disabled)
+	print("Saafiya HUD smoke: fullscreen 16:9 corners, 4 quick slots, live ammo and rotating map ready.")

@@ -72,7 +72,7 @@ func make_hud() -> void:
 		"03  /  MALL APPROACH",
 		"Explore the street · reach the east marker",
 		"",
-		"WASD MOVE  •  Q RUN  •  C CROUCH  •  E INTERACT  •  I INVENTORY  •  R RELOAD  •  [ / ] EQUIPMENT  •  F FULLSCREEN"
+		"WASD MOVE  •  Q RUN  •  C CROUCH  •  E INTERACT  •  I INVENTORY  •  R RELOAD  •  1–4 QUICK SLOTS  •  F FULLSCREEN"
 	)
 	objective = encounters.ornate_hud.story_objective
 	status = encounters.ornate_hud.story_status
@@ -101,11 +101,13 @@ func _unhandled_key_input(event:InputEvent) -> void:
 			KEY_R:
 				encounters.refill()
 			KEY_1:
-				encounters.equip(0)
+				encounters.equip_quick(0)
 			KEY_2:
-				encounters.equip(1)
+				encounters.equip_quick(1)
 			KEY_3:
-				encounters.equip(2)
+				encounters.equip_quick(2)
+			KEY_4:
+				encounters.equip_quick(3)
 			KEY_Q:
 				run_enabled = not run_enabled
 			KEY_C:

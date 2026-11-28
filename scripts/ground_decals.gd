@@ -7,7 +7,10 @@ const CASINGS := {
 	"long": preload("res://assets/fx/weapon_art/casing_long.png"),
 	"shell": preload("res://assets/fx/weapon_art/casing_shell.png"),
 }
-const CASING_SIZES := {"short": Vector2(4.6, 2.3), "long": Vector2(5.4, 2.7), "shell": Vector2(5.9, 2.95)}
+# Half the old on-screen dimensions, preserving the sprite aspect ratio.
+const CASING_SIZES := {"short": Vector2(2.3, 1.15), "long": Vector2(2.7, 1.35), "shell": Vector2(2.95, 1.475)}
+const CASE_HOPS := [Vector2(0.0, 0.56), Vector2(0.56, 0.76), Vector2(0.76, 0.89)]
+const CASE_HEIGHTS := [5.2, 2.1, 0.75]
 const STAIN_CELL := 128
 const SPLASH_LIFETIME := 0.21
 const POOL_GROWTH := 2.7
@@ -28,7 +31,7 @@ func impact(world_point: Vector2, heading: Vector2, strength: float) -> void:
 	var point := to_local(world_point)
 	var aim := heading.angle() if not heading.is_zero_approx() else rng.randf_range(0, TAU)
 	records.append({"kind": "impact", "point": point, "angle": aim, "style": rng.randi_range(0, 3),
-		"size": Vector2(11, 7.4) * strength, "strength": 0.93})
+		"size": Vector2(15, 10) * strength, "strength": 0.98})
 	for i in range(5):
 		var spread := aim + rng.randf_range(-1.28, 1.28)
 		var offset := Vector2.from_angle(spread) * rng.randf_range(3.0, 12.5) * strength
@@ -58,8 +61,8 @@ func eject(appearance: Dictionary) -> void:
 	# Store the settled pose immediately, so even a chapter change mid-flight
 	# leaves the casing where it would have landed when this world is revisited.
 	records.append({"kind": "case", "point": landing, "angle": rng.randf_range(0, TAU), "look": appearance.look})
-	flying[index] = {"from": point, "duration": rng.randf_range(0.29, 0.45), "age": -float(appearance.get("delay", 0.0)),
-		"spin": launch.angle() + rng.randf_range(-2.0, 2.0)}
+	flying[index] = {"from": point, "duration": rng.randf_range(0.46, 0.60), "age": -float(appearance.get("delay", 0.0)),
+		"spin": launch.angle() + rng.randf_range(-2.0, 2.0), "turns": rng.randf_range(1.4, 2.6)}
 	queue_redraw()
 	set_process(true)
 
@@ -116,12 +119,15 @@ func _draw_casing(record: Dictionary, flight: Dictionary) -> void:
 			return
 		var phase := clampf(float(flight.age) / float(flight.duration), 0.0, 1.0)
 		point = Vector2(flight.from).lerp(point, 1.0 - pow(1.0 - phase, 1.45))
-		var launch := sin(clampf(phase / 0.72, 0.0, 1.0) * PI)
-		var bounce := sin(clampf((phase - 0.72) / 0.28, 0.0, 1.0) * PI)
-		height = launch * 6.8 + bounce * 1.85
-		angle = lerp_angle(float(flight.spin) + phase * TAU, angle, smoothstep(0.77, 1.0, phase))
+		for i in range(CASE_HOPS.size()):
+			var hop: Vector2 = CASE_HOPS[i]
+			if phase >= hop.x and phase <= hop.y:
+				var t := inverse_lerp(hop.x, hop.y, phase)
+				height = 4.0 * t * (1.0 - t) * float(CASE_HEIGHTS[i])
+				break
+		angle = lerp_angle(float(flight.spin) + float(flight.turns) * phase * TAU, angle, smoothstep(0.77, 1.0, phase))
 	draw_set_transform(Vector2.ZERO)
-	draw_circle(point + Vector2(0.45, 0.65), 1.72, Color(0.07, 0.05, 0.045, 0.36), true, -1.0, true)
+	draw_circle(point + Vector2(0.24, 0.37), 0.84, Color(0.07, 0.05, 0.045, 0.36), true, -1.0, true)
 	draw_set_transform(point - Vector2(0, height), angle)
 	var size: Vector2 = CASING_SIZES[record.look]
 	draw_texture_rect(CASINGS[record.look], Rect2(-size * 0.5, size), false)
