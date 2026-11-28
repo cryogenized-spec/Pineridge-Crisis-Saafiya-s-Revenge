@@ -2,6 +2,8 @@ extends Node2D
 
 const Art = preload("res://scripts/environment_art.gd")
 const Traffic = preload("res://scripts/ambient_traffic.gd")
+const RIDGE_TREE := preload("res://assets/environment/roadside/jacobs_tree.png")
+const RIDGE_HOUSE := preload("res://assets/environment/architecture/jacobs_house.png")
 var traffic: Traffic
 # Upper Pineridge: a fictional residential approach in overhead projection.
 # One world unit = one display pixel. Approximate scale is 24 px / metre.
@@ -14,6 +16,9 @@ const TRUNK_POINT := Vector2(202.0,512.0)
 const CAR_LENGTH := 108.0
 const CAR_WIDTH := 43.0
 const LOTS := [Vector2(168,93),Vector2(642,91),Vector2(1284,92),Vector2(1864,91)]
+const JACOBS_LAWN := Rect2(1859, 39, 359, 351)
+const JACOBS_ROOF := Rect2(1902, 128, 238, 148)
+const TREE_POINT := Vector2(2064, 77)
 const PARKED_ART := ["saafiya_car", "hatchback_russet", "sedan_silver", "utility_ivory"]
 var parked: Array[Rect2] = [
 	PLAYER_CAR,
@@ -28,6 +33,8 @@ func _ready() -> void:
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	for r in parked:
 		fixed_obstacles.append(r)
+	fixed_obstacles.append_array([JACOBS_ROOF, Rect2(1859, 325, 63, 11), Rect2(2015, 325, 171, 11),
+		Rect2(TREE_POINT - Vector2(6, 5), Vector2(12, 10))])
 	queue_redraw()
 
 func blocked(p: Vector2, radius: float = 7.0) -> bool:
@@ -35,8 +42,8 @@ func blocked(p: Vector2, radius: float = 7.0) -> bool:
 		return true
 	if p.x < radius or p.x > SIZE.x-radius:
 		return true
-	var on_street := p.y >= ROAD_TOP - 22.0 + radius and p.y <= ROAD_BOTTOM + 22.0 - radius
-	if not on_street:
+	var on_verge := p.y >= ROAD_TOP - 49.0 + radius and p.y <= ROAD_BOTTOM + 63.0 - radius
+	if not on_verge and not JACOBS_LAWN.grow(-radius).has_point(p):
 		var accessible := false
 		for i in range(1, LOTS.size()):
 			var lot: Vector2 = LOTS[i]
@@ -97,8 +104,12 @@ func _draw() -> void:
 	draw_sign(Vector2(1960,666),"MALL DISTRICT")
 	draw_exit()
 	for x in range(105,2200,340):
-		draw_tree(Vector2(float(x),48.0+float((x*3)%45)),x)
+		if x < 1900:
+			draw_tree(Vector2(float(x),48.0+float((x*3)%45)),x)
 		draw_tree(Vector2(float(x)+92,960.0+float(x%31)),x+19)
+	draw_rect(Rect2(1955, 278, 38, 24), Color("#a49784"))
+	draw_rect(Rect2(2094, 108, 32, 20), Color("#a49784"))
+	draw_texture_rect(RIDGE_TREE, Rect2(TREE_POINT - Vector2(66, 79), Vector2(132, 121)), false)
 
 func draw_lot(at: Vector2, index: int, north: bool) -> void:
 	var w := 327.0
@@ -114,7 +125,8 @@ func draw_lot(at: Vector2, index: int, north: bool) -> void:
 		for y in range(int(paved.position.y) + 8, int(paved.end.y), 9):
 			draw_line(Vector2(paved.position.x + 3, y), Vector2(paved.end.x - 3, y), Color("#69685e"))
 	var roof := Rect2(at+Vector2(38,37),Vector2(238,148))
-	Art.building(self, roof, Art.HOUSES[index % Art.HOUSES.size()])
+	var facade: Texture2D = RIDGE_HOUSE if north and index == LOTS.size() - 1 else Art.HOUSES[index % Art.HOUSES.size()]
+	Art.building(self, roof, facade)
 	var garden_y := at.y+210 if north else at.y+10
 	for j in range(4):
 		if open_drive and j == 1:

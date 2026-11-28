@@ -79,6 +79,8 @@ func make_hud() -> void:
 
 func _unhandled_key_input(event:InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
+		if encounters.handle_inventory_shortcut(event.keycode):
+			return
 		match event.keycode:
 			KEY_F6:
 				low_fx = not low_fx
@@ -114,10 +116,6 @@ func _unhandled_key_input(event:InputEvent) -> void:
 				crouch_enabled = not crouch_enabled
 			KEY_I: encounters.toggle_inventory()
 			KEY_E:
-				if encounters.inventory_open():
-					if encounters.inventory_ui.taking.is_valid():
-						encounters.inventory_ui.close_inventory()
-					return
 				if encounters.open_nearby_loot():
 					return
 				if phase==0 and player.position.distance_to(WAYPOINT)<36:

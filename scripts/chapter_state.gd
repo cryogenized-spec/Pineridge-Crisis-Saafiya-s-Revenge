@@ -19,13 +19,10 @@ static func restore(tree: SceneTree, battle: Node) -> void:
 	var saved: Dictionary=tree.root.get_meta(SAVE_KEY)
 	battle.player_hp=clampi(int(saved.get("hp",3)),0,3)
 	var ammo: Array=saved.get("rounds",[])
-	var spare: Array=saved.get("spares",[])
 	var unlocked: Array=saved.get("unlocked",[])
 	for i in range(3):
 		if ammo.size()>i:
 			battle.rounds[i]=clampi(int(ammo[i]),0,int(battle.KIT[i]["size"]))
-		if spare.size()>i:
-			battle.spares[i]=maxi(0,int(spare[i]))
 		if unlocked.size()>i:
 			battle.unlocked[i]=bool(unlocked[i])
 	battle.slot=clampi(int(saved.get("slot",0)),0,2)
@@ -33,6 +30,8 @@ static func restore(tree: SceneTree, battle: Node) -> void:
 		battle.slot=0
 	if saved.has("inventory"):
 		battle.inventory.restore(saved["inventory"])
+		if not saved["inventory"].get("magazines_in_grid", false):
+			battle.inventory.import_legacy_reserves(saved.get("spares", []), battle.unlocked)
 	for i in range(battle.unlocked.size()):
 		if battle.unlocked[i]:
 			battle.inventory.unlock_quick(i)

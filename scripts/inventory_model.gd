@@ -1,5 +1,7 @@
 extends RefCounted
 
+signal reserves_changed
+
 const BAG_SIZE := Vector2i(6, 4)
 const BOOT_SIZE := Vector2i(6, 8)
 const BASE_CAPACITY := 8
@@ -12,7 +14,9 @@ const ITEM_NAMES := {
 	"knife":"Knife", "cudgel":"Cudgel", "brick":"Brick", "slingshot":"Slingshot",
 	"runner":"Glass bottle", "glasses":"Sunglasses", "choker":"Choker",
 	"lace":"Black lace top", "coat":"Black jacket", "skirt":"Pleated skirt",
-	"chain":"Waist chain", "boots":"Black boots"
+	"chain":"Waist chain", "boots":"Black boots",
+	"beretta_mag":"Beretta spare magazine", "pistol_mag":"P-07 spare magazine",
+	"rifle_mag":"AKM spare magazine"
 }
 const ITEM_SIZES := {
 	"phone":Vector2i(1, 2), "backpack":Vector2i(2, 2), "water":Vector2i(1, 2),
@@ -32,6 +36,7 @@ const INITIAL_GEAR := {
 	"Legs":"skirt", "Boots":"boots", "Sidearm":"beretta"
 }
 const WEAPONS := ["beretta", "pistol", "rifle"]
+const MAGAZINES := ["beretta_mag", "pistol_mag", "rifle_mag"]
 const INVALID := Vector2i(-1, -1)
 
 var cash_rand := 0
@@ -43,17 +48,33 @@ var backpack_equipped := false
 var equipment: Dictionary = {}
 var boot_cash_rand := 0
 var quick_slots: Array[int] = [0, -1, -1, -1]
+var ridge_house_key := false
 
 func _init() -> void:
 	for slot in EQUIP_ITEMS:
 		equipment[slot] = str(ITEM_NAMES.get(INITIAL_GEAR.get(slot, ""), ""))
-	for item in ["phone", "keys"]:
+	for item in ["phone", "keys", "beretta_mag", "beretta_mag", "beretta_mag"]:
 		stow(item)
 	for item in ["backpack", "water", "torch", "jacket"]:
 		insert("boot", item)
 
 func capacity() -> int:
 	return BACKPACK_CAPACITY if backpack_equipped else BASE_CAPACITY
+
+func use_magazine(weapon: int) -> bool:
+	var index := bag.find(MAGAZINES[weapon])
+	if index < 0:
+		return false
+	remove("bag", index)
+	return true
+
+func import_legacy_reserves(reserves: Array, unlocked: Array) -> void:
+	for weapon in range(mini(reserves.size(), MAGAZINES.size())):
+		if not unlocked[weapon]:
+			continue
+		for index in range(maxi(0, int(reserves[weapon]))):
+			if not stow(MAGAZINES[weapon]) and not insert("boot", MAGAZINES[weapon]):
+				break
 
 func items_at(location: String) -> Array[String]:
 	return boot if location == "boot" else bag
@@ -105,11 +126,16 @@ func insert(location: String, item: String, cell: Vector2i = INVALID) -> bool:
 		return false
 	items_at(location).append(item)
 	cells_at(location).append(cell)
+	if location == "bag" and item in MAGAZINES:
+		reserves_changed.emit()
 	return true
 
 func remove(location: String, index: int) -> void:
+	var affects_reserve := location == "bag" and items_at(location)[index] in MAGAZINES
 	items_at(location).remove_at(index)
 	cells_at(location).remove_at(index)
+	if affects_reserve:
+		reserves_changed.emit()
 
 func move_item(from: String, index: int, to: String, cell: Vector2i) -> bool:
 	var items := items_at(from)
@@ -202,15 +228,20 @@ func snapshot() -> Dictionary:
 		"cash_rand":cash_rand, "bag":bag.duplicate(), "bag_cells":bag_cells.duplicate(),
 		"boot":boot.duplicate(), "boot_cells":boot_cells.duplicate(),
 		"backpack_equipped":backpack_equipped, "quick_slots":quick_slots.duplicate(),
-		"equipment":equipment.duplicate(), "boot_cash_rand":boot_cash_rand
+		"equipment":equipment.duplicate(), "boot_cash_rand":boot_cash_rand,
+		"magazines_in_grid":true, "ridge_house_key":ridge_house_key
 	}
 
 func restore(data: Dictionary) -> void:
 	cash_rand = maxi(0, int(data.get("cash_rand", 0)))
 	boot_cash_rand = maxi(0, int(data.get("boot_cash_rand", 0)))
 	backpack_equipped = bool(data.get("backpack_equipped", false))
+	ridge_house_key = bool(data.get("ridge_house_key", false))
 	for location in ["bag", "boot"]:
-		var previous: Array = data.get(location, items_at(location).duplicate())
+		var fallback: Array = items_at(location).duplicate()
+		if location == "bag" and not data.get("magazines_in_grid", false):
+			fallback = ["phone", "keys"]
+		var previous: Array = data.get(location, fallback)
 		var positions: Array = data.get(location + "_cells", [])
 		items_at(location).clear()
 		cells_at(location).clear()
@@ -226,3 +257,4 @@ func restore(data: Dictionary) -> void:
 	var saved_quick: Array = data.get("quick_slots", [])
 	for i in range(mini(quick_slots.size(), saved_quick.size())):
 		quick_slots[i] = clampi(int(saved_quick[i]), -1, WEAPONS.size() - 1)
+	reserves_changed.emit()

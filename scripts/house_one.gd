@@ -128,6 +128,8 @@ func continue_story() -> void:
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
+	if encounter.handle_inventory_shortcut(event.keycode):
+		return
 	match event.keycode:
 		KEY_ESCAPE:
 			if encounter.inventory_open():
@@ -146,10 +148,6 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			var mode := DisplayServer.window_get_mode()
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if mode == DisplayServer.WINDOW_MODE_FULLSCREEN else DisplayServer.WINDOW_MODE_FULLSCREEN)
 		KEY_E:
-			if encounter.inventory_open():
-				if encounter.inventory_ui.taking.is_valid():
-					encounter.inventory_ui.close_inventory()
-				return
 			if encounter.open_nearby_loot():
 				return
 			if not checked_house:
