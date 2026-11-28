@@ -51,3 +51,13 @@
 - **[D/P]** A possible device progression is **borrowed mother's mobile phone -> later Nokia from father**, enabling more private access. No exact handset model/time fixed.
 - **[D/P]** Her written-English confidence develops with online participation; some late-night Dark Mountain scenes involve ritual-styled **roleplay incantations**, not necessarily literal magic in the story.
 - **[O]** Keep the chess, first handset and initial online-clan meeting as fragments until the full age/school chronology is chosen. Details and alternate scene-treatment links: [third-pass fragments](third-pass-fragments-2026-11-28.md).
+
+## Fifth-pass recovered school aftermath (28 November 2026)
+
+The original 26 November working scene continues **after** the punch; the previous note incorrectly treated all school consequences as unspecified.
+
+- **[D]** Saafiya had drawn Farsha into the lavatory and observed her through a **small mirror** before the confrontation. One blow to the face made Farsha recoil into the mirror/wall, lose consciousness briefly, and fall onto her face. Bruising/bleeding around the eye and a **possible concussion** follow. The final clinical diagnosis is not established.
+- **[D]** After about **30–60 minutes**, a **female matric prefect** calls Saafiya into the office. Staff question her and bring her to **the school sickbay**, where Farsha is injured.
+- **[D]** **Aunt Isadora** comes to the **principal's office**, responds calmly, thanks the staff, accepts guardianship responsibility and secures Saafiya's release for the day, without shouting or humiliating her. This calmness should not be mistaken for automatic endorsement of the blow.
+- **[D]** The subsequent **McDonald's second breakfast** (bran muffin and coffee suggestion, Saafiya too tense to eat) leads into the **first Sarah sighting**. Sarah and companions are waiting to meet an online Dark Mountain acquaintance. See [fifth-pass recovery](fifth-pass-recovery-and-corrections-2026-11-28.md).
+- **[O]** Farsha's medical recovery, disciplinary outcome, what happens when she returns, and her longer attachment to Saafiya are still open; record these separately from the **already developed** institutional scene.
