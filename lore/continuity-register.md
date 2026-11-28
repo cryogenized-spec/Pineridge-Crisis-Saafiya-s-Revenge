@@ -156,3 +156,16 @@ Details: [fourth-pass continuity audit](fourth-pass-continuity-audit-2026-11-28.
 - **Name associations:** Sofia/Sophia linked speculatively to Turkish/Byzantine cultural imagery, while Saafiya remains an independently rooted name. No automatic rename.
 - **Historical/implementation boundaries:** Don't rewrite early Python gameplay, current Godot stages or original Hero-shooter files solely to fit these story fragments.
 - Full detail: [sixth-pass recovery](sixth-pass-recovery-2026-11-28.md).
+
+## Seventh-pass residential route and implementation-boundary flags (28 November 2026)
+
+- **Initial approach:** Director's fuller residential narrative parks Saafiya several blocks uphill because mall access is obstructed; she travels down through about three houses while people move goods between neighbourhood and shopping area.
+- **Three house stories:** House One has barricaded occupants; House Two is an exterior intervention with two-car/open-carport context; House Three is a breached interior with a family sheltering upstairs. **Only an exterior House One gate conversation is documented as currently playable**; later story interiors and relationships are not implemented.
+- **Versioned stage progress:** Current Godot has **Upper Pineridge -> House One -> feeder road**, not the complete three-home plot. Carport props in House One may overlap ideas formerly assigned to House Two; not automatically two completed chapters.
+- **Human stakes:** Families, bystanders and people fleeing are separate from aggressors. The protagonist cannot necessarily rescue everybody; outcomes may be time-sensitive or branch-sensitive. Do not turn an unapproved family-encounter sketch into a guaranteed rescue.
+- **Economy:** Preserve health/ammo/item continuity, rand wallet, limited carried inventory/backpack, car boot and finite objects sourced through plausible interactions. Later Godot **V29/V30** supersedes V28's earlier *"not yet carried across chapters"* implementation statement.
+- **Save boundary:** `ChapterState` / SceneTree snapshots preserve state **in a running session**; a durable saved game surviving restarts has not been verified.
+- **Character-role versioning:** Old Saafiya sprite sheets say *NPC / Temporary Ally*, while other prototypes and the current project make Saafiya playable. C's separately approved art belongs to its own project role. No global one-person identity merge.
+- **Object/story separations:** A prospective ornate ritual-themed knife is not automatically Sarah's ceremonial dagger, supernatural or implemented.
+- **Fayeem comic provenance:** The 1950s descriptor describes an older mine-worker-type building, not a 1950s story date; image-specific removal of straps/collar ring is not a global clothing prohibition.
+- Full description and inspected Godot file references: [seventh-pass audit](seventh-pass-2026-11-28-residential-route-and-provenance.md).
