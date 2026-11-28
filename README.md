@@ -103,8 +103,8 @@ Segment 2 includes eight neutral roaming characters, six abstract arcade NPCs ne
 
 - Press **I** to open Saafiya’s equipment and 6×4 carried grid. Drag items to rearrange them, swap compatible outfit pieces, or assign a weapon to one of four clockwise shortcuts. **1** is up, **2** right, **3** down, and **4** left. **Q** still toggles running.
 - Press **E** near a downed opponent to open loot. Click to take one item, press **E** again to take what fits and close, or press **Q** to close immediately. Spend one carried magazine per reload. Each spare takes one grid square, and magazines stored in the Mustang don’t count toward carried reserves.
-- In Upper Pineridge, follow the lawn around the last house before the junction and look for Mr. Jacobs by the tree. His key opens the ground floor, patio and upstairs hallway. Press **E** to advance the conversations and interact with doors and stairs. The second chapter has its own front-room visit.
-- If a car is held up, its driver honks, then steps out to gesture after six more seconds. Cars speed away from nearby gunfire and show cumulative damage.
+- In Upper Pineridge, follow the lawn around the last house before the junction and look for Mr. Jacobs by the tree. His key opens the ground floor, patio and upstairs hallway. Press **E** to advance the conversations and interact with doors and stairs. Both floors and the second chapter's front room use orthographic renders of 3D interiors.
+- If a car is held up, its driver honks, then steps out to gesture after six more seconds. Cars speed away from nearby gunfire. Body hits leave puncture decals, three windscreen hits swap in shattered glass artwork, and stalled traffic emits gray vapor from the hood.
 
 ## Reusable sprite kit
 

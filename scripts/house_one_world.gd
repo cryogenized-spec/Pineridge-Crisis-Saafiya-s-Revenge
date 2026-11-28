@@ -1,7 +1,9 @@
 extends Node2D
 
+const FRONT_ROOM_ART := preload("res://assets/environment/interiors/barricaded_front_room.png")
 const Art = preload("res://scripts/environment_art.gd")
 const Traffic = preload("res://scripts/ambient_traffic.gd")
+const Damage := preload("res://scripts/vehicle_damage.gd")
 var traffic: Traffic
 # Segment 2: fictional house exterior near Pine Ridge mall.
 # Orthographic overhead scenery, approximately 24 display pixels/metre.
@@ -17,6 +19,9 @@ const ROOF := Rect2(1048.0,75.0,515.0,208.0)
 const CAR_A := Rect2(1048.0,320.0,CAR_LENGTH,CAR_WIDTH)
 const CAR_B := Rect2(1180.0,320.0,CAR_LENGTH,CAR_WIDTH)
 const STREET_CAR := Rect2(475.0,684.0,CAR_LENGTH,CAR_WIDTH)
+const PARKED_CARS := [CAR_A, CAR_B, STREET_CAR]
+const PARKED_ART := ["sedan_silver", "hatchback_russet", "sedan_ochre"]
+const PARKED_FACING := [-1, 1, -1]
 const PORCH := Vector2(1365, 305)
 const ROOM_DOOR := Vector2(1365, 259)
 const ROOM := Rect2(1214, 104, 304, 176)
@@ -58,13 +63,15 @@ func blocked(p: Vector2, radius: float = 7.0) -> bool:
 			return true
 	return false
 
-func impact_vehicle(at: Vector2, _heading: Vector2) -> bool:
-	if is_instance_valid(traffic) and traffic.impact_vehicle(at):
-		return true
-	if Traffic.mark_parked(at, [CAR_A, CAR_B, STREET_CAR], vehicle_marks):
+func impact_vehicle(contact: Vector2, heading: Vector2, aim: Vector2) -> Vector2:
+	if is_instance_valid(traffic):
+		var moving := traffic.impact_vehicle(contact, heading, aim)
+		if moving.is_finite():
+			return moving
+	var hit := Damage.hit_parked(contact, heading, aim, PARKED_CARS, PARKED_ART, PARKED_FACING, vehicle_marks)
+	if hit.is_finite():
 		queue_redraw()
-		return true
-	return false
+	return hit
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO,SIZE),Color("#405646"))
@@ -89,8 +96,7 @@ func _draw() -> void:
 	draw_decorative_home(Vector2(300,765),2,"")
 	draw_decorative_home(Vector2(1540,768),0,"")
 	draw_primary_property()
-	Art.vehicle(self, STREET_CAR, "sedan_ochre", -1)
-	Traffic.draw_marks(self, STREET_CAR, vehicle_marks.get(2, []))
+	draw_parked(2)
 	draw_sign(Vector2(180,410),"PINE RIDGE")
 	draw_sign(Vector2(1885,697),"MALL ROUTE")
 	for i in range(46):
@@ -120,10 +126,8 @@ func draw_primary_property() -> void:
 		draw_rect(Rect2(1348, 274, 34, 12), Color("#5a483f"))
 		draw_rect(Rect2(1351, 284, 28, 20), Color("#918172"))
 	draw_texture_rect(Art.PARKING, Rect2(1020, 292, 298, 107), false)
-	Art.vehicle(self, CAR_A, "sedan_silver", -1)
-	Art.vehicle(self, CAR_B, "hatchback_russet", 1)
-	Traffic.draw_marks(self, CAR_A, vehicle_marks.get(0, []))
-	Traffic.draw_marks(self, CAR_B, vehicle_marks.get(1, []))
+	draw_parked(0)
+	draw_parked(1)
 	draw_fence()
 	draw_texture_rect(Art.BIN, Rect2(1477, 344, 31, 32), false)
 	draw_texture_rect(Art.BIN, Rect2(1529, 351, 31, 32), false, Color("#b2c6c6"))
@@ -134,22 +138,12 @@ func draw_primary_property() -> void:
 	draw_string(ThemeDB.fallback_font,Vector2(1409,312),"FAMILY INSIDE",HORIZONTAL_ALIGNMENT_LEFT,-1,15,Color("#e9dcbf"))
 
 func draw_front_room() -> void:
-	draw_rect(Rect2(ROOF.position, ROOF.size), Color("#3a3440"))
-	draw_rect(ROOM.grow(7), Color("#1b1822"))
-	draw_rect(ROOM, Color("#80624e"))
-	for x in range(int(ROOM.position.x) + 7, int(ROOM.end.x), 10):
-		draw_line(Vector2(x, ROOM.position.y), Vector2(x, ROOM.end.y), Color("#6b5247"), 1)
-	draw_rect(Rect2(1288, 133, 156, 100), Color("#8f5556"))
-	draw_rect(Rect2(1294, 139, 144, 88), Color("#bb8c72"), false, 2)
-	draw_rect(Rect2(1301, 145, 130, 76), Color("#663d50"), false, 2)
-	var colors := [Color("#625354"), Color("#3e5f5d"), Color("#7b6557")]
-	for i in range(ROOM_FURNITURE.size()):
-		var item: Rect2 = ROOM_FURNITURE[i]
-		draw_rect(Rect2(item.position + Vector2(3, 5), item.size), Color("#392d32"))
-		draw_rect(item, colors[i])
-		draw_rect(item.grow(-4), colors[i].lightened(.17), false, 2)
-	draw_rect(Rect2(1309, 102, 91, 6), Color("#b7a188"))
-	draw_rect(Rect2(1349, 273, 33, 11), Color("#b09272"))
+	draw_rect(ROOF, Color("#3a3440"))
+	draw_texture_rect(FRONT_ROOM_ART, Rect2(1025, 64, 550, 240), false)
+
+func draw_parked(index: int) -> void:
+	Art.vehicle(self, PARKED_CARS[index], PARKED_ART[index], PARKED_FACING[index])
+	Damage.draw(self, PARKED_CARS[index], PARKED_ART[index], PARKED_FACING[index], vehicle_marks.get(index, {}))
 
 func draw_fence() -> void:
 	Art.fence_run(self, 958, 1333, 398)

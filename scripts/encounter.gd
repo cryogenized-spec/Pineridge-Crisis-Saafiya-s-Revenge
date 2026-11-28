@@ -415,16 +415,17 @@ func fire_player() -> void:
 	rounds[slot] -= 1
 	cooldown = float(KIT[slot]["interval"])
 	shots_fired += 1
-	var heading := (get_global_mouse_position()-avatar.position).normalized()
+	var aim := get_global_mouse_position()
+	var heading := (aim - avatar.position).normalized()
 	if heading.length_squared() < 0.01:
 		heading=Vector2.RIGHT
-	resolve_player_action(avatar.position, heading)
+	resolve_player_action(avatar.position, heading, aim)
 	stage_decals.eject(held_visual.burst(heading))
 	audio.play_cue("beretta_84fs_shot" if slot == 0 else ("cz75_shot" if slot == 1 else "akm_shot"))
 	on_gunfire(avatar.position)
 	update_hud()
 
-func resolve_player_action(origin: Vector2, direction: Vector2) -> void:
+func resolve_player_action(origin: Vector2, direction: Vector2, aim: Vector2 = Vector2.INF) -> void:
 	# Immediate fictional arcade collision: no tracer or projectile rendering.
 	var full_reach := origin + direction * ACTION_REACH
 	var reach_end := stage_trace(origin, full_reach)
@@ -455,8 +456,9 @@ func resolve_player_action(origin: Vector2, direction: Vector2) -> void:
 			ambient = true
 	if candidate.is_empty():
 		if reach_end != full_reach and street.has_method("impact_vehicle"):
-			if street.impact_vehicle(reach_end + direction * 6.0, direction):
-				motes.append({"point":reach_end, "life":0.28})
+			var contact: Vector2 = street.impact_vehicle(reach_end + direction * 6.0, direction, aim)
+			if contact.is_finite():
+				motes.append({"point":contact, "life":0.28})
 				audio.play_cue("vehicle_impact")
 		return
 	if ambient:

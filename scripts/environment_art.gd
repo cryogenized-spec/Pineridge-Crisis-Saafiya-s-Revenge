@@ -36,10 +36,15 @@ const SHRUBS := [
 	preload("res://assets/environment/roadside/shrub_2.png"),
 ]
 
-static func vehicle(canvas: CanvasItem, footprint: Rect2, model: String, direction: int) -> void:
+static func vehicle_bounds(footprint: Rect2) -> Rect2:
 	var size := footprint.size * Vector2(144.0 / 108.0, 68.0 / 43.0)
-	var bounds := Rect2(footprint.get_center() - size * 0.5, size)
-	canvas.draw_texture_rect(VEHICLES[model][0 if direction > 0 else 1], bounds, false)
+	return Rect2(footprint.get_center() - size * 0.5, size)
+
+static func vehicle_texture(model: String, direction: int) -> Texture2D:
+	return VEHICLES[model][0 if direction > 0 else 1]
+
+static func vehicle(canvas: CanvasItem, footprint: Rect2, model: String, direction: int) -> void:
+	canvas.draw_texture_rect(vehicle_texture(model, direction), vehicle_bounds(footprint), false)
 
 static func building(canvas: CanvasItem, roof: Rect2, sprite: Texture2D) -> void:
 	var margin := roof.size * Vector2(0.11, 0.20)

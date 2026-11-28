@@ -254,6 +254,9 @@ def car(style, paint):
             return (edge + (roof_edge-edge)*height + .012*facing,
                     across*(glass_width + (top_width-glass_width)*height),
                     base+(cabin_height-base)*height)
+        if facing > 0:
+            model.windscreen = [glass_point(height, across)
+                                for height, across in [(.037,-.91),(.037,.91),(.96,.91),(.96,-.91)]]
         for row in range(9):
             start = row/9
             end = (row+1)/9
