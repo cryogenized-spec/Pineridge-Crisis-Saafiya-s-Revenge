@@ -145,3 +145,14 @@ Details: [fourth-pass continuity audit](fourth-pass-continuity-audit-2026-11-28.
 - **Farsha sequence:** lavatory surveillance/confrontation -> single blow, fall and suspected concussion -> **female matric prefect summons Saafiya after about 30–60 minutes** -> office/sickbay -> **Isadora's calm meeting with the principal and same-day release** -> **McDonald's second breakfast** -> **first sighting of Sarah** -> later art-class friendship. The prior claim that all institutional consequences were unspecified was incomplete.
 - **Personal revolver:** the user's later **Model 640** specification is distinct from assistant's earlier **Taurus Model 85** suggestion, and neither determines how Saafiya acquired it.
 - The detailed original-discussion recovery is preserved in [fifth-pass audit](fifth-pass-recovery-and-corrections-2026-11-28.md).
+
+
+## Sixth-pass provenance and dialogue flags (28 November 2026)
+
+- **Farsha's childhood:** Two or three carefully tended dolls, an infancy-death *version* of a twin, small stature, and a possible ~23:00 first Dark Mountain scene are additional user-described specifics, **not fixed age or medical biography**.
+- **Heather's dialogue:** "Your heart will guide you" and "Don't do yourself injustice" supplement the "follow your heart" and glass-ball variants. Keep final quotations open until actual script approval.
+- **Original Pine Ridge at Dawn prototype:** dawn roadside, taxi rank and a **white minibus dropping three characters**, eastern boss/exit, varied looters and people fleeing; historically present in a separate Tkinter adaptation of an original side-view HTML game, not necessarily the current Godot scene.
+- **Character art/prose timeline:** an adult Fayeem email scene with an Afrikaans threat has a specific draft wording and 19:6 eight-panel treatment. The related Cape Town gothic, sunrise/intimacy and Mustang images are *visual-only*, not evidence a particular relationship is canon.
+- **Name associations:** Sofia/Sophia linked speculatively to Turkish/Byzantine cultural imagery, while Saafiya remains an independently rooted name. No automatic rename.
+- **Historical/implementation boundaries:** Don't rewrite early Python gameplay, current Godot stages or original Hero-shooter files solely to fit these story fragments.
+- Full detail: [sixth-pass recovery](sixth-pass-recovery-2026-11-28.md).
