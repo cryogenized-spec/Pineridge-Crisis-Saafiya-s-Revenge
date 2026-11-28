@@ -43,3 +43,11 @@
 - [Sarah, Ambrosia and Dark Mountain](sarah-ambrosia-dark-mountain.md).
 - [Recovered overlooked fragments](recovered-fragments-2026-11-28.md).
 - [Continuity register](continuity-register.md).
+
+## Third-pass recovered specifics (28 November 2026)
+
+- **[D]** Farsha's school silence is an **avoidance response to bullying over her Transvaal Afrikaans accent**, rather than contemplative mindfulness or a sign of gifted wisdom. She actively tries to fade into the background.
+- **[D/P]** The library discovery involved **boys playing chess on a roll-up board**, using chess pieces stored in an **ice-cream tub**. This concrete ordinary setting can precede her learning about GPRS/MXit.
+- **[D/P]** A possible device progression is **borrowed mother's mobile phone -> later Nokia from father**, enabling more private access. No exact handset model/time fixed.
+- **[D/P]** Her written-English confidence develops with online participation; some late-night Dark Mountain scenes involve ritual-styled **roleplay incantations**, not necessarily literal magic in the story.
+- **[O]** Keep the chess, first handset and initial online-clan meeting as fragments until the full age/school chronology is chosen. Details and alternate scene-treatment links: [third-pass fragments](third-pass-fragments-2026-11-28.md).
