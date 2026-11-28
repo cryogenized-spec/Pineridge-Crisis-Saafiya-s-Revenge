@@ -61,3 +61,11 @@ The original 26 November working scene continues **after** the punch; the previo
 - **[D]** **Aunt Isadora** comes to the **principal's office**, responds calmly, thanks the staff, accepts guardianship responsibility and secures Saafiya's release for the day, without shouting or humiliating her. This calmness should not be mistaken for automatic endorsement of the blow.
 - **[D]** The subsequent **McDonald's second breakfast** (bran muffin and coffee suggestion, Saafiya too tense to eat) leads into the **first Sarah sighting**. Sarah and companions are waiting to meet an online Dark Mountain acquaintance. See [fifth-pass recovery](fifth-pass-recovery-and-corrections-2026-11-28.md).
 - **[O]** Farsha's medical recovery, disciplinary outcome, what happens when she returns, and her longer attachment to Saafiya are still open; record these separately from the **already developed** institutional scene.
+
+
+## Sixth-pass childhood and first-chat precision (28 November 2026)
+
+- **[D/P]** Farsha's childhood play involved caring methodically for **two or three Barbie dolls**, imagining alternate social/adult lives; this is more specific than the earlier generic "dolls" reference.
+- **[D/P]** One user-described alternative has a **twin who died in infancy**. This is still an *unfinalised backstory version*; it is not established that Farsha has a personal memory of the loss.
+- **[D/P]** She is imagined as **short or small in stature**; height is not assigned. Her late-night MXit discovery has one suggested **around-23:00** scene time, not a fixed first-login record.
+- Preserve her accent bullying, social withdrawal, improvements in typed English and online-first clan identity as independent developments. [Sixth-pass recovery](sixth-pass-recovery-2026-11-28.md).
