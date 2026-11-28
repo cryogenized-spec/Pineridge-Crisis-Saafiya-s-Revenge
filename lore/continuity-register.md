@@ -127,7 +127,7 @@ Full third-pass evidence distinctions: [third-pass fragments](third-pass-fragmen
 
 ## Fourth-pass provenance and story-choice checks (28 November 2026)
 
-- **Family objects:** Maternal grandmother's proposed **Rossi .38 Special**, father's **Beretta 84FS**, and an unrelated **decorative revolver in poolside concept art** are distinct sources. Do not quietly invent how Saafiya acquired the first or third.
+- **Family objects — CORRECTED:** Original user discussion assigns the proposed inexpensive **Rossi .38 Special to Heather herself**, not her mother. Keep it distinct from Faisal/Farrell's **Beretta 84FS** and Saafiya's separately specified custom **Smith & Wesson Model 640 .357 Magnum**, depicted in poolside concept art. The Model 640's acquisition is unresolved; see [fifth-pass recovery](fifth-pass-recovery-and-corrections-2026-11-28.md).
 - **Heather:** Possible light eyes, straight period-styled hair, adventurous personality and police career; retain provisional scope. The mother is not Aunt Isadora; Saafiya remains Faisal/Farrell's biological daughter.
 - **Saafiya handedness:** "Perhaps left-handed" was not an immutable canon decision. Separate biological handedness from reused animation poses and visual staging.
 - **Saafiya versus C:** C's separately approved visual reference should not replace Saafiya's burgundy-dark-haired gothic design. Earlier sprite naming overlaps can be implementation shortcuts.
@@ -137,3 +137,11 @@ Full third-pass evidence distinctions: [third-pass fragments](third-pass-fragmen
 - **Period:** Avoid wrongly backdating adult Pixel-like phone concepts into school-era MXit. Dates within 2005–late 2000s remain unresolved.
 
 Details: [fourth-pass continuity audit](fourth-pass-continuity-audit-2026-11-28.md).
+
+## Fifth-pass corrections and restored scene sequence (28 November 2026)
+
+- **CORRECTION:** The inexpensive **Rossi .38 Special** was proposed for **Heather**, Saafiya's mother. The fourth-pass summary's **maternal-grandmother** attribution was wrong, not an established alternative. Distinguish Heather's Rossi, Saafiya's father-inherited **Beretta 84FS**, and Saafiya's separately described custom **Smith & Wesson Model 640 .357 Magnum**.
+- **Heather's earlier love and loss:** a first boyfriend with voluntary army service and a **Walther PPK** died after a shooting/confrontation while travelling to hospital. The episode's justification, exact timing and influence on her policing/revenge-versus-justice motives are open.
+- **Farsha sequence:** lavatory surveillance/confrontation -> single blow, fall and suspected concussion -> **female matric prefect summons Saafiya after about 30–60 minutes** -> office/sickbay -> **Isadora's calm meeting with the principal and same-day release** -> **McDonald's second breakfast** -> **first sighting of Sarah** -> later art-class friendship. The prior claim that all institutional consequences were unspecified was incomplete.
+- **Personal revolver:** the user's later **Model 640** specification is distinct from assistant's earlier **Taurus Model 85** suggestion, and neither determines how Saafiya acquired it.
+- The detailed original-discussion recovery is preserved in [fifth-pass audit](fifth-pass-recovery-and-corrections-2026-11-28.md).
