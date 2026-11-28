@@ -96,3 +96,18 @@ When a decision is explicitly adopted:
 3. Update chapter scripts, dialogue, character sheets and art **only if** the decision affects them.
 4. Verify factual claims about implementation against the current Godot files; do not describe prose-only concepts as working gameplay.
 5. Leave remaining open questions open. There is no requirement to make every fragment agree immediately.
+
+## Additional audit flags (28 November 2026)
+
+A second pass through previous conversations identified substantial details missing from the first synthesis. These are now preserved in [recovered fragments](recovered-fragments-2026-11-28.md), with [Farsha](farsha-character-fragments.md) treated as an independent evolving character.
+
+1. **Heather is Saafiya's mother**, separate from Aunt Isadora. The draft ~2-hour **Renault 5** drive, Sandra cassette, Princeton cigarette, glass-ball metaphor and three bags need staging and geographical reconciliation with the **KZN -> Cape Town** concept.
+2. **Farsha's origins and confrontation** are not resolved by a generic rival reference. Family loss including a tentative twin, accent bullying, written-English/MXit escape, private attachment, the school-lavatory injury and the subsequent response need chronology and independent character development.
+3. **Sarah's hillside home** and pool, illustrated childhood folklore encyclopedia, ceremonial dagger, father's possible absence, and an earlier 1980s-styled/permissive mother are proposal fragments. Do not erase the newer maternal alcoholism/suicide history or the older domestic portrait.
+4. **Public-room count versus per-room capacity:** seven-person references, a later recalled ten-person cap and a passing "twenty rooms" figure might describe different measures. Keep open until period evidence is settled.
+5. **Different routes into fantasy:** Ambrosia's social/reading/makeup activity is older and offline-first; tabletop may specifically be *Saafiya's* first substantial roleplaying gateway. Not mutually exclusive.
+6. **Old-game inventory versus fixed character weapon:** the early eight-round browser game and later 84FS .380 ACP final model must be reconciled separately at implementation and story levels.
+7. **School/mall naming ambiguity:** an early scene mentions **Mr Fahim** while later lore names **Fayeem**. Do not auto-merge from similar pronunciation.
+8. **History versus invention:** Bella/Paladona, Ronaldo, Covenant, Bitrix, Dragon clan and the 2018 revival are oral-history inspirations. Do not attach private real-person details or imply fictional biography.
+
+**Audit limitation:** This records retrievable conversation context and repository documents; it does not claim every past chat, source image or deleted draft was accessible.
