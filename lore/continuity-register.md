@@ -169,3 +169,7 @@ Details: [fourth-pass continuity audit](fourth-pass-continuity-audit-2026-11-28.
 - **Object/story separations:** A prospective ornate ritual-themed knife is not automatically Sarah's ceremonial dagger, supernatural or implemented.
 - **Fayeem comic provenance:** The 1950s descriptor describes an older mine-worker-type building, not a 1950s story date; image-specific removal of straps/collar ring is not a global clothing prohibition.
 - Full description and inspected Godot file references: [seventh-pass audit](seventh-pass-2026-11-28-residential-route-and-provenance.md).
+
+## Narrative-mechanic specificity from archived source (28 November 2026)
+
+The original [narrative and audio presentation guide](source-hero-shooter/narrative-presentation-and-sound-2026-11.md) preserves **three separate heart-system meanings** (pulse/BPM; psychological burden; humanity/conduct) and **four distinct long-term consequences** (Russian alignment; public legitimacy/trust; institutional scrutiny; regional/community stability). Earlier consolidated summaries shortened these to a vague "heartbeat" and "morality" reference. **Do not merge these concepts, imply that pulse rate measures morality, or claim that they already exist in current Godot scripts.** The original guide also distinguishes the opening Saafiya's hesitation toward real threats, non-threatening people and those fleeing, and proposes a short illustrated cinematic rather than a locked full-video implementation.
