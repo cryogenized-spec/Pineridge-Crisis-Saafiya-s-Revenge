@@ -12,7 +12,8 @@
 6. **[Fourth-pass family, visual-provenance and story-choice recovery](fourth-pass-continuity-audit-2026-11-28.md)** — Heather's appearance and career, corrected Heather Rossi vs paternal Beretta and Saafiya's custom Model 640, left-handedness, approved C vs Saafiya art, early 3D revisions, McDonald's meet-up and proposed branching dispositions.
 7. **[Fifth-pass original-discussion recovery and corrections](fifth-pass-recovery-and-corrections-2026-11-28.md)** — correct Heather's Rossi ownership, preserve the custom Model 640, Heather's first boyfriend and service history, and reconstruct the Farsha school-office → Isadora → McDonald's → Sarah sequence.
 8. **[Sixth-pass scene, dialogue and original game-prototype recovery](sixth-pass-recovery-2026-11-28.md)** — Farsha's dolls and twin-in-infancy version, Heather's fuller advice, original Pine Ridge at Dawn taxi/crowd beats, Afrikaans Fayeem draft line, and visual-only Cape Town scene details.
-9. **[Continuity register](continuity-register.md)** — unresolved names, competing origin stories, chronological alternatives and implementation-versus-story distinctions. **Do not "fix" contradictions without a decision.**
+9. **[Seventh-pass residential route and story/implementation provenance](seventh-pass-2026-11-28-residential-route-and-provenance.md)** — fuller three-house plot, sheltered families, resource-continuity rules, current Godot progress, alternate playable/ally roles and 1950s house-art context.
+10. **[Continuity register](continuity-register.md)** — unresolved names, competing origin stories, chronological alternatives and implementation-versus-story distinctions. **Do not "fix" contradictions without a decision.**
 
 ## Preserved Hero-shooter source documents
 
