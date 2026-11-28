@@ -111,3 +111,16 @@ A second pass through previous conversations identified substantial details miss
 8. **History versus invention:** Bella/Paladona, Ronaldo, Covenant, Bitrix, Dragon clan and the 2018 revival are oral-history inspirations. Do not attach private real-person details or imply fictional biography.
 
 **Audit limitation:** This records retrievable conversation context and repository documents; it does not claim every past chat, source image or deleted draft was accessible.
+
+## Third-pass continuity flags (28 November 2026)
+
+1. **Place/person name branch:** **Rivermere Mall / Mr Fahim** versus **Pine Ridge Mall / Fayeem**: do not silently equate without director resolution.
+2. **Vehicle continuity:** black Mustang across old prose/art; 1967 in a native game build; explicit uncertainty in a separate later conversation. Document whether a specific car and model year is finalized.
+3. **Time/device split:** mid-2000s poolside RAZR scene versus the Pixel-like 2023-phone adult Fayeem hunt. Their coexistence may mean distinct life periods or unrelated visual experiments, **not** a phone continuity error unless the screenplay joins them.
+4. **Alternative message graphics:** 07:34/alphanumeric sender versus 10:24/generic burner sender; story source prefers coded anonymity. Keep illustration text variants.
+5. **Gate 125:** Mustang, blue Escort, cul-de-sac, goon, warning/rev and "forty-five minutes later" are **storyboards/visual experiments**, not confirmed route layout, times or confrontation outcomes.
+6. **Sarah's private life:** late-night habits, earlier proposed marijuana use, possible BB air rifle, childhood forest searches and dagger sensation are partially speculative; don't collapse them into required powers, drug patterns or a fixed routine.
+7. **Farsha's discovery:** roll-up library chess board, ice-cream-tub pieces and possible borrowed-mother-phone-to-father's-Nokia progression supplement the general online-first origin.
+8. **Visual romance:** sunrise yoga and hopeful intimate portrait motifs are art-development directions, not proof of a particular adult partner.
+
+Full third-pass evidence distinctions: [third-pass fragments](third-pass-fragments-2026-11-28.md).
