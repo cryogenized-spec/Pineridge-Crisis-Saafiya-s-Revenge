@@ -98,10 +98,10 @@ func run() -> void:
 	battle.inventory_ui.take_entry(0)
 	assert(battle.unlocked[1] and battle.inventory.equipment["Backup"] == pistol_name)
 	assert(battle.rounds[1] == battle.KIT[1].size and battle.inventory_ui.contents.size() == 1)
-	battle.inventory_ui.take_entry(0)
-	assert(battle.spares[1] == 1 and battle.inventory_ui.contents.is_empty())
 	level._unhandled_key_input(loot_key)
 	assert(not battle.inventory_open())
+	assert(battle.spares[1] == 1 and "pistol_mag" in battle.inventory.bag)
+	assert(battle.inventory.footprint("pistol_mag") == Vector2i.ONE)
 	battle.resolve_player_action(Vector2(190, 478), Vector2.RIGHT)
 	assert(level.world.vehicle_marks.has(0))
 	assert(battle.inventory.quick_slots == [0, 1, -1, -1])
@@ -113,9 +113,9 @@ func run() -> void:
 	assert(battle.inventory.bag_cells[0] == Vector2i(3, 2))
 	drag_between(ui, ui.BAG + Vector2(168, 120), ui.BAG + Vector2(72, 24))
 	assert(battle.inventory.bag_cells[0] == Vector2i(3, 2))
-	drag_between(ui, ui.SLOTS["Head"].get_center(), ui.BAG + Vector2(120, 24))
+	drag_between(ui, ui.SLOTS["Head"].get_center(), ui.BAG + Vector2(120, 120))
 	assert(battle.inventory.item_for_slot("Head").is_empty() and "glasses" in battle.inventory.bag)
-	drag_between(ui, ui.BAG + Vector2(120, 24), ui.SLOTS["Head"].get_center())
+	drag_between(ui, ui.BAG + Vector2(120, 120), ui.SLOTS["Head"].get_center())
 	assert(battle.inventory.item_for_slot("Head") == "glasses")
 	battle.toggle_inventory()
 	battle.equip_quick(3)
@@ -129,6 +129,11 @@ func run() -> void:
 	var spent: int = battle.rounds[1]
 	battle.fire_player()
 	assert(battle.rounds[1] == spent)
+	battle.street_suspended = true
+	battle._physics_process(battle.reload_clock + 0.01)
+	battle.street_suspended = false
+	assert(battle.rounds[1] == int(battle.KIT[1].size) and battle.spares[1] == 0)
+	assert("pistol_mag" not in battle.inventory.bag)
 
 	var target: Dictionary = battle.actors[0]
 	if target.down:

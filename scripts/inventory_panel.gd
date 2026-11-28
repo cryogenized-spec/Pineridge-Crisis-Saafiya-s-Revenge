@@ -40,6 +40,9 @@ const ICONS := {
 	"beretta":"res://assets/ui/icons/beretta_84fs.png",
 	"pistol":"res://assets/ui/nameplates/cz75_p07.png",
 	"rifle":"res://assets/ui/icons/norinco_akm.png",
+	"beretta_mag":"res://assets/ui/inventory/magazine.png",
+	"pistol_mag":"res://assets/ui/inventory/magazine.png",
+	"rifle_mag":"res://assets/ui/inventory/magazine.png",
 	"knife":"res://assets/ui/icons/fairbairn_sykes.png",
 	"cudgel":"res://assets/props/rendered/club_icon.png",
 	"brick":"res://assets/props/rendered/brick.png",
@@ -191,9 +194,9 @@ func paint(canvas: Control) -> void:
 	else:
 		paint_inspection(canvas)
 	canvas.draw_line(Vector2(31, 593), Vector2(1142, 593), TRIM)
-	var hint := "Drag to move or equip  ·  I / Esc to close"
+	var hint := "Drag to move or equip  ·  Q / I / Esc to close"
 	if taking.is_valid():
-		hint = "Click a loot item to take it  ·  E / I / Esc to close"
+		hint = "Click to take one  ·  E take all that fits and close  ·  Q close"
 	text_at(canvas, Vector2(36, 615), hint, MUTED, 13)
 	if not feedback.is_empty():
 		text_at(canvas, Vector2(577, 615), feedback, GOLD, 13)
@@ -264,6 +267,8 @@ func paint_inspection(canvas: Control) -> void:
 	canvas.draw_line(Vector2(878, 422), Vector2(1112, 422), TRIM)
 	text_at(canvas, Vector2(878, 452), "E by the Mustang to open its boot.", MUTED, 13)
 	text_at(canvas, Vector2(878, 479), "E by a downed opponent to search.", MUTED, 13)
+	if model.ridge_house_key:
+		text_at(canvas, Vector2(878, 536), "KEY RING   ·   JACOBS HOUSE", GOLD, 12)
 
 func box(canvas: Control, area: Rect2, highlighted: bool, filled: bool = false) -> void:
 	canvas.draw_rect(area, Color("#342735") if filled else PANEL)
@@ -418,6 +423,13 @@ func take_entry(index: int) -> void:
 			"start":loot_bounds(index).get_center(), "end":end, "age":0.0})
 		set_process(true)
 	board.queue_redraw()
+
+func take_all_and_close() -> void:
+	if not open or not taking.is_valid():
+		return
+	for entry in contents.duplicate():
+		taking.call(entry)
+	close_inventory()
 
 func _process(delta: float) -> void:
 	for i in range(flights.size() - 1, -1, -1):

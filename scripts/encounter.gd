@@ -65,7 +65,7 @@ var cooldown := 0.0
 var reload_clock := 0.0
 var slot := 0
 var rounds := [14,0,24]
-var spares := [3,0,1]
+var spares := [0, 0, 0]
 var unlocked := [true,false,false]
 var shots_fired := 0
 var shots_hit := 0
@@ -73,6 +73,7 @@ var defeated := 0
 var phase := 0
 var elapsed := 0.0
 var finished := false
+var street_suspended := false
 var smoke_test := false
 var level_id := "feeder"
 var ornate_hud
@@ -108,6 +109,8 @@ func _ready() -> void:
 	held_visual.z_index = 6
 	add_child(held_visual)
 	spawn_group(false)
+	inventory.reserves_changed.connect(update_reserves)
+	update_reserves()
 	make_hud()
 	inventory_ui=InventoryPanel.new()
 	inventory_ui.configure(inventory, func() -> int: return slot)
@@ -370,6 +373,21 @@ func equip_quick(index: int) -> void:
 	if index >= 0 and index < inventory.quick_slots.size():
 		equip(inventory.quick_slots[index])
 
+func update_reserves() -> void:
+	for weapon in range(InventoryModel.MAGAZINES.size()):
+		spares[weapon] = inventory.bag.count(InventoryModel.MAGAZINES[weapon])
+	update_hud()
+
+func handle_inventory_shortcut(key: int) -> bool:
+	if not inventory_open() or (key != KEY_E and key != KEY_Q):
+		return false
+	if key == KEY_Q:
+		inventory_ui.close_inventory()
+	elif inventory_ui.taking.is_valid():
+		inventory_ui.take_all_and_close()
+	get_viewport().set_input_as_handled()
+	return true
+
 func refill() -> void:
 	if player_hp <= 0:
 		restart_stage()
@@ -527,9 +545,6 @@ func take_loot(entry: Dictionary, pile: Dictionary) -> String:
 		"cash":
 			inventory.add_cash(entry.amount)
 			destination = "wallet"
-		"magazine":
-			spares[1] += 1
-			destination = "equipment"
 		"pistol":
 			if not unlocked[1]:
 				unlocked[1] = true
@@ -578,7 +593,7 @@ func hit_enemy(target: Dictionary, amount: int, direction: Vector2 = Vector2.ZER
 		var kind: String = target.kind
 		var items: Array[Dictionary] = [{"item":kind, "label":InventoryModel.ITEM_NAMES[kind]}]
 		if kind == "pistol":
-			items.append({"item":"magazine", "label":"P-07 spare magazine"})
+			items.append({"item":"pistol_mag", "label":InventoryModel.ITEM_NAMES["pistol_mag"]})
 		var notes: int=int(target.get("cash_rand",0))
 		if notes > 0:
 			items.append({"item":"cash", "label":"Wallet · R%d" % notes, "amount":notes})
@@ -782,17 +797,18 @@ func step_shots(delta: float) -> void:
 		if float(motes[i]["life"])<=0:
 			motes.remove_at(i)
 func _physics_process(delta: float) -> void:
-	for item in bystanders:
-		if bool(item["escaped"]):
-			continue
-		var feedback: Node2D = item["feedback"]
-		feedback.position = item["body"].position
-		feedback.advance(delta)
-		if bool(item["down"]):
-			advance_collapse(item,delta)
-			feedback.position=item["body"].position
-		elif bool(item["panicked"]):
-			advance_escape(item,delta)
+	if not street_suspended:
+		for item in bystanders:
+			if bool(item["escaped"]):
+				continue
+			var feedback: Node2D = item["feedback"]
+			feedback.position = item["body"].position
+			feedback.advance(delta)
+			if bool(item["down"]):
+				advance_collapse(item,delta)
+				feedback.position=item["body"].position
+			elif bool(item["panicked"]):
+				advance_escape(item,delta)
 	if avatar != null and player_hp > 0:
 		avatar.modulate = Color(1.0,0.55,0.55) if player_invincible>0.0 and (int(elapsed*14.0)%2)==0 else Color.WHITE
 	if smoke_test:
@@ -810,11 +826,10 @@ func _physics_process(delta: float) -> void:
 		return
 	if reload_clock>0:
 		reload_clock=maxf(0.0,reload_clock-delta)
-		if reload_clock<=0:
+		if reload_clock <= 0 and inventory.use_magazine(slot):
 			rounds[slot]=int(KIT[slot]["size"])
-			spares[slot]-=1
 			update_hud()
-	if player_hp>0 and not finished:
+	if not street_suspended and not finished:
 		for item in actors:
 			update_character(item,delta)
 		step_shots(delta)
@@ -911,7 +926,7 @@ func run_test() -> void:
 	set_phase(1)
 	assert(actors.size()==12)
 	assert(not unlocked[2])
-	assert(inventory.bag.size()==2)
+	assert(inventory.bag.size()==5)
 	assert(inventory.cash_rand==0)
 	# An optional wallet is physical currency; it cannot refill ammunition.
 	var reserve_before: Array=spares.duplicate()
@@ -933,6 +948,22 @@ func run_test() -> void:
 	inventory_ui.close_inventory()
 	assert(not open_nearby_loot())
 	assert(spares==reserve_before)
+	var carrier: Dictionary = actors[1]
+	hit_enemy(carrier, int(carrier.hp))
+	avatar.position = carrier.body.position
+	assert(open_nearby_loot() and inventory_ui.contents.size() == 3)
+	assert(handle_inventory_shortcut(KEY_Q))
+	assert(not inventory_open() and not unlocked[1] and inventory.cash_rand == 80)
+	assert(open_nearby_loot() and handle_inventory_shortcut(KEY_E))
+	assert(not inventory_open() and unlocked[1] and inventory.cash_rand == 115)
+	assert(inventory.bag.count("pistol_mag") == 1 and spares[1] == 1)
+	assert(inventory.stow("brick") and inventory.bag.size() == inventory.capacity())
+	var second_carrier: Dictionary = actors[2]
+	hit_enemy(second_carrier, int(second_carrier.hp))
+	avatar.position = second_carrier.body.position
+	assert(open_nearby_loot() and handle_inventory_shortcut(KEY_E))
+	assert(not inventory_open() and inventory.bag.count("pistol_mag") == 1)
+	assert(nearby_loot().items.size() == 2)
 	avatar.position=previous_position
 	add_shot(Vector2(400,300),Vector2.RIGHT,true,"spark",350.0)
 	assert(shots.size()==1)

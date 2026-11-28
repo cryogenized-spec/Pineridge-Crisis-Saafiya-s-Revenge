@@ -6,6 +6,7 @@ const Encounter = preload("res://scripts/encounter.gd")
 const Traffic = preload("res://scripts/ambient_traffic.gd")
 const Effects = preload("res://scripts/visual_effects.gd")
 const ChapterState = preload("res://scripts/chapter_state.gd")
+const JacobsHouse = preload("res://scripts/jacobs_house.gd")
 const START := Vector2(126.0,519.0)
 const NEXT_SCENE := "res://scenes/house_one.tscn"
 var world: World
@@ -23,6 +24,7 @@ var phase := 0.0
 var finished := false
 var objective: Label
 var status: Label
+var jacobs: JacobsHouse
 const RUN_CYCLE := 0.64
 
 func _ready() -> void:
@@ -34,6 +36,7 @@ func _ready() -> void:
 	add_child(marker)
 	player = Actor.new()
 	player.hero = true
+	player.z_index = 2
 	player.position = START
 	add_child(player)
 	traffic=Traffic.new()
@@ -45,6 +48,10 @@ func _ready() -> void:
 	encounter.configure(player,world)
 	add_child(encounter)
 	encounter.gunfire.connect(traffic.react_to_gunfire)
+	jacobs = JacobsHouse.new()
+	jacobs.configure(player, encounter.inventory)
+	jacobs.moved_floor.connect(move_to_house_floor)
+	add_child(jacobs)
 	# A continuous stream of ordinary people travels along the road while
 	# a smaller set lingers. These are NPCs, not collision or combat targets.
 	for i in range(11):
@@ -103,6 +110,15 @@ func advance_stage() -> void:
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
+	if jacobs.dialogue.open:
+		if event.keycode == KEY_E:
+			jacobs.dialogue.advance()
+		elif event.keycode in [KEY_Q, KEY_ESCAPE]:
+			jacobs.dialogue.close()
+		get_viewport().set_input_as_handled()
+		return
+	if encounter.handle_inventory_shortcut(event.keycode):
+		return
 	match event.keycode:
 		KEY_ESCAPE:
 			if encounter.inventory_open():
@@ -121,11 +137,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			var mode := DisplayServer.window_get_mode()
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if mode == DisplayServer.WINDOW_MODE_FULLSCREEN else DisplayServer.WINDOW_MODE_FULLSCREEN)
 		KEY_E:
-			if encounter.inventory_open():
-				if encounter.inventory_ui.taking.is_valid():
-					encounter.inventory_ui.close_inventory()
-				return
 			if encounter.open_nearby_loot():
+				return
+			if encounter.player_hp > 0 and jacobs.interact():
 				return
 			if player.position.distance_to(World.TRUNK_POINT)<47.0:
 				encounter.show_car_boot()
@@ -133,8 +147,27 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			advance_stage()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_LEFT and event.pressed:
+	if not jacobs.indoors() and not jacobs.dialogue.open and event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_LEFT and event.pressed:
 		encounter.fire_player()
+
+func move_to_house_floor(point: Vector2) -> void:
+	player.position = point
+	var inside := jacobs.indoors()
+	var frame := JacobsHouse.VIEW if inside else Rect2(Vector2.ZERO, World.SIZE)
+	camera.limit_left = int(frame.position.x)
+	camera.limit_top = int(frame.position.y)
+	camera.limit_right = int(frame.end.x)
+	camera.limit_bottom = int(frame.end.y)
+	camera.zoom = Vector2.ONE * (1.43 if inside else 1.85)
+	camera.position = frame.get_center() if inside else point
+	camera.position_smoothing_enabled = not inside
+	camera.reset_smoothing()
+	encounter.ornate_hud.minimap.visible = not inside
+	encounter.ornate_hud.story_subtitle.visible = not inside
+	encounter.street_suspended = inside
+
+func movement_blocked(point: Vector2) -> bool:
+	return jacobs.blocked(point) if jacobs.indoors() else world.blocked(point)
 
 func _physics_process(delta: float) -> void:
 	elapsed += delta
@@ -149,16 +182,17 @@ func _physics_process(delta: float) -> void:
 	if run and axis.length_squared()>0.0:
 		cadence=1.0-0.48*cos((phase+delta/RUN_CYCLE*0.5)*TAU*2.0)
 	var movement := axis.normalized()*speed*cadence*delta
-	if encounter.inventory_open():
+	encounter.street_suspended = jacobs.indoors() or jacobs.dialogue.open
+	if encounter.inventory_open() or jacobs.dialogue.open:
 		movement=Vector2.ZERO
 	if encounter.player_hp <= 0:
 		movement=Vector2.ZERO
 	var before: Vector2=player.position
 	var attempt := before+Vector2(movement.x,0)
-	if not world.blocked(attempt):
+	if not movement_blocked(attempt):
 		player.position.x=attempt.x
 	attempt=player.position+Vector2(0,movement.y)
-	if not world.blocked(attempt):
+	if not movement_blocked(attempt):
 		player.position.y=attempt.y
 	var moved := player.position-before
 	player.animate(delta,moved,(get_global_mouse_position()-player.position).angle(),low,run)
@@ -167,7 +201,11 @@ func _physics_process(delta: float) -> void:
 		player.gait_phase=phase
 	else:
 		phase=player.gait_phase
-	camera.position=player.position
+	camera.position = jacobs.destination() if jacobs.indoors() else player.position
+	if jacobs.indoors():
+		objective.text = jacobs.objective()
+		status.text = "Jacobs house  •  " + ("Ground floor" if jacobs.floor_number == 1 else "Upper floor")
+		return
 	for i in range(walkers.size()):
 		var npc: Actor = walkers[i]
 		if npc.down_phase>=0 or bool(npc.get_meta("panic_run",false)):
@@ -183,7 +221,11 @@ func _physics_process(delta: float) -> void:
 		npc.animate(delta,walked,walked.angle() if walked.length_squared()>0.005 else npc.facing,false,false)
 	marker.marker_position=World.EXIT_POINT
 	var ready := can_advance()
-	objective.text="E  ·  Continue to the barricaded house" if ready else "Follow the downhill road toward the residential block."
+	var side_objective := jacobs.objective()
+	if not side_objective.is_empty():
+		objective.text = side_objective
+	else:
+		objective.text = "E  ·  Continue to the barricaded house" if ready else "Follow the downhill road toward the residential block."
 	status.text="Distance to junction: %d m    •    %d FPS" % [roundi(player.position.distance_to(World.EXIT_POINT)/24.0),Engine.get_frames_per_second()]
 	encounter.ornate_hud.story_subtitle.modulate.a=maxf(0.0,1.0-elapsed/9.0)
 
@@ -193,6 +235,12 @@ func run_smoke() -> void:
 	assert(not world.blocked(World.TRUNK_POINT))
 	assert(encounter.inventory.boot.has("backpack"))
 	assert(encounter.inventory.bag.has("keys"))
+	assert(encounter.spares[0] == 3)
+	var spare_index := encounter.inventory.bag.find("beretta_mag")
+	assert(encounter.inventory.move_item("bag", spare_index, "boot", Vector2i(5, 7)))
+	assert(encounter.spares[0] == 2)
+	assert(encounter.inventory.take_from_boot(encounter.inventory.boot.find("beretta_mag")))
+	assert(encounter.spares[0] == 3)
 	assert(encounter.inventory.take_from_boot(0))
 	assert(encounter.inventory.equip_backpack())
 	assert(encounter.inventory.capacity()==18)
@@ -216,9 +264,64 @@ func run_smoke() -> void:
 	assert(not world.blocked(Vector2(742, 300)))
 	assert(world.blocked(Vector2(742, 230)))
 	assert(not world.blocked(START))
+	assert(not world.blocked(Vector2(567, 690)))
+	run_house_smoke()
 	assert(not can_advance())
 	player.position=World.EXIT_POINT
 	assert(can_advance())
 	assert(ResourceLoader.exists(NEXT_SCENE))
-	print("Upper Ridge smoke: residential map, NPC flow, arcade encounters, player visuals and scene transition verified.")
+	print("Upper Ridge smoke: residential map, inventory keys, Jacobs grounds, two floors, dialogue and chapter transition verified.")
 	get_tree().quit()
+
+func run_house_smoke() -> void:
+	var e := InputEventKey.new()
+	e.keycode = KEY_E
+	e.pressed = true
+	var q := InputEventKey.new()
+	q.keycode = KEY_Q
+	q.pressed = true
+	player.position = JacobsHouse.FRONT
+	_unhandled_key_input(e)
+	assert(not jacobs.indoors() and not encounter.inventory.ridge_house_key)
+	for point in [Vector2(1972, 346), Vector2(1972, 302), Vector2(2149, 286),
+			Vector2(2158, 240), Vector2(2158, 161), Vector2(2158, 104), JacobsHouse.OWNER_AT]:
+		assert(not world.blocked(point))
+	player.position = JacobsHouse.OWNER_AT + Vector2(13, 13)
+	_unhandled_key_input(e)
+	assert(jacobs.dialogue.open and not encounter.inventory.ridge_house_key)
+	_unhandled_key_input(q)
+	assert(not jacobs.dialogue.open and not encounter.inventory.ridge_house_key)
+	_unhandled_key_input(e)
+	for page in range(3):
+		_unhandled_key_input(e)
+	assert(encounter.inventory.ridge_house_key and not jacobs.dialogue.open)
+	player.position = JacobsHouse.FRONT
+	_unhandled_key_input(e)
+	assert(jacobs.floor_number == 1 and encounter.street_suspended)
+	assert(player.position == JacobsHouse.VIEW.position + JacobsHouse.ENTRY)
+	assert(not movement_blocked(JacobsHouse.VIEW.position + JacobsHouse.PATIO_EXIT))
+	assert(not movement_blocked(JacobsHouse.VIEW.position + Vector2(448, 128)))
+	player.position = JacobsHouse.VIEW.position + JacobsHouse.STAIR
+	_unhandled_key_input(e)
+	assert(jacobs.floor_number == 2 and not encounter.ornate_hud.minimap.visible)
+	assert(movement_blocked(JacobsHouse.VIEW.position + JacobsHouse.LOCKED_DOOR))
+	assert(not movement_blocked(JacobsHouse.VIEW.position + Vector2(298, 262)))
+	jacobs._process(.24)
+	assert(jacobs.raised < 0.0 and jacobs.knock_audio.playing)
+	player.position = JacobsHouse.VIEW.position + JacobsHouse.LOOTER_AT + Vector2(0, 32)
+	jacobs._process(.30)
+	assert(jacobs.raised > 0.0 and not jacobs.knock_audio.playing)
+	_unhandled_key_input(e)
+	assert(jacobs.dialogue.open)
+	for page in range(3):
+		_unhandled_key_input(e)
+	assert(jacobs.resolved and not jacobs.dialogue.open)
+	player.position = JacobsHouse.VIEW.position + JacobsHouse.STAIR
+	_unhandled_key_input(e)
+	player.position = JacobsHouse.VIEW.position + JacobsHouse.PATIO_EXIT
+	_unhandled_key_input(e)
+	assert(player.position == JacobsHouse.BACK and not jacobs.indoors())
+	assert(encounter.ornate_hud.minimap.visible and not encounter.street_suspended)
+	encounter.toggle_inventory()
+	_unhandled_key_input(q)
+	assert(not encounter.inventory_open() and not running)
