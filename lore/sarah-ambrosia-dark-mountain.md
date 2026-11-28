@@ -107,3 +107,11 @@ This is an **outline, not a locked shot list, nor proof of a romance**.
 - **[D/P]** The unusual black dagger was described as possibly **commissioned**; a tingling or energetic response when handled by Sarah or Saafiya is only an exploratory fictional sensation until the story defines its paranormal status.
 - **[H]** Dark Mountain participants also used **clan tags** and portrayals of vampires, lycans, mages and left-hand-path personas. Participation ranged from simple fantasy performance to earnest interest in supernatural claims; apparent personas and real-life beliefs cannot automatically be equated.
 - **[O]** More detail and distinctions between real historical recollections, fictional lore and visual drafts: [third-pass fragments](third-pass-fragments-2026-11-28.md).
+
+## Fourth-pass recovered first-contact and chronology nuance (28 Nov 2026)
+
+- **[D]** At the early **McDonald's** appearance, Sarah and other young people may be awaiting an **in-person/face-to-face meet-up with an online Dark Mountain acquaintance**, rather than merely standing around together. This can precede the later art-class introduction; the girls are not required to become friends in that first scene.
+- **[D]** Ambrosia's movement from *offline friendship to online roleplaying* contrasts with **Farsha's online-origin group**, which later may develop offline connections. Real-life meetups between online community members are a believable bridge, not an obligatory first-introduction mechanic.
+- **[O]** The early girls' reading/makeup circle and later mixed-age tabletop/LARP/esoteric circle might be nested circles or later developments; neither relationship is yet settled.
+- **[O]** School/MXit event dates are **mid-to-late 2000s**, still not an approved exact chronological sequence. Preserve this ambiguity, particularly when referencing media released in different years.
+- Supplemental source and context: [fourth-pass audit](fourth-pass-continuity-audit-2026-11-28.md).
