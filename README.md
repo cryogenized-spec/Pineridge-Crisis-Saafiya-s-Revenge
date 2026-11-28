@@ -1,7 +1,7 @@
 # Pineridge Crisis — Saafiya's Revenge
 
 ## Native Saafiya Gothic HUD (16:9)
-The game now uses the 2048×1152 Gothic HUD across Godot story chapters. It fills the four corners of the game viewport. Fullscreen is enabled on desktop; press **F** to toggle it where the browser requires a user gesture. The bronze ammunition panel displays real rounds and reserve magazines without clipping, and the minimap rotates beneath its fixed chevron. Eight supplied icons appear in two four-direction pages, while the game permits switching only to weapons unlocked in its encounter logic. The current arcade ammunition and inventory remain the source of truth. More details: [docs/hud/native-godot.md](docs/hud/native-godot.md).
+The game now uses the 2048×1152 Gothic HUD across Godot story chapters. It fills the four corners of the game viewport. Fullscreen is enabled on desktop; press **F** to toggle it where the browser requires a user gesture. The bronze ammunition panel displays real rounds and reserve magazines without clipping, and the minimap rotates beneath its fixed chevron. Four numbered quick slots show the weapons assigned in Saafiya's inventory. The current arcade ammunition and inventory remain the source of truth. More details: [docs/hud/native-godot.md](docs/hud/native-godot.md).
 
 
 ## Approved artwork now included in browser and Linux exports
@@ -94,21 +94,21 @@ Story houses 1–3, their interiors, and the final mall building are subsequent 
 
 
 ## V29 — Segment 2: Barricaded House (playable)
-A second standalone Godot scene (`scenes/house_one.tscn`) follows the Upper Pineridge introductory road. The scene shows a closed residential home and barred shutters, a fenced garden and accessible open gate, an open two-car carport, bins, parcels, tree verges, familiar hillside houses, and an active road. Each sedan measures approximately 108×43 display pixels as in Segment 1. The house remains non-explorable in this chapter; a family voice speaks from behind the shutters when the player presses E at the gate. The next E interaction at the east junction continues to the existing mall-side road.
+A second standalone Godot scene (`scenes/house_one.tscn`) follows the Upper Pineridge introductory road. The scene shows a closed residential home and barred shutters, a fenced garden and accessible open gate, an open two-car carport, bins, parcels, tree verges, familiar hillside houses, and an active road. Each sedan measures approximately 108×43 display pixels as in Segment 1. Press E at the gate to speak to the family, then walk through the yard and press E at the porch to visit the front room. The next E interaction at the east junction continues to the existing mall-side road.
 
 Segment 2 includes eight neutral roaming characters, six abstract arcade NPCs near the property and road, the existing gunfire/panic reactions, the approved Saafiya and crowd atlases, and the established audio system. An inventory snapshot preserves health, ammunition and unlocked slots between all three chapters. Headless tests cover yard collision, the gate interaction, the completed objective, the road transition and progress persistence. More detailed exterior interaction and the next two house stories remain separate future segments.
 
 
-## V30 inventory and street traffic
-Press I in any playable chapter for Saafiya's Diablo-inspired equipment and inventory screen: head, neck, torso, arms, belt, boots, hands, sidearm, primary/backup, knife and ten ring slots. Her carried objects are finite, with eight pocket slots or eighteen using a backpack. A wallet tracks South African rand. The uphill starting scene now shows Saafiya's parked car; press E near the boot to move ordinary items and money between the bag and the forty-slot vehicle stash. Her starting backpack is physically stored in the boot. Both stash and personal inventory persist during chapter transitions alongside existing health, loaded rounds and spare magazine counts.
+## Inventory and street interaction
 
-Random ammunition, health and automatic weapon unlocks have been removed from NPC defeat drops; some NPCs instead leave a small visible wallet with a fixed cash amount, collected nearby using E. No automatic weapon pickup or item-based healing is implied.
-
-Residential stages 1 and 2 now show occasional code-drawn traffic (including a rare security-marked car), with an inexpensive two-car cap, slow noncombat movement and pedestrian/vehicle collision checks. These vehicles do not attack anyone, and they stop their display movement if the player is in their immediate vicinity.
+- Press **I** to open Saafiya’s equipment and 6×4 carried grid. Drag items to rearrange them, swap compatible outfit pieces, or assign a weapon to one of four clockwise shortcuts. **1** is up, **2** right, **3** down, and **4** left. **Q** still toggles running.
+- Press **E** near a downed opponent and click an item to take it. Recovered pistols get the first open shortcut. Press **E** near the Mustang boot to move items and cash. Equipment, bag positions and quick slots follow Saafiya between chapters.
+- The open driveways off Upper Pineridge lead to walkable yards. The second chapter’s front room is available after speaking to the household at the gate.
+- If a car is held up, its driver honks, then steps out to gesture after six more seconds. Cars speed away from nearby gunfire and show cumulative damage.
 
 ## Reusable sprite kit
 
-The campaign uses the redesigned Saafiya sprite throughout, including a new animated collapse. Press **E** near a downed opponent to search them, click each item to transfer it, and press **2** to equip a recovered pistol. Saafiya's black 1967 Mustang is parked at the start of Upper Pineridge, where **E** opens its boot. Nearby traffic accelerates away from shots. Armed opponents fire short, telegraphed volleys from range, while knife and cudgel opponents rush into a short wind-up.
+The campaign uses the redesigned Saafiya sprite throughout, including a new animated collapse. Pistol shots resolve immediately without tracers on either side. Knife opponents use a full-body overhead swing, and ground effects include persistent impact marks, pools and smaller bouncing casings.
 
 Press **K** or **F7** to inspect the cast and overhead equipment in any chapter. The sprite kit includes three rigged body templates, ten adult NPC looks, the Saafiya model and nine equipment props. [Sprite kit, wallpaper, and Blender source](docs/sprite-kit/README.md)
 

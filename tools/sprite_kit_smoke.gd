@@ -52,15 +52,28 @@ func run() -> void:
 	battle.update_character(pistol_carrier, 0.01)
 	assert(pistol_body.position == firing_position and pistol_carrier.windup > 0.0)
 	battle.update_character(pistol_carrier, 0.30)
-	assert(battle.shots.size() == 1 and car.hurrying)
+	assert(battle.shots.is_empty() and car.hurrying and battle.player_hp == 2)
 	level.traffic._process(0.25)
 	assert(car.pace > car.speed)
 	battle.update_character(pistol_carrier, 0.17)
-	assert(battle.shots.size() == 2)
-	battle.step_shots(0.40)
-	assert(battle.player_hp == 3)
-	battle.step_shots(0.06)
-	assert(battle.player_hp == 2)
+	assert(battle.shots.is_empty() and battle.player_hp == 2)
+	assert(battle.actors[1].fleeing and battle.actors[1].escape_x > battle.actors[1].body.position.x)
+	car.pos = hero.position + Vector2(-20, -21)
+	car.hurrying = false
+	level.traffic.step_car(car, 1.4)
+	assert(level.traffic.horn.playing and car.driver == null)
+	level.traffic.step_car(car, 6.1)
+	assert(is_instance_valid(car.driver))
+	level.traffic.step_car(car, 0.51)
+	assert(car.driver.action_atlas != null and car.driver.action_phase >= 0.0)
+	for hit in range(level.traffic.STALL_HITS):
+		assert(level.traffic.impact_vehicle(car.pos + Vector2(21, 22)))
+	var stalled_at: Vector2 = car.pos
+	hero.position += Vector2(0, 48)
+	level.traffic.step_car(car, 1.0)
+	assert(car.pos == stalled_at)
+	level.traffic.cars.clear()
+	hero.position = firing_position + Vector2(-300, 0)
 	var melee: Dictionary = battle.actors[2]
 	melee.body.position = hero.position + Vector2(36, 0)
 	melee.cooldown = 0.0
@@ -69,6 +82,7 @@ func run() -> void:
 	assert(melee.body.position.distance_to(hero.position) < 20.0)
 	battle.update_character(melee, 0.01)
 	assert(melee.windup > 0.0)
+	assert(melee.body.action_atlas != null and melee.body.action_phase >= 0.0)
 	hero.position += Vector2(0, 45)
 	battle.player_invincible = 0.0
 	battle.update_character(melee, 0.39)
@@ -80,18 +94,31 @@ func run() -> void:
 	loot_key.pressed = true
 	level._unhandled_key_input(loot_key)
 	assert(battle.inventory_open() and battle.inventory_ui.contents.size() == 2)
-	var pistol: Button = battle.inventory_ui.boot_col.get_child(1)
-	var pistol_name := pistol.text
-	pistol.pressed.emit()
-	pistol.pressed.emit()
+	var pistol_name: String = battle.inventory_ui.contents[0].label
+	battle.inventory_ui.take_entry(0)
 	assert(battle.unlocked[1] and battle.inventory.equipment["Backup"] == pistol_name)
 	assert(battle.rounds[1] == battle.KIT[1].size and battle.inventory_ui.contents.size() == 1)
-	var magazine: Button = battle.inventory_ui.boot_col.get_child(1)
-	magazine.pressed.emit()
+	battle.inventory_ui.take_entry(0)
 	assert(battle.spares[1] == 1 and battle.inventory_ui.contents.is_empty())
 	level._unhandled_key_input(loot_key)
 	assert(not battle.inventory_open())
-	battle.equip(1)
+	battle.resolve_player_action(Vector2(190, 478), Vector2.RIGHT)
+	assert(level.world.vehicle_marks.has(0))
+	assert(battle.inventory.quick_slots == [0, 1, -1, -1])
+	battle.toggle_inventory()
+	var ui: CanvasLayer = battle.inventory_ui
+	drag_between(ui, ui.SLOTS["Backup"].get_center(), ui.QUICK[3].get_center())
+	assert(battle.inventory.quick_slots == [0, -1, -1, 1])
+	drag_between(ui, ui.BAG + Vector2(24, 24), ui.BAG + Vector2(168, 120))
+	assert(battle.inventory.bag_cells[0] == Vector2i(3, 2))
+	drag_between(ui, ui.BAG + Vector2(168, 120), ui.BAG + Vector2(72, 24))
+	assert(battle.inventory.bag_cells[0] == Vector2i(3, 2))
+	drag_between(ui, ui.SLOTS["Head"].get_center(), ui.BAG + Vector2(120, 24))
+	assert(battle.inventory.item_for_slot("Head").is_empty() and "glasses" in battle.inventory.bag)
+	drag_between(ui, ui.BAG + Vector2(120, 24), ui.SLOTS["Head"].get_center())
+	assert(battle.inventory.item_for_slot("Head") == "glasses")
+	battle.toggle_inventory()
+	battle.equip_quick(3)
 	battle.cooldown = 0.0
 	battle.fire_player()
 	assert(visual.entry().id == "cz75_p07" and visual.cycle_shift() < -1.0)
@@ -151,6 +178,8 @@ func run() -> void:
 	root.add_child(house)
 	assert(house.player.has_hero_atlases())
 	assert(house.encounter.unlocked[1] and house.encounter.inventory.equipment["Backup"] == pistol_name)
+	assert(house.encounter.inventory.quick_slots == [0, -1, -1, 1])
+	assert(house.encounter.inventory.bag_cells[0] == Vector2i(3, 2))
 	assert(house.encounter.stage_decals.records.is_empty())
 	house.free()
 	var revisit := UPPER.instantiate()
@@ -164,3 +193,17 @@ func run() -> void:
 	ChapterState.reset(self)
 	print("Sprite kit smoke: live slide, decals, nine poses, default Saafiya, collapse, looting, ranged volleys and traffic reaction.")
 	quit()
+
+func drag_between(ui: CanvasLayer, from: Vector2, to: Vector2) -> void:
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	press.position = from
+	ui.point_input(press)
+	var move := InputEventMouseMotion.new()
+	move.position = to
+	ui.point_input(move)
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.position = to
+	ui.point_input(release)

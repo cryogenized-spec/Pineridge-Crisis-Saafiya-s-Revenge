@@ -48,6 +48,12 @@ const ACTION_REACH := 480.0
 const CHARACTER_HIT_RADIUS := 18.0
 const LOOT_REACH := 42.0
 const PISTOL_VOLLEY := [0.28, 0.16]
+const MELEE_WINDUP := 0.37
+const MELEE_FOLLOW := 0.38
+const MELEE_SWINGS := {
+	0:preload("res://assets/characters/reactions/swing_00.png"),
+	7:preload("res://assets/characters/reactions/swing_07.png")
+}
 var shots: Array[Dictionary] = []
 var motes: Array[Dictionary] = []
 var loot: Array[Dictionary] = []
@@ -104,7 +110,7 @@ func _ready() -> void:
 	spawn_group(false)
 	make_hud()
 	inventory_ui=InventoryPanel.new()
-	inventory_ui.configure(inventory)
+	inventory_ui.configure(inventory, func() -> int: return slot)
 	add_child(inventory_ui)
 	smoke_test = "--encounter-smoke" in OS.get_cmdline_user_args()
 	if smoke_test:
@@ -127,12 +133,10 @@ func close_sprite_kit() -> void:
 
 func spawn_group(return_wave: bool) -> void:
 	if level_id == "barricaded_house":
-		# Story staging outside the secured property. Avoid procedural
-		# entry routes: the family remains inaccessible indoors.
 		var house_group := [
 			[Vector2(950,530),"runner",0],
-			[Vector2(1225,371),"brick",2],
-			[Vector2(1470,343),"cudgel",4],
+			[Vector2(1225,459),"brick",2],
+			[Vector2(1470,468),"cudgel",4],
 			[Vector2(1605,491),"slingshot",6],
 			[Vector2(1760,543),"knife",7],
 			[Vector2(1955,552),"pistol",9]
@@ -148,7 +152,9 @@ func spawn_group(return_wave: bool) -> void:
 			[Vector2(815,456),"brick",3],
 			[Vector2(1078,570),"knife",7],
 			[Vector2(1136,476),"pistol",9],
-			[Vector2(1920,587),"cudgel",5]
+			[Vector2(1920,587),"cudgel",5],
+			[Vector2(719,574),"runner",6],
+			[Vector2(1486,620),"slingshot",10]
 		]
 		for item in opening:
 			spawn_character(item[0],item[1],int(item[2]),bool(item[1] in ["pistol","knife"]))
@@ -177,6 +183,8 @@ func spawn_character(at: Vector2, kind: String, look: int, male_voice: bool = fa
 	var character := Actor.new()
 	character.position = at
 	character.wardrobe_index = look
+	if kind == "knife":
+		character.action_atlas = MELEE_SWINGS.get(look)
 	character.z_index = 2
 	add_child(character)
 	var attachment: Node2D
@@ -224,7 +232,7 @@ func on_gunfire(at: Vector2) -> void:
 		var body: Actor = person["body"]
 		var distance := body.position.distance_to(at)
 		if distance <= HEARING_RADIUS:
-			start_bystander_escape(person)
+			start_bystander_escape(person, at)
 			alarms += 1
 	for enemy in actors:
 		if bool(enemy["down"]) or bool(enemy["escaped"]):
@@ -235,46 +243,46 @@ func on_gunfire(at: Vector2) -> void:
 		var feedback: Node2D = enemy["feedback"]
 		var first_alarm: bool = not bool(enemy["alerted"])
 		enemy["alerted"] = true
-		# A second or third gunshot cannot indefinitely freeze an enemy.
-		if first_alarm:
-			enemy["startle"] = rng.randf_range(0.18,0.36)
-			var kind: String = enemy["kind"]
-			var runs: bool = kind == "runner" or ((kind == "brick" or kind == "slingshot") and rng.randf() < 0.55) or (kind == "knife" and rng.randf() < 0.22)
-			if runs:
-				start_enemy_escape(enemy)
-			else:
-				feedback.show_alert("!")
-				feedback.show_caption("Nangu!")
+		var kind: String = enemy.kind
+		if kind in ["runner", "brick", "slingshot"]:
+			start_enemy_escape(enemy, at)
+		elif first_alarm:
+			enemy.startle = rng.randf_range(0.18, 0.36)
+			feedback.show_alert("!")
+			feedback.show_caption("Nangu!")
 		alarms += 1
 	if alarms > 0 and shout_cooldown <= 0.0:
 		audio.play_cue("crowd_shout")
 		shout_cooldown = 2.5
 
-func escape_parameters(state: Dictionary) -> void:
+func escape_parameters(state: Dictionary, alarm: Vector2) -> void:
 	var body: Actor = state["body"]
-	var towards_west: bool = body.position.x < LEVEL_WIDTH * 0.5
+	var towards_west := body.position.x < alarm.x
 	state["escape_x"] = -ESCAPE_MARGIN if towards_west else LEVEL_WIDTH + ESCAPE_MARGIN
-	state["escape_lane"] = 184.0 if body.position.y < 335.0 else 520.0
+	if level_id == "feeder":
+		state["escape_lane"] = 184.0 if body.position.y < 335.0 else 520.0
+	else:
+		state["escape_lane"] = 412.0 if body.position.y < alarm.y else 647.0
 	state["escape_speed"] = rng.randf_range(108.0,155.0)
 
-func start_bystander_escape(person: Dictionary) -> void:
+func start_bystander_escape(person: Dictionary, alarm: Vector2 = Vector2.INF) -> void:
 	if bool(person["panicked"]):
 		return
 	person["panicked"] = true
 	person["hesitation"] = [0.0,0.17,0.42,0.08][int(person["panic_personality"])]
-	escape_parameters(person)
+	escape_parameters(person, avatar.position if alarm == Vector2.INF else alarm)
 	var body: Actor = person["body"]
 	body.set_meta("panic_run",true)
 	var feedback: Node2D = person["feedback"]
 	feedback.show_alert("!")
 	feedback.show_caption(PANIC_CAPTIONS[int(person["panic_personality"])%PANIC_CAPTIONS.size()])
 
-func start_enemy_escape(enemy: Dictionary) -> void:
+func start_enemy_escape(enemy: Dictionary, alarm: Vector2) -> void:
 	if bool(enemy["fleeing"]):
 		return
 	enemy["fleeing"] = true
 	enemy["startle"] = rng.randf_range(0.14,0.35)
-	escape_parameters(enemy)
+	escape_parameters(enemy, alarm)
 	var feedback: Node2D = enemy["feedback"]
 	feedback.show_alert("!")
 	feedback.show_caption("Baleka!")
@@ -354,7 +362,13 @@ func equip(number: int) -> void:
 		held_visual.choose_slot(slot)
 	reload_clock = 0.0
 	audio.play_cue("pickup")
+	if inventory_open():
+		inventory_ui.board.queue_redraw()
 	update_hud()
+
+func equip_quick(index: int) -> void:
+	if index >= 0 and index < inventory.quick_slots.size():
+		equip(inventory.quick_slots[index])
 
 func refill() -> void:
 	if player_hp <= 0:
@@ -394,7 +408,8 @@ func fire_player() -> void:
 
 func resolve_player_action(origin: Vector2, direction: Vector2) -> void:
 	# Immediate fictional arcade collision: no tracer or projectile rendering.
-	var reach_end := stage_trace(origin, origin + direction * ACTION_REACH)
+	var full_reach := origin + direction * ACTION_REACH
+	var reach_end := stage_trace(origin, full_reach)
 	var nearest := ACTION_REACH + 1.0
 	var candidate: Dictionary = {}
 	var ambient := false
@@ -421,6 +436,10 @@ func resolve_player_action(origin: Vector2, direction: Vector2) -> void:
 			candidate = item
 			ambient = true
 	if candidate.is_empty():
+		if reach_end != full_reach and street.has_method("impact_vehicle"):
+			if street.impact_vehicle(reach_end + direction * 6.0, direction):
+				motes.append({"point":reach_end, "life":0.28})
+				audio.play_cue("vehicle_impact")
 		return
 	if ambient:
 		affect_bystander(candidate, direction)
@@ -516,6 +535,7 @@ func take_loot(entry: Dictionary, pile: Dictionary) -> String:
 				unlocked[1] = true
 				rounds[1] = int(KIT[1]["size"])
 				inventory.equipment["Backup"] = KIT[1]["name"]
+				inventory.unlock_quick(1)
 				destination = "equipment"
 			elif not inventory.stow(entry.item):
 				return ""
@@ -632,7 +652,7 @@ func update_character(target: Dictionary, delta: float) -> void:
 			if kind == "pistol":
 				fire_volley(target)
 			elif melee:
-				target.attack = 0.38
+				target.attack = MELEE_FOLLOW
 				target.cooldown = 0.58
 				if distance < float(ROLES[kind].reach) + 4.0 and clear_lane:
 					hurt_player(to_avatar.normalized())
@@ -657,7 +677,7 @@ func update_character(target: Dictionary, delta: float) -> void:
 		elif melee:
 			if float(target.cooldown) <= 0.0:
 				if distance <= float(ROLES[kind].reach) and clear_lane:
-					target.windup = 0.37
+					target.windup = MELEE_WINDUP
 					target.aim = heading
 				else:
 					motion = to_avatar.normalized() * float(ROLES[kind].speed) * delta
@@ -683,6 +703,13 @@ func update_character(target: Dictionary, delta: float) -> void:
 		step.y = motion.y if not street.blocked(body.position + Vector2(step.x, motion.y), 8) else 0.0
 		body.position += step
 	body.animate(delta,step,heading,false,(melee or kind == "runner") and not step.is_zero_approx())
+	if body.action_atlas != null:
+		body.action_phase = -1.0
+		if target.windup > 0.0:
+			body.action_phase = .46 * (1.0 - float(target.windup) / MELEE_WINDUP)
+		elif target.attack > 0.0:
+			body.action_phase = 1.0 - .54 * float(target.attack) / MELEE_FOLLOW
+		accessory.visible = body.action_phase < 0.0
 	if float(target["reaction"])>0.0:
 		body.modulate=Color(1.0,0.61,0.61)
 	else:
@@ -716,7 +743,10 @@ func fire_volley(target: Dictionary) -> void:
 	else:
 		target.cooldown = rng.randf_range(1.02, 1.35)
 	var direction := Vector2.from_angle(float(target.aim) + rng.randf_range(-0.023, 0.023))
-	add_shot(body.position + direction * 10.0, direction, false, "pistol", 680.0)
+	var end := stage_trace(body.position, body.position + direction * ACTION_REACH)
+	var nearest := Geometry2D.get_closest_point_to_segment(avatar.position, body.position, end)
+	if nearest.distance_to(avatar.position) < 12.0 and stage_trace(nearest, avatar.position) == avatar.position:
+		hurt_player(direction)
 	var weapon: WeaponVisual = target.attachment
 	stage_decals.eject(weapon.burst(direction))
 	audio.play_cue("cz75_shot", -4.0)
@@ -797,13 +827,10 @@ func _draw() -> void:
 			var point: Vector2 = s["point"]
 			var size := 3.0 if kind == "brick" else 1.4
 			draw_circle(point,size,Color("#ab9181") if kind == "brick" else Color("#8a888b"),true,-1,true)
-		elif kind == "pistol":
-			draw_line(s.prior, s.point, Color("#e5a366"), 1.35, true)
-			draw_circle(s.point, 1.4, Color("#fff0c3"), true, -1, true)
 	for target in actors:
-		if not target.down and not target.escaped and float(target.windup) > 0.0:
-			var tint := Color("#ef9c71") if target.kind == "pistol" else Color("#e66b77")
-			draw_arc(target.body.position, 20.0, -PI / 2.0, TAU * (1.0 - float(target.windup) / 0.4) - PI / 2.0, 24, tint, 1.5, true)
+		if not target.down and not target.escaped and target.kind == "pistol" and float(target.windup) > 0.0:
+			var top: Vector2 = target.body.position + Vector2(0, -19)
+			draw_circle(top, 2.5, Color("#efb086"), true, -1, true)
 	for spark in motes:
 		var strength := float(spark["life"])/0.28
 		draw_circle(spark["point"],3.0*(1.0-strength)+1.0,Color(0.96,0.77,0.52,strength*0.55),false,0.9,true)
@@ -896,14 +923,12 @@ func run_test() -> void:
 	avatar.position=wallet_owner["body"].position+Vector2(12,8)
 	assert(open_nearby_loot())
 	assert(inventory.cash_rand == 0)
-	var wallet_button: Button = inventory_ui.boot_col.get_child(2)
-	wallet_button.pressed.emit()
+	inventory_ui.take_entry(1)
 	assert(inventory.cash_rand==80)
-	wallet_button.pressed.emit()
+	inventory_ui.take_entry(1)
 	assert(inventory.cash_rand==80)
 	assert(inventory_ui.contents.size() == 1)
-	var cudgel_button: Button = inventory_ui.boot_col.get_child(1)
-	cudgel_button.pressed.emit()
+	inventory_ui.take_entry(0)
 	assert(inventory.bag.has("cudgel") and inventory_ui.contents.is_empty())
 	inventory_ui.close_inventory()
 	assert(not open_nearby_loot())

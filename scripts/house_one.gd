@@ -85,7 +85,7 @@ func make_hud() -> void:
 		"02  /  THE BARRICADED HOUSE",
 		"Find the occupied house and check on the family at the front gate.",
 		"",
-		"WASD MOVE  •  Q RUN  •  E INTERACT  •  I INVENTORY  •  R RELOAD  •  [ / ] EQUIPMENT  •  F FULLSCREEN"
+		"WASD MOVE  •  Q RUN  •  E INTERACT  •  I INVENTORY  •  R RELOAD  •  1–4 QUICK SLOTS  •  F FULLSCREEN"
 	)
 	objective = encounter.ornate_hud.story_objective
 	status = encounter.ornate_hud.story_status
@@ -101,11 +101,22 @@ func speak_with_residents() -> void:
 	if checked_house or not check_gate():
 		return
 	checked_house=true
-	dialogue.text="VOICE BEHIND THE SHUTTERS: We're safe inside. Please warn the neighbours."
+	world.allow_entry = true
+	world.queue_redraw()
+	dialogue.text="VOICE FROM THE PORCH: We're safe. You can come into the front room."
 	dialogue_timer=9.0
 	marker.marker_position=World.EXIT_POINT
 	objective.text="The household is secure. Continue down the road toward the mall."
 	# Residents speak through text until a matching dialogue recording exists.
+
+func enter_or_leave_house() -> bool:
+	var doorway := World.ROOM_DOOR if world.inside else World.PORCH
+	if not checked_house or encounter.player_hp <= 0 or player.position.distance_to(doorway) > 26.0:
+		return false
+	world.inside = not world.inside
+	player.position = World.ROOM_DOOR if world.inside else World.PORCH
+	world.queue_redraw()
+	return true
 
 func continue_story() -> void:
 	if leaving or not can_continue():
@@ -126,9 +137,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_Q: running=not running
 		KEY_C: crouching=not crouching
 		KEY_R: encounter.refill()
-		KEY_1: encounter.equip(0)
-		KEY_2: encounter.equip(1)
-		KEY_3: encounter.equip(2)
+		KEY_1: encounter.equip_quick(0)
+		KEY_2: encounter.equip_quick(1)
+		KEY_3: encounter.equip_quick(2)
+		KEY_4: encounter.equip_quick(3)
 		KEY_I: encounter.toggle_inventory()
 		KEY_F:
 			var mode := DisplayServer.window_get_mode()
@@ -142,7 +154,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				return
 			if not checked_house:
 				speak_with_residents()
-			else:
+			elif not enter_or_leave_house():
 				continue_story()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -204,6 +216,10 @@ func _physics_process(delta: float) -> void:
 		objective.text="E  ·  Speak to the occupants from outside the gate."
 	elif not checked_house:
 		objective.text="Find the occupied house and check on the family at the front gate."
+	elif world.inside:
+		objective.text="E by the door to return to the yard."
+	elif player.position.distance_to(World.PORCH) <= 26.0:
+		objective.text="E  ·  Enter the front room."
 	elif can_continue():
 		objective.text="E  ·  Continue to the mall approach road."
 	else:
@@ -231,6 +247,10 @@ func run_smoke() -> void:
 	assert(check_gate())
 	speak_with_residents()
 	assert(checked_house)
+	player.position = World.PORCH
+	assert(enter_or_leave_house() and world.inside)
+	assert(not world.blocked(World.ROOM_DOOR) and world.blocked(Vector2(1460, 132)))
+	assert(enter_or_leave_house() and not world.inside)
 	player.position=World.EXIT_POINT
 	assert(can_continue())
 	var health_before: int=encounter.player_hp

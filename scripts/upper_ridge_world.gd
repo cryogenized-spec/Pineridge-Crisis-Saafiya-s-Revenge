@@ -22,6 +22,7 @@ var parked: Array[Rect2] = [
 	Rect2(1740,328,CAR_LENGTH,CAR_WIDTH)
 ]
 var fixed_obstacles: Array[Rect2] = []
+var vehicle_marks := {}
 
 func _ready() -> void:
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
@@ -32,12 +33,31 @@ func _ready() -> void:
 func blocked(p: Vector2, radius: float = 7.0) -> bool:
 	if is_instance_valid(traffic) and traffic.blocked(p,radius):
 		return true
-	# Segment-one houses are exterior scenery, not explorable interiors.
-	if p.x < radius or p.x > SIZE.x-radius or p.y < ROAD_TOP-22.0+radius or p.y > ROAD_BOTTOM+22.0-radius:
+	if p.x < radius or p.x > SIZE.x-radius:
 		return true
+	var on_street := p.y >= ROAD_TOP - 22.0 + radius and p.y <= ROAD_BOTTOM + 22.0 - radius
+	if not on_street:
+		var accessible := false
+		for i in range(1, LOTS.size()):
+			var lot: Vector2 = LOTS[i]
+			var yard := Rect2(lot + Vector2(7, 188), Vector2(311, 54))
+			var drive := Rect2(lot + Vector2(64, 217), Vector2(75, ROAD_TOP - lot.y - 205))
+			if yard.grow(-radius).has_point(p) or drive.grow(-radius).has_point(p):
+				accessible = true
+				break
+		if not accessible:
+			return true
 	for r in fixed_obstacles:
 		if r.grow(radius).has_point(p):
 			return true
+	return false
+
+func impact_vehicle(at: Vector2, _heading: Vector2) -> bool:
+	if is_instance_valid(traffic) and traffic.impact_vehicle(at):
+		return true
+	if Traffic.mark_parked(at, parked, vehicle_marks):
+		queue_redraw()
+		return true
 	return false
 
 func _draw() -> void:
@@ -70,6 +90,7 @@ func _draw() -> void:
 		draw_shrub(Vector2(x+15,702.0+float((i*5)%13)),i+11)
 	for i in range(parked.size()):
 		Art.vehicle(self, parked[i], PARKED_ART[i], -1 if i == 2 else 1)
+		Traffic.draw_marks(self, parked[i], vehicle_marks.get(i, []))
 	draw_string(ThemeDB.fallback_font,TRUNK_POINT+Vector2(-18,-21),"SAAFIYA'S MUSTANG",HORIZONTAL_ALIGNMENT_LEFT,-1,11,Color("#f1dfc3"))
 	# Environmental signposting, not tactical markers.
 	draw_sign(Vector2(192,390),"UPPER RIDGE")
@@ -86,15 +107,23 @@ func draw_lot(at: Vector2, index: int, north: bool) -> void:
 	draw_rect(shadow,Color(0.09,0.11,0.14,0.31))
 	draw_rect(Rect2(at,Vector2(w,depth)),Color("#687760"))
 	draw_rect(Rect2(at+Vector2(5,6),Vector2(w-10,depth-12)),Color("#7b8570"))
+	var open_drive := north and index > 0
+	if open_drive:
+		var paved := Rect2(at + Vector2(65, 189), Vector2(73, ROAD_TOP - at.y - 188))
+		draw_rect(paved, Color("#8a8276"))
+		for y in range(int(paved.position.y) + 8, int(paved.end.y), 9):
+			draw_line(Vector2(paved.position.x + 3, y), Vector2(paved.end.x - 3, y), Color("#69685e"))
 	var roof := Rect2(at+Vector2(38,37),Vector2(238,148))
 	Art.building(self, roof, Art.HOUSES[index % Art.HOUSES.size()])
 	var garden_y := at.y+210 if north else at.y+10
 	for j in range(4):
+		if open_drive and j == 1:
+			continue
 		draw_shrub(Vector2(at.x+23.0+float(j)*81.0,garden_y),index*10+j)
 	# The three boundary pieces preserve the driveway opening and the lot positions.
 	var boundary_y := at.y + depth - 6.0 if north else at.y + 6.0
 	draw_texture_rect(Art.WALL, Rect2(at.x - 3, boundary_y - 9, 61, 20), false)
-	draw_texture_rect(Art.GATE, Rect2(at.x + 54, boundary_y - 10, 96, 25), false)
+	draw_texture_rect(Art.GATE_OPEN if open_drive else Art.GATE, Rect2(at.x + 54, boundary_y - 14, 96, 30), false)
 	Art.fence_run(self, at.x + 151, at.x + w - 5, boundary_y)
 	draw_texture_rect(Art.BIN, Rect2(at.x + 4, at.y + 10, 22, 24), false)
 	draw_texture_rect(Art.CRATE, Rect2(at.x + 296, at.y + 12, 22, 22), false)

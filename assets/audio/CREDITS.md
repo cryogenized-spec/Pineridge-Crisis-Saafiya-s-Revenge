@@ -12,3 +12,5 @@ The remaining recordings were provided by the game project owner. Their third-pa
 ## CC0 (public-domain dedication)
 
 - **Beretta pistol reload.wav** — **Physon712** — https://freesound.org/s/580869/ — **Creative Commons Zero (CC0 1.0)**, https://creativecommons.org/publicdomain/zero/1.0/ — included as `beretta_reload.mp3`. Supplied low-quality MP3 preserved without transcoding or level changes. Attribution is credited for provenance; CC0 does not require it.
+
+The traffic horn in `traffic_horn.wav` is an original synthesized two-tone cue made for this game.

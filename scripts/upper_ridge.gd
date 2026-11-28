@@ -37,7 +37,7 @@ func _ready() -> void:
 	player.position = START
 	add_child(player)
 	traffic=Traffic.new()
-	traffic.configure(player,429.0,585.0)
+	traffic.configure(player,399.0,585.0)
 	add_child(traffic)
 	world.traffic=traffic
 	encounter = Encounter.new()
@@ -85,7 +85,7 @@ func build_ui() -> void:
 		"01  /  UPPER PINERIDGE",
 		"Follow the downhill road toward the mall district.",
 		"Saafiya left her car uphill. The shopping district lies further along the road.",
-		"WASD MOVE  •  Q RUN  •  E INTERACT  •  I INVENTORY  •  R RELOAD  •  [ / ] EQUIPMENT  •  F FULLSCREEN"
+		"WASD MOVE  •  Q RUN  •  E INTERACT  •  I INVENTORY  •  R RELOAD  •  1–4 QUICK SLOTS  •  F FULLSCREEN"
 	)
 	objective = encounter.ornate_hud.story_objective
 	status = encounter.ornate_hud.story_status
@@ -112,9 +112,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_Q: running = not running
 		KEY_C: crouching = not crouching
 		KEY_R: encounter.refill()
-		KEY_1: encounter.equip(0)
-		KEY_2: encounter.equip(1)
-		KEY_3: encounter.equip(2)
+		KEY_1: encounter.equip_quick(0)
+		KEY_2: encounter.equip_quick(1)
+		KEY_3: encounter.equip_quick(2)
+		KEY_4: encounter.equip_quick(3)
 		KEY_I: encounter.toggle_inventory()
 		KEY_F:
 			var mode := DisplayServer.window_get_mode()
@@ -209,8 +210,11 @@ func run_smoke() -> void:
 	encounter.inventory_ui.close_inventory()
 	assert(player.has_hero_atlases())
 	assert(walkers.size()==11)
-	assert(encounter.actors.size()==5)
+	assert(encounter.actors.size()==7)
 	assert(world.blocked(Vector2(200,180)))
+	assert(not world.blocked(Vector2(742, 337)))
+	assert(not world.blocked(Vector2(742, 300)))
+	assert(world.blocked(Vector2(742, 230)))
 	assert(not world.blocked(START))
 	assert(not can_advance())
 	player.position=World.EXIT_POINT

@@ -31,6 +31,8 @@ var npc_down: Texture2D
 var npc_down_back: Texture2D
 var npc_down_side: Texture2D
 var npc_reactions: Texture2D
+var action_atlas: Texture2D
+var action_phase := -1.0
 var collapse_style := 0
 var down_phase := -1.0
 var collapse_facing := 0.0
@@ -232,6 +234,12 @@ func _draw() -> void:
 		draw_hero()
 		return
 	if wardrobe_index >= 0 and down_phase >= 0.0 and draw_collapse():
+		return
+	if action_atlas != null and action_phase >= 0.0:
+		var frame := mini(11, roundi(action_phase * 11.0))
+		var tile := float(REACTION_TILE)
+		draw_gait_layer(action_atlas, Rect2((frame % 4) * tile, floori(frame / 4.0) * tile, tile, tile),
+			facing, Vector2.ONE * DISPLAY_SIZE * tile / TILE)
 		return
 	if wardrobe_index >= 0 and has_npc_atlases():
 		var angle := travel if gait_moving else facing
