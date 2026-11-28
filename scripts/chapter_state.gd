@@ -10,6 +10,7 @@ static func store(tree: SceneTree, battle: Node) -> void:
 		"spares":battle.spares.duplicate(),
 		"unlocked":battle.unlocked.duplicate(),
 		"slot":int(battle.slot),
+		"looter_takedowns":int(battle.looter_takedowns),
 		"inventory":battle.inventory.snapshot()
 	})
 
@@ -18,6 +19,7 @@ static func restore(tree: SceneTree, battle: Node) -> void:
 		return
 	var saved: Dictionary=tree.root.get_meta(SAVE_KEY)
 	battle.player_hp=clampi(int(saved.get("hp",3)),0,3)
+	battle.looter_takedowns = maxi(0, int(saved.get("looter_takedowns", 0)))
 	var ammo: Array=saved.get("rounds",[])
 	var unlocked: Array=saved.get("unlocked",[])
 	for i in range(3):

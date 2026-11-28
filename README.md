@@ -27,9 +27,8 @@ Press **F2** to open the character workbench, which displays all twelve wardrobe
 
 V12: extract the supplied NPC asset pack into the repository root to enable the twelve 3D-rendered crowd looks. The F2 workbench shows these atlases when installed, A toggles a cosmetic accessory. Missing assets retain the older vector renderer.
 
-V14 adds 14 separately imported SVG prop textures (F3 gallery), scattered decorative roadside debris, discarded tyres and animated cinematic smoke. The equipment icons are fictional visual representations, not functional models. Road remains navigable; smoke is presentation only. V13 NPC PNGs may replace V12 without code changes. No image generator used.
+V14 introduced scattered roadside debris, discarded tyres and animated cinematic smoke. The equipment icons are fictional visual representations, not functional models. Road remains navigable; smoke is presentation only. V13 NPC PNGs may replace V12 without code changes. No image generator used.
 
-V15 adds an F4 animation workbench with neutral object pickup/carry/set-down previews, alert symbols, generic reaction/down states, toggleable subtle decals and replaceable synthesized audio cues. Equipment icons can be inspected independently. The poses are interim whole-body transforms, not newly rigged limb animations; there is no targeting, damage, or combat AI in this pass.
 
 ## Browser preview (GitHub Pages)
 The Godot Web preset uses the Compatibility renderer and disables thread support. The separate Godot Web preview workflow builds on the development branch and main, uploads the complete HTML/JS/WASM/PCK bundle, and publishes to Pages only from main. In Settings > Pages > Build and deployment select GitHub Actions. Merge the reviewed development PR into main to enable the first deployment. The approved character PNG atlases are now included in the repository and exported with the project. This preview is the existing exploration and animation workbench, not a completed game.
@@ -39,7 +38,7 @@ The Godot Web preset uses the Compatibility renderer and disables thread support
 The main Godot scene now includes actual fictional action gameplay: seven initial adversary characters (knife, cudgel, brick, slingshot, pistol, runner appearances), a return wave, player and NPC health, onscreen indicators, generic arcade projectiles, close-range actions, limited equipment slots, reload/refill, pickups and reward drops, reactions, defeat states and mission completion. Left mouse button acts; R refills, E collects, 1–3 selects unlocked equipment. Three health hearts and game-over/restart are enabled. Stats appear in the top-right HUD. The original HTML edition remains the behavioural reference, but there is not yet feature-for-feature parity (cutscenes, vehicle events, sound recording, grading and UI refinements remain). The NPC texture packages must be imported separately for detailed visual art. This is an intentionally stylized arcade simulation, not a representation of real weapon behaviour.
 
 ## V19 code-rendered down animation
-All 12 NPC wardrobes now include a separate 8-frame, 3D VTK-rendered collapse atlas, loaded by the in-game actor and displayed through the encounter and F4 review scenes. These are authored from the actual character meshes, not merely rotated versions of the standing sprite. The Python art-generation source is in `tools/render_crowd.py` and `tools/render_crowd_down.py` (requires vtk, numpy and Pillow). The sprite integrity check now enforces 57 exact PNGs.
+All 12 NPC wardrobes now include a separate 8-frame, 3D VTK-rendered collapse atlas, loaded by the in-game actor and played in encounters. These are authored from the actual character meshes, not merely rotated versions of the standing sprite. The Python art-generation source is in `tools/render_crowd.py` and `tools/render_crowd_down.py` (requires vtk, numpy and Pillow). The sprite integrity check now enforces 57 exact PNGs.
 
 V20: The arcade impact ground effects now use a pre-rendered, softly shaded stylized stain sprite, with controlled scatter and a strict pooled maximum; this replaces unshaded circular decals without introducing per-impact Node2D allocations. Blood remains a fictional gameplay visual, not a medical or ballistic simulation.
 
@@ -63,11 +62,11 @@ The single straight-line arm placeholder was replaced by two independently drawn
 
 
 ## V25 shotgun sound assets
-Two user-provided clips are included as compressed stereo Vorbis in `assets/audio/shotgun_12ga_shot.ogg` and `assets/audio/shotgun_pump.ogg`. Press **F4** in the game, then **9** to preview both in sequence or **0** to preview the standalone pump cue. Both event IDs are available to a future shotgun character/equipment scene; no shotgun slot or real-world weapon cycle was added to Saafiya's established loadout. Their content is locked by the audio checksum verifier and checked by CI. Original-source license and attribution should be checked before public commercial distribution.
+Two user-provided clips are included as compressed stereo Vorbis in `assets/audio/shotgun_12ga_shot.ogg` and `assets/audio/shotgun_pump.ogg`. Both recordings remain available to the project. Their content is locked by the audio checksum verifier and checked by CI. Original-source license and attribution should be checked before public commercial distribution.
 
 
 ## V25 approved audio and compact nickel Beretta presentation
-Four new user-supplied sounds are now in `assets/audio`: `beretta_reload.ogg`, `cz75_reload.ogg`, and two alternating male-looter death cries. Existing per-equipment reload events automatically play the new sounds; selected scripted male-voiced antagonists alternate the two cries. F4 workbench: H/L auditions Beretta/CZ reload, J/K auditions both vocal takes. The Beretta shot playback is raised by +5 dB relative to the other cues, without changing the master volume. Beretta artwork has a reflective nickel/silver finish with warmer grips, and its displayed length and width have been reduced together by 20% (13 → 10.4 display px); the supporting arms remain left-biased. The muzzle flash and smoke are brief, reduced visual effects only. Full sound credits: `assets/audio/CREDITS.md`.
+Four new user-supplied sounds are now in `assets/audio`: `beretta_reload.ogg`, `cz75_reload.ogg`, and two alternating male-looter death cries. Existing per-equipment reload events automatically play the new sounds; selected scripted male-voiced antagonists alternate the two cries. The Beretta shot playback is raised by +5 dB relative to the other cues, without changing the master volume. Beretta artwork has a reflective nickel/silver finish with warmer grips, and its displayed length and width have been reduced together by 20% (13 → 10.4 display px); the supporting arms remain left-biased. The muzzle flash and smoke are brief, reduced visual effects only. Full sound credits: `assets/audio/CREDITS.md`.
 
 The new Beretta and CZ reload events now use the real imported clip lengths (up to a 4-second visual cap) rather than the old 1-second placeholder timer, and no additional synthetic completion beep plays over the recorded reload.\n
 
@@ -78,7 +77,7 @@ Weapon shot events now play only supplied recordings. The generated-tone fallbac
 **V25 audio correction:** Two supplied audio files used the Opus codec inside an Ogg container. Godot failed importing these and played old electronic placeholders. Both are now properly encoded Ogg Vorbis. The synthesized fallback is disabled and the CI now rejects import errors. The Beretta recording has the revised +4 dB shot gain.
 
 
-**V26 additional rendered collapse sprites:** The build now renders 12 more transparent NPC side-fall atlases (96 frames) from the existing VTK procedural models. The renderer runs automatically on CI before Godot import, and its output is packed into the Linux and browser builds alongside the previous forward/backward variants. The new files are generated build assets, not new binary files checked into Git. For offline local development, run `python3 -m pip install vtk numpy Pillow && python3 tools/render_crowd_side.py` once. F4/N cycles FRONT, BACK and SIDE, and the game chooses among six mixed fall variants.
+**V26 additional rendered collapse sprites:** The build now renders 12 more transparent NPC side-fall atlases (96 frames) from the existing VTK procedural models. The renderer runs automatically on CI before Godot import, and its output is packed into the Linux and browser builds alongside the previous forward/backward variants. The new files are generated build assets, not new binary files checked into Git. For offline local development, run `python3 -m pip install vtk numpy Pillow && python3 tools/render_crowd_side.py` once. Encounters choose among six mixed fall variants.
 
 
 ## V27 crowd response and exit simulation
@@ -105,6 +104,13 @@ Segment 2 includes eight neutral roaming characters, six abstract arcade NPCs ne
 - Press **E** near a downed opponent to open loot. Click to take one item, press **E** again to take what fits and close, or press **Q** to close immediately. Spend one carried magazine per reload. Each spare takes one grid square, and magazines stored in the Mustang don’t count toward carried reserves.
 - In Upper Pineridge, follow the lawn around the last house before the junction and look for Mr. Jacobs by the tree. His key opens the ground floor, patio and upstairs hallway. Press **E** to advance the conversations and interact with doors and stairs. Both floors and the second chapter's front room use orthographic renders of 3D interiors.
 - If a car is held up, its driver honks, then steps out to gesture after six more seconds. Cars speed away from nearby gunfire. Body hits leave puncture decals, three windscreen hits swap in shattered glass artwork, and stalled traffic emits gray vapor from the hood.
+
+## Campaign animation and taxi arrival
+
+- **C** uses dedicated crouched stance, gait and equipment layers. **X** uses the knife in the equipment slot for a close-range arcade swipe.
+- Three player-credited looter takedowns unlock a scripted minibus encounter on the road in Chapter 2. The minibus brakes, leaves skid marks and opens its sliding door for three passengers. The rifle opponent uses dodgeable arcade bursts that can also hit allies.
+- Each visible side pane tracks its own crack and shatter state. Lawns are walkable around the rendered buildings and fences. Chapter 3 caches static scenery and uses the same full-size parked-vehicle art as the residential chapters.
+- F3 and F4 previews have been removed from the campaign.
 
 ## Reusable sprite kit
 

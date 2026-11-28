@@ -6,6 +6,9 @@ const HERO_LOWER_RUN := preload("res://assets/characters/sprite_kit/saafiya_run_
 const HERO_LOWER_IDLE := preload("res://assets/characters/sprite_kit/saafiya_idle_lower.png")
 const HERO_UPPER := preload("res://assets/characters/sprite_kit/saafiya_upper_poses.png")
 const HERO_DEFEAT := preload("res://assets/characters/sprite_kit/saafiya_defeat.png")
+const CROUCH_IDLE := preload("res://assets/characters/sprite_kit/saafiya_crouch_idle.png")
+const CROUCH_WALK := preload("res://assets/characters/sprite_kit/saafiya_crouch_walk.png")
+const CROUCH_UPPER := preload("res://assets/characters/sprite_kit/saafiya_crouch_upper.png")
 const DEFEAT_TILE := 192
 const DEFEAT_DURATION := 1.05
 const TILE := 128
@@ -33,6 +36,9 @@ var npc_down_side: Texture2D
 var npc_reactions: Texture2D
 var action_atlas: Texture2D
 var action_phase := -1.0
+var gesture_time := 0.0
+var gesture_duration := 0.0
+var gesture_heading := 0.0
 var collapse_style := 0
 var down_phase := -1.0
 var collapse_facing := 0.0
@@ -61,7 +67,8 @@ var hair := Color("#392b34")
 
 func _ready() -> void:
 	if not hero and wardrobe_index >= 0:
-		var prefix := "res://assets/characters/crowd/npc_%02d_" % posmod(wardrobe_index,12)
+		var look := clampi(wardrobe_index, 0, 14)
+		var prefix := "res://assets/characters/crowd/npc_%02d_" % look
 		npc_idle = load_npc_texture(prefix + "idle.png", Vector2(128,128))
 		npc_walk = load_npc_texture(prefix + "walk.png", Vector2(512,256))
 		npc_run = load_npc_texture(prefix + "run.png", Vector2(512,256))
@@ -69,7 +76,7 @@ func _ready() -> void:
 		npc_down_back = load_npc_texture(prefix + "down_back.png", Vector2(512,256))
 		npc_down_side = load_npc_texture(prefix + "down_side.png", Vector2(512,256))
 		npc_reactions = load_npc_texture(
-			"res://assets/characters/reactions/npc_%02d.png" % posmod(wardrobe_index, 12),
+			"res://assets/characters/reactions/npc_%02d.png" % look,
 			Vector2(REACTION_TILE * REACTION_COLUMNS, REACTION_TILE * 2 * (STUMBLE + 1))
 		)
 		cosmetic_accessory = load_npc_texture("res://assets/characters/accessories/backpack.png", Vector2(128,128))
@@ -78,6 +85,7 @@ func _ready() -> void:
 		texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 
 func start_defeat() -> void:
+	gesture_time = 0.0
 	defeat_elapsed = 0.0
 	defeat_heading = gear_heading
 	queue_redraw()
@@ -93,7 +101,17 @@ func set_gear_pose(row: int, frame: int, heading: float) -> void:
 	if hero:
 		queue_redraw()
 
+func play_gesture(art: Texture2D, duration: float, heading: float) -> void:
+	action_atlas = art
+	gesture_time = duration
+	gesture_duration = duration
+	gesture_heading = heading
+	queue_redraw()
+
 func draw_hero() -> void:
+	if gesture_time > 0.0:
+		draw_action(1.0 - gesture_time / gesture_duration, gesture_heading)
+		return
 	var blend := smoothstep(0.0, 0.12, defeat_elapsed)
 	if blend < 1.0:
 		draw_hero_standing(1.0 - blend)
@@ -104,13 +122,21 @@ func draw_hero() -> void:
 		draw_gait_layer(HERO_DEFEAT, cell, defeat_heading, Vector2.ONE * (DISPLAY_SIZE * tile / TILE), blend)
 
 func draw_hero_standing(opacity: float) -> void:
-	var size := Vector2(DISPLAY_SIZE, DISPLAY_SIZE * (0.82 if crouched else 1.0))
+	var size := Vector2.ONE * DISPLAY_SIZE
 	var lower := HERO_LOWER_IDLE
 	if gait_moving:
 		lower = HERO_LOWER_RUN if gait_running else HERO_LOWER_WALK
+	if crouched:
+		lower = CROUCH_WALK if gait_moving else CROUCH_IDLE
 	draw_gait_layer(lower, gait_cell(sprite_frame()), travel if gait_moving else gear_heading, size, opacity)
 	var upper := Rect2(gear_frame * Art.CELL, gear_row * Art.CELL, Art.CELL, Art.CELL)
-	draw_gait_layer(HERO_UPPER, upper, gear_heading, size, opacity)
+	draw_gait_layer(CROUCH_UPPER if crouched else HERO_UPPER, upper, gear_heading, size, opacity)
+
+func draw_action(progress: float, heading: float) -> void:
+	var frame := clampi(roundi(progress * 11.0), 0, 11)
+	var tile := float(REACTION_TILE)
+	draw_gait_layer(action_atlas, Rect2((frame % 4) * tile, floori(frame / 4.0) * tile, tile, tile),
+		heading, Vector2.ONE * DISPLAY_SIZE * tile / TILE)
 
 func load_npc_texture(path: String, expected_size: Vector2) -> Texture2D:
 	if not ResourceLoader.exists(path):
@@ -210,6 +236,7 @@ func draw_collapse() -> bool:
 	return false
 
 func animate(delta: float, displacement: Vector2, aim_angle: float, low: bool = false, running: bool = false) -> void:
+	gesture_time = maxf(0.0, gesture_time - delta)
 	if reaction_phase >= 0.0:
 		reaction_phase += delta / reaction_duration
 		if reaction_phase >= 1.0:
@@ -236,10 +263,7 @@ func _draw() -> void:
 	if wardrobe_index >= 0 and down_phase >= 0.0 and draw_collapse():
 		return
 	if action_atlas != null and action_phase >= 0.0:
-		var frame := mini(11, roundi(action_phase * 11.0))
-		var tile := float(REACTION_TILE)
-		draw_gait_layer(action_atlas, Rect2((frame % 4) * tile, floori(frame / 4.0) * tile, tile, tile),
-			facing, Vector2.ONE * DISPLAY_SIZE * tile / TILE)
+		draw_action(action_phase, facing)
 		return
 	if wardrobe_index >= 0 and has_npc_atlases():
 		var angle := travel if gait_moving else facing

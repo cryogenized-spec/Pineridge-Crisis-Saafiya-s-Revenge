@@ -43,14 +43,23 @@ static func impact(footprint: Rect2, model: String, direction: int, contact: Vec
 	if not hit.is_finite():
 		return MISS
 	var uv := (hit - bounds.position) / bounds.size
-	var glass := Geometry2D.is_point_in_polygon(uv, PackedVector2Array(panel(model, direction).glass))
+	var glass_art := panel(model, direction)
+	var pane := -1
+	var windows: Array = [glass_art.glass] + glass_art.sides
+	for i in range(windows.size()):
+		if Geometry2D.is_point_in_polygon(uv, PackedVector2Array(windows[i])):
+			pane = i
+			break
 	damage.hits = int(damage.get("hits", 0)) + 1
-	if glass:
-		damage.glass_hits = int(damage.get("glass_hits", 0)) + 1
+	var hits: Dictionary = damage.get("pane_hits", {})
+	if pane >= 0:
+		hits[pane] = int(hits.get(pane, 0)) + 1
+	damage.pane_hits = hits
+	damage.glass_hits = hits.get(0, 0)
 	var marks: Array = damage.get("marks", [])
 	if marks.size() >= MAX_MARKS:
 		marks.pop_front()
-	marks.append({"uv":uv, "glass":glass, "style":int(damage.hits) % 3})
+	marks.append({"uv":uv, "glass":pane >= 0, "pane":pane, "style":int(damage.hits) % 3})
 	damage.marks = marks
 	return hit
 
@@ -70,18 +79,26 @@ static func draw(canvas: CanvasItem, footprint: Rect2, model: String, direction:
 		return
 	var bounds := Art.vehicle_bounds(footprint)
 	var glass_art := panel(model, direction)
-	var shattered := int(damage.get("glass_hits", 0)) >= SHATTER_HITS
-	if shattered:
-		canvas.draw_texture_rect(glass_art.shattered, bounds, false)
-	var glass_points := PackedVector2Array()
-	for point in glass_art.glass:
-		glass_points.append(bounds.position + Vector2(point) * bounds.size)
+	var pane_hits: Dictionary = damage.get("pane_hits", {})
+	var windows: Array = [glass_art.glass] + glass_art.sides
+	var outlines: Array[PackedVector2Array] = []
+	for i in range(windows.size()):
+		var outline := PackedVector2Array()
+		for point in windows[i]:
+			outline.append(bounds.position + Vector2(point) * bounds.size)
+		outlines.append(outline)
+		if int(pane_hits.get(i, 0)) >= SHATTER_HITS:
+			if i == 0:
+				canvas.draw_texture_rect(glass_art.shattered, bounds, false)
+			else:
+				canvas.draw_texture_rect_region(glass_art.side_art, bounds, Rect2(288 * (i - 1), 0, 288, 136))
 	var diameter := clampf(footprint.size.x * .057, 3.3, 6.5)
 	for mark in damage.marks:
 		var point: Vector2 = bounds.position + Vector2(mark.uv) * bounds.size
 		if mark.glass:
-			if not shattered:
-				glass_chip(canvas, point, glass_points, diameter * .83, int(mark.style))
+			var window: int = mark.pane
+			if int(pane_hits.get(window, 0)) < SHATTER_HITS:
+				glass_chip(canvas, point, outlines[window], diameter * .83, int(mark.style))
 		else:
 			var source := Rect2(float(mark.style) * 48, 0, 48, 48)
 			canvas.draw_texture_rect_region(PUNCTURES,

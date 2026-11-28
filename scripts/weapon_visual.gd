@@ -4,12 +4,14 @@ const Actor = preload("res://scripts/actor.gd")
 const Art = preload("res://scripts/sprite_kit_art.gd")
 const MUZZLE := preload("res://assets/fx/weapon_art/muzzle.png")
 const SMOKE := preload("res://assets/fx/weapon_art/smoke.png")
+const COMPACT_RIFLE := preload("res://assets/weapons/overhead/campaign_compact_rifle.png")
 const DRAW_FLASH := 0.059
 const DRAW_SMOKE := 0.27
 
 var wearer: Actor
 var catalog_index := 0
 var hero_grip := true
+var compact_rifle := false
 var shot_age := -1.0
 var fresh_shot := false
 var shot_heading := 0.0
@@ -25,8 +27,10 @@ func configure(actor: Actor, use_hero_grip: bool = true) -> void:
 
 func choose_slot(index: int) -> void:
 	choose_catalog(Art.LIVE_SLOTS[clampi(index, 0, Art.LIVE_SLOTS.size() - 1)])
+	compact_rifle = index == 2
 
 func choose_catalog(index: int) -> void:
+	compact_rifle = false
 	catalog_index = posmod(index, Art.CATALOGUE.size())
 	shot_age = -1.0
 	fresh_shot = false
@@ -75,7 +79,7 @@ func grip_offset(gear: Dictionary, pose: int) -> Vector2:
 		return Vector2(2.9, 5.7 if pose == 0 else 4.3)
 	var point: Vector2 = gear.grips[pose]
 	if wearer.crouched:
-		point.y *= 0.82
+		point.y += 1.67
 	return point
 
 func prop_scale() -> float:
@@ -127,6 +131,8 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	if not is_instance_valid(wearer):
 		return
+	if hero_grip and wearer.gesture_time > 0.0:
+		return
 	var gear := entry()
 	var pose := pose_frame()
 	var aim := display_heading()
@@ -139,9 +145,10 @@ func _draw() -> void:
 		var phase := service_progress()
 		var drop := smoothstep(0.16, 0.38, phase) * (1.0 - smoothstep(0.53, 0.82, phase))
 		offset = Vector2(-1.8, 3.2) * drop * prop_scale()
-	_draw_piece(gear.art, 2, size, offset)
-	_draw_piece(gear.art, 0, size, Vector2.ZERO)
-	_draw_piece(gear.art, 1, size, Vector2(cycle_shift() * prop_scale(), 0.0))
+	var texture: Texture2D = COMPACT_RIFLE if compact_rifle else gear.art
+	_draw_piece(texture, 2, size, offset)
+	_draw_piece(texture, 0, size, Vector2.ZERO)
+	_draw_piece(texture, 1, size, Vector2(cycle_shift() * prop_scale(), 0.0))
 	draw_set_transform(Vector2.ZERO)
 	if gear.action != "blade" and shot_age >= 0.0:
 		_draw_burst(gear)

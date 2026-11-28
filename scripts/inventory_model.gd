@@ -33,7 +33,7 @@ const EQUIP_ITEMS := {
 }
 const INITIAL_GEAR := {
 	"Head":"glasses", "Neck":"choker", "Torso":"lace", "Arms":"coat", "Belt":"chain",
-	"Legs":"skirt", "Boots":"boots", "Sidearm":"beretta"
+	"Legs":"skirt", "Boots":"boots", "Sidearm":"beretta", "Knife":"knife"
 }
 const WEAPONS := ["beretta", "pistol", "rifle"]
 const MAGAZINES := ["beretta_mag", "pistol_mag", "rifle_mag"]

@@ -17,8 +17,6 @@ const TRUNK_POINT := Vector2(202.0,512.0)
 const CAR_LENGTH := 108.0
 const CAR_WIDTH := 43.0
 const LOTS := [Vector2(168,93),Vector2(642,91),Vector2(1284,92),Vector2(1864,91)]
-const JACOBS_LAWN := Rect2(1859, 39, 359, 351)
-const JACOBS_ROOF := Rect2(1902, 128, 238, 148)
 const TREE_POINT := Vector2(2064, 77)
 const PARKED_ART := ["saafiya_car", "hatchback_russet", "sedan_silver", "utility_ivory"]
 const PARKED_FACING := [1, 1, -1, 1]
@@ -35,31 +33,28 @@ func _ready() -> void:
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	for r in parked:
 		fixed_obstacles.append(r)
-	fixed_obstacles.append_array([JACOBS_ROOF, Rect2(1859, 325, 63, 11), Rect2(2015, 325, 171, 11),
-		Rect2(TREE_POINT - Vector2(6, 5), Vector2(12, 10))])
+	for i in range(LOTS.size()):
+		add_lot_collision(LOTS[i], true, i > 0)
+	for i in range(3):
+		add_lot_collision(Vector2(340.0 + float(i) * 615.0, 740.0), false, false)
+	fixed_obstacles.append(Rect2(TREE_POINT - Vector2(6, 5), Vector2(12, 10)))
 	queue_redraw()
 
 func blocked(p: Vector2, radius: float = 7.0) -> bool:
 	if is_instance_valid(traffic) and traffic.blocked(p,radius):
 		return true
-	if p.x < radius or p.x > SIZE.x-radius:
+	if not Rect2(Vector2.ZERO, SIZE).grow(-radius).has_point(p):
 		return true
-	var on_verge := p.y >= ROAD_TOP - 49.0 + radius and p.y <= ROAD_BOTTOM + 63.0 - radius
-	if not on_verge and not JACOBS_LAWN.grow(-radius).has_point(p):
-		var accessible := false
-		for i in range(1, LOTS.size()):
-			var lot: Vector2 = LOTS[i]
-			var yard := Rect2(lot + Vector2(7, 188), Vector2(311, 54))
-			var drive := Rect2(lot + Vector2(64, 217), Vector2(75, ROAD_TOP - lot.y - 205))
-			if yard.grow(-radius).has_point(p) or drive.grow(-radius).has_point(p):
-				accessible = true
-				break
-		if not accessible:
-			return true
 	for r in fixed_obstacles:
 		if r.grow(radius).has_point(p):
 			return true
 	return false
+
+func add_lot_collision(lot: Vector2, north: bool, open: bool) -> void:
+	var fence := lot.y + (239.0 if north else 6.0)
+	fixed_obstacles.append(Rect2(lot + Vector2(38, 37), Vector2(238, 148)))
+	fixed_obstacles.append(Rect2(lot.x, fence - 3, 60 if open else 151, 7))
+	fixed_obstacles.append(Rect2(lot.x + 151, fence - 3, 171, 7))
 
 func impact_vehicle(contact: Vector2, heading: Vector2, aim: Vector2) -> Vector2:
 	if is_instance_valid(traffic):

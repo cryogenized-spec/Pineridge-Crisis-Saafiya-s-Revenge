@@ -92,7 +92,7 @@ func build_ui() -> void:
 		"01  /  UPPER PINERIDGE",
 		"Follow the downhill road toward the mall district.",
 		"Saafiya left her car uphill. The shopping district lies further along the road.",
-		"WASD MOVE  •  Q RUN  •  E INTERACT  •  I INVENTORY  •  R RELOAD  •  1–4 QUICK SLOTS  •  F FULLSCREEN"
+		"WASD MOVE  •  Q RUN  •  E INTERACT  •  X KNIFE  •  I INVENTORY  •  R RELOAD  •  1–4 QUICK SLOTS  •  F FULLSCREEN"
 	)
 	objective = encounter.ornate_hud.story_objective
 	status = encounter.ornate_hud.story_status
@@ -133,6 +133,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_3: encounter.equip_quick(2)
 		KEY_4: encounter.equip_quick(3)
 		KEY_I: encounter.toggle_inventory()
+		KEY_X:
+			if not jacobs.indoors():
+				encounter.swipe()
 		KEY_F:
 			var mode := DisplayServer.window_get_mode()
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if mode == DisplayServer.WINDOW_MODE_FULLSCREEN else DisplayServer.WINDOW_MODE_FULLSCREEN)
@@ -265,6 +268,7 @@ func run_smoke() -> void:
 	assert(world.blocked(Vector2(742, 230)))
 	assert(not world.blocked(START))
 	assert(not world.blocked(Vector2(567, 690)))
+	assert(not world.blocked(Vector2(775, 918)))
 	run_house_smoke()
 	assert(not can_advance())
 	player.position=World.EXIT_POINT

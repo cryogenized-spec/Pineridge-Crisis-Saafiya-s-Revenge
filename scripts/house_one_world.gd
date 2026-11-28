@@ -5,6 +5,7 @@ const Art = preload("res://scripts/environment_art.gd")
 const Traffic = preload("res://scripts/ambient_traffic.gd")
 const Damage := preload("res://scripts/vehicle_damage.gd")
 var traffic: Traffic
+var taxi: Node2D
 # Segment 2: fictional house exterior near Pine Ridge mall.
 # Orthographic overhead scenery, approximately 24 display pixels/metre.
 const SIZE := Vector2(2320.0,1024.0)
@@ -14,7 +15,6 @@ const GATE_POINT := Vector2(1365.0,427.0)
 const EXIT_POINT := Vector2(2172.0,545.0)
 const CAR_LENGTH := 108.0
 const CAR_WIDTH := 43.0
-const YARD := Rect2(958.0,278.0,714.0,131.0)
 const ROOF := Rect2(1048.0,75.0,515.0,208.0)
 const CAR_A := Rect2(1048.0,320.0,CAR_LENGTH,CAR_WIDTH)
 const CAR_B := Rect2(1180.0,320.0,CAR_LENGTH,CAR_WIDTH)
@@ -24,6 +24,9 @@ const PARKED_ART := ["sedan_silver", "hatchback_russet", "sedan_ochre"]
 const PARKED_FACING := [-1, 1, -1]
 const PORCH := Vector2(1365, 305)
 const ROOM_DOOR := Vector2(1365, 259)
+const OTHER_HOUSES := [
+	Vector2(105,66), Vector2(520,83), Vector2(1790,64), Vector2(300,765), Vector2(1540,768)
+]
 const ROOM := Rect2(1214, 104, 304, 176)
 const ROOM_FURNITURE := [
 	Rect2(1227, 121, 60, 58), Rect2(1454, 123, 47, 96), Rect2(1309, 148, 78, 37)
@@ -36,34 +39,38 @@ var vehicle_marks := {}
 func _ready() -> void:
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	solid = [
-		CAR_A,CAR_B,STREET_CAR,
+		CAR_A,CAR_B,STREET_CAR,ROOF,
 		Rect2(958,393,375,11),
 		Rect2(1400,393,272,11),
 		Rect2(958,278,9,126),
 		Rect2(1663,278,9,126)
 	]
+	for at in OTHER_HOUSES:
+		solid.append(Rect2(at, Vector2(318, 203)))
 	queue_redraw()
 
 func blocked(p: Vector2, radius: float = 7.0) -> bool:
+	if is_instance_valid(taxi) and taxi.blocked(p, radius):
+		return true
 	if is_instance_valid(traffic) and traffic.blocked(p,radius):
 		return true
-	if p.x < radius or p.x > SIZE.x-radius:
+	if not Rect2(Vector2.ZERO, SIZE).grow(-radius).has_point(p):
 		return true
-	var on_street: bool = p.y >= ROAD_TOP-22.0+radius and p.y <= ROAD_BOTTOM+25.0-radius
-	var in_yard: bool = YARD.grow(-radius).has_point(p)
 	if inside and ROOM.grow(-radius).has_point(p):
 		for item in ROOM_FURNITURE:
 			if item.grow(radius).has_point(p):
 				return true
 		return false
-	if not (on_street or in_yard):
-		return true
 	for r in solid:
 		if r.grow(radius).has_point(p):
 			return true
 	return false
 
 func impact_vehicle(contact: Vector2, heading: Vector2, aim: Vector2) -> Vector2:
+	if is_instance_valid(taxi):
+		var staged: Vector2 = taxi.impact_vehicle(contact, heading, aim)
+		if staged.is_finite():
+			return staged
 	if is_instance_valid(traffic):
 		var moving := traffic.impact_vehicle(contact, heading, aim)
 		if moving.is_finite():
