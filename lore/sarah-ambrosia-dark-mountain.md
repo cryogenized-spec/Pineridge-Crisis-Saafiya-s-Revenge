@@ -87,3 +87,14 @@ This is an **outline, not a locked shot list, nor proof of a romance**.
 - Do Saafiya and Sarah remain lifelong close friends, drift apart, or rejoin during the adult crisis?
 - When does the offline group discover MXit's Mountain, and where do the Covenant/Farsha rivalries intersect if fictionalised at all?
 - Is Saafiya ever spiritually gifted, or does she remain largely human and practical while learning basic forms of attention and concentration?
+
+## Second-pass recovered Sarah, family and early-fantasy fragments (28 Nov 2026)
+
+- **[D/P]** Sarah may live with her mother in a **comfortable wooded hillside home** with expansive views, near trees/forest and an outdoor **pool**, possibly cordoned off or separately enclosed. Exact location and architecture remain open.
+- **[D/P]** Her mother was earlier imagined as a relaxed, eccentric **1980s-styled woman** (big hair, old music, unconventional clothes, generous social latitude). A later suicide-attempt and alcohol-misuse history need not erase those aspects; preserve both as tentative facets, avoiding romanticisation or stereotyping.
+- **[O]** Her **father's possible absence** is unconfirmed; do not assign a cause. Her **grandmother** is relevant to Sarah's preference not to gossip about her mother's difficulties, but seeking support is not a betrayal.
+- **[D/P]** Around **six years old**, Sarah may have received a beautiful oversized illustrated **folklore encyclopedia** depicting fairies, pixies, elves, trolls, giants and ogres. This may be a concrete origin for her later interests.
+- **[D/P]** A **black ceremonial/occult-looking dagger** with unusual markings, and possible subjective tingling/energy sensations, are older exploratory fragments. Ownership, meaning and supernatural status are **[O]**; it is a story prop, not a how-to.
+- **[D]** Sarah is not Saafiya's permanent superior; their friendship becomes reciprocal, and Sarah does not need to be the coven's most powerful gifted member to deserve respect.
+- **[D/O]** **Farsha's clan formed online**, unlike Ambrosia's offline-first origin. Their school and MXit lives are not yet chronologically reconciled. See [Farsha's recovered character notes](farsha-character-fragments.md).
+- **[H/O]** Historical recollections also name a possible **Bitrix** circle, an uncertain **Dragon-clan** link, the Covenant's selective elite standards, and potential confusion of room count versus occupancy. Details in [recovered fragments](recovered-fragments-2026-11-28.md).
