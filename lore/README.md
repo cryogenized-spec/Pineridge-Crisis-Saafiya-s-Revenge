@@ -8,7 +8,8 @@
 2. **[Sarah, Ambrosia and Dark Mountain](sarah-ambrosia-dark-mountain.md)** — Sarah's personality and family, the art-class bond and mirror, tabletop and LARP progression, the coven, lowercase Pixie identity, historical inspirations, fictional supernatural possibilities and open questions.
 3. **[Farsha — character development fragments](farsha-character-fragments.md)** — childhood and family, Afrikaans school experiences, MXit persona, Saafiya conflict and unresolved aftermath.
 4. **[Recovered overlooked lore fragments — 28 November audit](recovered-fragments-2026-11-28.md)** — Heather's relocation drive, Sarah's home and childhood objects, school and Dark Mountain details, and earlier game-scene fragments.
-5. **[Continuity register](continuity-register.md)** — unresolved names, competing origin stories, chronological alternatives and implementation-versus-story distinctions. **Do not "fix" contradictions without a decision.**
+5. **[Third-pass micro-fragments and alternate visual treatments](third-pass-fragments-2026-11-28.md)** — Sarah's night-oriented habits, Farsha's phone/chess details, historical Dark Mountain personas, Rivermere/Pine Ridge, alternate poolside/Copperlane illustrations and the balcony romance concepts.
+6. **[Continuity register](continuity-register.md)** — unresolved names, competing origin stories, chronological alternatives and implementation-versus-story distinctions. **Do not "fix" contradictions without a decision.**
 
 ## Preserved Hero-shooter source documents
 
