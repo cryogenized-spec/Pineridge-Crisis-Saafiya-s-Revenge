@@ -98,3 +98,12 @@ This is an **outline, not a locked shot list, nor proof of a romance**.
 - **[D]** Sarah is not Saafiya's permanent superior; their friendship becomes reciprocal, and Sarah does not need to be the coven's most powerful gifted member to deserve respect.
 - **[D/O]** **Farsha's clan formed online**, unlike Ambrosia's offline-first origin. Their school and MXit lives are not yet chronologically reconciled. See [Farsha's recovered character notes](farsha-character-fragments.md).
 - **[H/O]** Historical recollections also name a possible **Bitrix** circle, an uncertain **Dragon-clan** link, the Covenant's selective elite standards, and potential confusion of room count versus occupancy. Details in [recovered fragments](recovered-fragments-2026-11-28.md).
+
+## Third-pass recovered Sarah and Dark Mountain details (28 November 2026)
+
+- **[D/P]** Sarah was also imagined as having a **night-oriented schedule**, sometimes staying awake into the early morning with art, friends or MXit roleplay. She was acquainted with many boys as well as girls; neither detail fixes her romantic history.
+- **[D/P]** An early private-life version included **secret marijuana use in addition to smoking**, whereas the later secluded school drawing-space story specifically mentions smoking. Whether cannabis belongs in the final backstory remains **[O]**; do not idealise it or infer its frequency.
+- **[D/P]** A possible **BB/Red Ryder-style air rifle** is an unassigned personal prop. The earlier **folklore book** may have encouraged childhood searches through wooded areas for creatures from its pages.
+- **[D/P]** The unusual black dagger was described as possibly **commissioned**; a tingling or energetic response when handled by Sarah or Saafiya is only an exploratory fictional sensation until the story defines its paranormal status.
+- **[H]** Dark Mountain participants also used **clan tags** and portrayals of vampires, lycans, mages and left-hand-path personas. Participation ranged from simple fantasy performance to earnest interest in supernatural claims; apparent personas and real-life beliefs cannot automatically be equated.
+- **[O]** More detail and distinctions between real historical recollections, fictional lore and visual drafts: [third-pass fragments](third-pass-fragments-2026-11-28.md).
