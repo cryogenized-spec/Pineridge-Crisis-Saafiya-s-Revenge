@@ -9,7 +9,7 @@
 3. **[Farsha — character development fragments](farsha-character-fragments.md)** — childhood and family, Afrikaans school experiences, MXit persona, Saafiya conflict and unresolved aftermath.
 4. **[Recovered overlooked lore fragments — 28 November audit](recovered-fragments-2026-11-28.md)** — Heather's relocation drive, Sarah's home and childhood objects, school and Dark Mountain details, and earlier game-scene fragments.
 5. **[Third-pass micro-fragments and alternate visual treatments](third-pass-fragments-2026-11-28.md)** — Sarah's night-oriented habits, Farsha's phone/chess details, historical Dark Mountain personas, Rivermere/Pine Ridge, alternate poolside/Copperlane illustrations and the balcony romance concepts.
-6. **[Fourth-pass family, visual-provenance and story-choice recovery](fourth-pass-continuity-audit-2026-11-28.md)** — Heather's appearance and career, maternal-grandmother Rossi vs paternal Beretta, left-handedness, approved C vs Saafiya art, early 3D revisions, McDonald's meet-up and proposed branching dispositions.
+6. **[Fourth-pass family, visual-provenance and story-choice recovery](fourth-pass-continuity-audit-2026-11-28.md)** — Heather's appearance and career, corrected Heather Rossi vs paternal Beretta and Saafiya's custom Model 640, left-handedness, approved C vs Saafiya art, early 3D revisions, McDonald's meet-up and proposed branching dispositions.
 7. **[Continuity register](continuity-register.md)** — unresolved names, competing origin stories, chronological alternatives and implementation-versus-story distinctions. **Do not "fix" contradictions without a decision.**
 
 ## Preserved Hero-shooter source documents
