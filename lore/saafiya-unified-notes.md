@@ -125,3 +125,13 @@ This section links additional director-discussed details missed or compressed in
 - **[D/A]** A separate sunrise balcony/yoga visual and an intimate, hopeful adult portrait-for-a-potential-lover concept exist, but have no confirmed recipient or chronology. The director favours sincerity and independent romantic initiative rather than status-driven courtship.
 - **[O]** A 26 November question left the **final vehicle choice unsettled**, despite older literature repeatedly depicting a black Mustang (and one gameplay build showing a 1967 model). Maintain the design association without silently locking the year across all branches.
 - **[D]** Heather's Renault scene includes advice to **"follow your heart"**, alongside the earlier glass-ball metaphor; the exact speech is not an approved final screenplay.
+
+## Fourth-pass recovered family provenance and character-art decisions (28 Nov 2026)
+
+- **[D/P]** Heather was additionally imagined as **adventurous, straight-haired, styled with 1960s/70s influences, possibly green- or steel-blue-eyed, and employed as a police officer**. Exact appearance, ancestry, duties and career chronology remain open. The director prefers Saafiya to remain **Faisal/Farrell's biological daughter**.
+- **[D/P]** Saafiya's **maternal grandmother (Heather's mother)** may have owned an inexpensive **Rossi .38 Special**; this is a separate *family prop*, not a replacement for her **father's inherited engraved Beretta 84FS**, and not automatically the engraved revolver shown in an alternate poolside comic.
+- **[D/O]** Saafiya's **left-handedness** was considered but **not finally fixed**. Left-biased pistol artwork is a visual design choice, not sufficient evidence of character handedness; the earlier poolside RAZR/revolver pose differs.
+- **[D/V]** Earlier approved visual revisions involved correcting an overly mature-looking model, improving lip volume, eyes, hair and gait, trying a **painted anime/early-console face on 3D geometry**, and restoring a **low-cut sweetheart/V corset neckline**. V3.3's **1.72 m scale** and expression textures are technical details, not automatically a locked body height.
+- **[V]** **C** has an independently approved (22 Nov 2026) Library art reference and should not inherit Saafiya's traits or vice versa merely because older code shares names and sprite systems.
+- **[D/P]** Character-select concepts **Bruiser, Hitman, Gangster and Balanced**, traits with both upside/downside, persistent setup choices and individualized/possibly irreversible NPC story consequences are additional narrative design fragments. They are **not** proof any final gameplay system was implemented.
+- More detail and decision boundaries: [fourth-pass audit](fourth-pass-continuity-audit-2026-11-28.md).
