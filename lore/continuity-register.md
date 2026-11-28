@@ -124,3 +124,16 @@ A second pass through previous conversations identified substantial details miss
 8. **Visual romance:** sunrise yoga and hopeful intimate portrait motifs are art-development directions, not proof of a particular adult partner.
 
 Full third-pass evidence distinctions: [third-pass fragments](third-pass-fragments-2026-11-28.md).
+
+## Fourth-pass provenance and story-choice checks (28 November 2026)
+
+- **Family objects:** Maternal grandmother's proposed **Rossi .38 Special**, father's **Beretta 84FS**, and an unrelated **decorative revolver in poolside concept art** are distinct sources. Do not quietly invent how Saafiya acquired the first or third.
+- **Heather:** Possible light eyes, straight period-styled hair, adventurous personality and police career; retain provisional scope. The mother is not Aunt Isadora; Saafiya remains Faisal/Farrell's biological daughter.
+- **Saafiya handedness:** "Perhaps left-handed" was not an immutable canon decision. Separate biological handedness from reused animation poses and visual staging.
+- **Saafiya versus C:** C's separately approved visual reference should not replace Saafiya's burgundy-dark-haired gothic design. Earlier sprite naming overlaps can be implementation shortcuts.
+- **Visual revisions:** A 1.72 m V3.3 procedural studio model, painted/UV face and lower corset neckline demonstrate art direction, not locked fictional height or complete rigging/animation status.
+- **Narrative mechanics:** Bruiser, Hitman, Gangster, Balanced; optional trait tradeoffs; irreversible NPC timeline consequences, dynamic gothic HUD and ankh preference are **proposals/design decisions** to reconcile with actual implementation, not character biography.
+- **McDonald's:** Sarah's friends may be waiting for an offline meeting with a Dark Mountain acquaintance, separate from the subsequent school art-class friendship.
+- **Period:** Avoid wrongly backdating adult Pixel-like phone concepts into school-era MXit. Dates within 2005–late 2000s remain unresolved.
+
+Details: [fourth-pass continuity audit](fourth-pass-continuity-audit-2026-11-28.md).
