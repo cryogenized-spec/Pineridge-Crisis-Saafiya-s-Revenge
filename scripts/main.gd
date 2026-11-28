@@ -19,6 +19,7 @@ var pedestrians: Array[Actor] = []
 var status: Label
 var objective: Label
 var elapsed := 0.0
+var status_update := 0.0
 var phase := 0
 var run_phase := 0.0
 var run_enabled := false
@@ -38,7 +39,7 @@ func _ready() -> void:
 	for i in range(positions.size()):
 		var person:=Actor.new()
 		person.position=positions[i]
-		person.wardrobe_index = i
+		person.wardrobe_index = i % 12
 		person.jacket=[Color("#907343"),Color("#686685"),Color("#466776"),Color("#874857"),Color("#61735d")][i%5]
 		person.skin=[Color("#a36c52"),Color("#c88d6b"),Color("#8f5846")][i%3]
 		person.set_meta("home",positions[i])
@@ -49,6 +50,7 @@ func _ready() -> void:
 	player.hero=true
 	player.position=START
 	add_child(player)
+	haze.avatar = player
 	encounters=Encounter.new()
 	encounters.configure(player,street)
 	add_child(encounters)
@@ -72,7 +74,7 @@ func make_hud() -> void:
 		"03  /  MALL APPROACH",
 		"Explore the street · reach the east marker",
 		"",
-		"WASD MOVE  •  Q RUN  •  C CROUCH  •  E INTERACT  •  I INVENTORY  •  R RELOAD  •  1–4 QUICK SLOTS  •  F FULLSCREEN"
+		"WASD MOVE  •  Q RUN  •  C CROUCH  •  E INTERACT  •  X KNIFE  •  I INVENTORY  •  R RELOAD  •  1–4 QUICK SLOTS  •  F FULLSCREEN"
 	)
 	objective = encounters.ornate_hud.story_objective
 	status = encounters.ornate_hud.story_status
@@ -86,10 +88,6 @@ func _unhandled_key_input(event:InputEvent) -> void:
 				low_fx = not low_fx
 				if is_instance_valid(haze):
 					haze.visible = not low_fx
-			KEY_F4:
-				get_tree().change_scene_to_file("res://scenes/action_review.tscn")
-			KEY_F3:
-				get_tree().change_scene_to_file("res://scenes/prop_review.tscn")
 			KEY_F2:
 				get_tree().change_scene_to_file("res://scenes/character_review.tscn")
 			KEY_ESCAPE:
@@ -115,6 +113,7 @@ func _unhandled_key_input(event:InputEvent) -> void:
 			KEY_C:
 				crouch_enabled = not crouch_enabled
 			KEY_I: encounters.toggle_inventory()
+			KEY_X: encounters.swipe()
 			KEY_E:
 				if encounters.open_nearby_loot():
 					return
@@ -177,7 +176,10 @@ func _physics_process(delta:float) -> void:
 			person.position=desired
 		var movement:Vector2=person.position-previous
 		person.animate(delta,movement,0.0 if cos(t)>0 else PI, false, false)
-	status.text="%s  ·  %03d:%03d  ·  %d FPS  ·  Smoke: %s" % ["CROUCH" if low else ("RUN" if running else "WALK"),int(player.position.x),int(player.position.y),Engine.get_frames_per_second(),"OFF" if low_fx else "ON"]
+	status_update -= delta
+	if status_update <= 0.0:
+		status_update = .25
+		status.text="%s  ·  %03d:%03d  ·  %d FPS  ·  Smoke: %s" % ["CROUCH" if low else ("RUN" if running else "WALK"),int(player.position.x),int(player.position.y),Engine.get_frames_per_second(),"OFF" if low_fx else "ON"]
 	# Child actors redraw themselves; this node draws no animated geometry.
 
 func _draw() -> void:

@@ -36,10 +36,10 @@ Runtime support for twelve VTK NPC idle/walk/run sprite sets, with optional sepa
 
 
 ## V14 prop and atmosphere pass
-The main street gains seeded decorative litter and tyre scenery, plus a separate animated haze node. No new road barricades, tactical cover or visibility rules. The F3 prop gallery contains 14 independent SVG assets including nonfunctional equipment icons and environmental objects. CI checks texture import and gallery startup. Attachment/encounter systems and final UI are not implemented in this pass. Visual review pending.
+The main street gains seeded decorative litter and tyre scenery, plus a separate animated haze node. No new road barricades, tactical cover or visibility rules. An earlier preview gallery displayed the original SVG stand-ins. Attachment/encounter systems and final UI are not implemented in this pass. Visual review pending.
 
 ## V15 animation feedback workbench
-F4 opens a presentation-only review scene, using the current NPC renderer and separately rendered prop art. Includes neutral object handling, alert symbols, startled/stumble/down previews, non-graphic colour decals, replaceable audio cues and deterministic state-transition smoke test. Whole-body pose transforms and simple object interpolation are provisional. Weapon-specific action animation, projectile mechanics, damage and encounter AI remain unimplemented. No real-world tactical behaviour is simulated.
+An earlier presentation build had a review scene, using the current NPC renderer and separately rendered prop art. Includes neutral object handling, alert symbols, startled/stumble/down previews, non-graphic colour decals, replaceable audio cues and deterministic state-transition smoke test. Whole-body pose transforms and simple object interpolation are provisional. Weapon-specific action animation, projectile mechanics, damage and encounter AI remain unimplemented. No real-world tactical behaviour is simulated.
 
 ## V16 restored arcade gameplay
 Combat is now functional in the Godot main scene: role-based NPCs, alert bubbles, melee contact, stylized shots, thrown objects, player and NPC health, damage and down states, pickups, equipment slots, and two encounter phases. Original HTML route layout and overall mission structure were used as references. Not reproduced: real weapon mechanics, advanced tactics, detailed animations, original sounds, taxi sequences, scoring screen, and the exact legacy enemy timing. Noncombat civilians remain separate from combat NPCs; wardrobe appearance does not determine faction. A dedicated smoke test runs on CI. The Web build still relies on fallback graphics until the approved PNG packs are included in the repository.
@@ -57,11 +57,11 @@ A separate Beretta-inspired sprite and effects layer tracks Saafiya's facing ang
 ## V23 art and animation
 Twelve backward-fall VTK sprite atlases supplement the original twelve forward/down atlases (8 frames each). Alternate fall direction is chosen on impact. Ambient pedestrians now respond to the same generic arcade hit interactions. Firearm tracer and line visuals are gone; thrown objects remain small unlit sprites. A capped contact-colour particle effect supplements stains. All twelve new atlases are checksum-tested in native and Web workflows.
 
-The F4 character workbench can review both 3D collapse atlases: press N to switch front/back orientation, 8 to replay the down animation, and Up/Down to change the model. The scripted workbench smoke test checks that the alternate texture loads.
+The earlier review scene exercised the alternate collapse assets.
 
 
 ## V25 audio and pistol visual review
-New Beretta and CZ reload recordings replace synthesized placeholders, and two distinct male-looter death-voice takes are available for explicitly cast male-voiced NPCs. Both import integrity and audio event presence are exercised by CI; F4 also supports listening tests. Beretta artwork has been recoloured as polished nickel with walnut-toned grips and reduced in 2D display scale by 20%; muzzle flash and haze are smaller/shorter. The existing gameplay and other weapon visuals are otherwise unchanged. Actual perceived mix levels and browser effects still need a live ear/visual check.
+New Beretta and CZ reload recordings replace synthesized placeholders, and two distinct male-looter death-voice takes are available for explicitly cast male-voiced NPCs. Both import integrity and audio event presence are exercised by CI. Beretta artwork has been recoloured as polished nickel with walnut-toned grips and reduced in 2D display scale by 20%; muzzle flash and haze are smaller/shorter. The existing gameplay and other weapon visuals are otherwise unchanged. Actual perceived mix levels and browser effects still need a live ear/visual check.
 
 Reload timing follows the length of the chosen audio clip when available; completed reload playback no longer adds a placeholder tone. This is presentation timing only, not mechanical weapon simulation.\n
 

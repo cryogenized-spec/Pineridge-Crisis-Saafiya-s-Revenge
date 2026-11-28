@@ -1,8 +1,7 @@
 """Render the inventory portrait and outfit icons from Saafiya's campaign model."""
 from PIL import Image, ImageDraw
-import numpy as np
 
-from mesh import ROOT, Renderer
+from mesh import ROOT, Renderer, color
 from people import person
 from presets import HERO
 
@@ -68,16 +67,18 @@ def main():
                 "elevation": .12, "heading": .12}
     hero = renderer.render(model, **portrait)
     hero.save(DEST / "saafiya.png", optimize=True)
-    original = np.asarray(hero, dtype=np.int16)
+    mannequin = person(HERO, inner=True)
+    wardrobe = tuple(group for groups in OUTFIT.values() for group in groups)
+    for part in mannequin.parts:
+        if part.group.startswith("Body/") and not part.group.startswith(("Body/head", "Body/neck", "Body/hand")):
+            part.tone = color("50464f")
+            part.finish = "fabric"
+    renderer.render(mannequin, **portrait, selection=lambda part:
+                    not part.group.startswith(wardrobe) and not part.group.startswith("Thigh strap/")) \
+        .save(DEST / "doll_base.png", optimize=True)
     for key, groups in OUTFIT.items():
-        without = renderer.render(model, **portrait,
-                                  selection=lambda part: not part.group.startswith(groups))
-        difference = np.max(np.abs(original - np.asarray(without, dtype=np.int16)), axis=2)
-        alpha = np.minimum(original[:, :, 3], np.clip((difference - 12) * 14, 0, 236))
-        shadow = np.zeros(original.shape, dtype=np.uint8)
-        shadow[:, :, :3] = (47, 35, 51)
-        shadow[:, :, 3] = alpha.astype(np.uint8)
-        Image.fromarray(shadow).save(DEST / f"doll_{key}.png", optimize=True)
+        renderer.render(model, **portrait, selection=lambda part: part.group.startswith(groups)) \
+            .save(DEST / f"doll_{key}.png", optimize=True)
         view = renderer.render(model, pixels=(416, 640), view=1.25, focus=(0, 0, .97),
                                elevation=.17, heading=.19,
                                selection=lambda part: part.group.startswith(groups))

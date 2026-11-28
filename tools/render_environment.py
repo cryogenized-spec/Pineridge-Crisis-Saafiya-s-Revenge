@@ -249,6 +249,16 @@ def car(style, paint):
          (front_top, top_width, cabin_height), (front_top, -top_width, cabin_height)],
     ]
     model.shell(rings, glass, .45)
+    model.side_windows = {}
+    for side in [-1, 1]:
+        def side_point(p, h):
+            return (rear + (front-rear)*p + ((back_top + (front_top-back_top)*p) - (rear+(front-rear)*p))*h,
+                    side * (glass_width + (top_width-glass_width)*h),
+                    base + (cabin_height-base)*h)
+        model.side_windows[side] = [
+            [side_point(a,.08), side_point(b,.08), side_point(b,.92), side_point(a,.92)]
+            for a,b in [(.035,.455),(.55,.965)]
+        ]
     for edge, roof_edge, hue, facing in [(rear, back_top, glass, -1), (front, front_top, bright_glass, 1)]:
         def glass_point(height, across):
             return (edge + (roof_edge-edge)*height + .012*facing,

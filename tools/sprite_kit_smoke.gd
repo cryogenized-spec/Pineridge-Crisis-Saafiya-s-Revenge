@@ -121,6 +121,7 @@ func run() -> void:
 	assert(battle.inventory.item_for_slot("Head") == "glasses")
 	battle.toggle_inventory()
 	battle.equip_quick(3)
+	hero.animate(.5, Vector2.ZERO, hero.facing)
 	battle.cooldown = 0.0
 	battle.fire_player()
 	assert(visual.entry().id == "cz75_p07" and visual.cycle_shift() < -1.0)
@@ -240,3 +241,14 @@ func verify_vehicle_glass(battle: Node, world: Node) -> void:
 			assert(world.vehicle_marks[0].hits == damage.SHATTER_HITS + 1)
 			assert(battle.motes[-1].point == aim)
 			assert(battle.stage_decals.records.size() == actor_marks)
+		for i in range(2):
+			var side := PackedVector2Array(damage.panel(model, direction).sides[i])
+			var side_center := Vector2.ZERO
+			for point in side:
+				side_center += point / side.size()
+			var point_on_side := bounds.position + bounds.size * side_center
+			for impact_index in range(damage.SHATTER_HITS):
+				assert(damage.impact(footprint, model, direction, footprint.get_center(),
+					Vector2.RIGHT, point_on_side, result) == point_on_side)
+			assert(result.pane_hits[i + 1] == damage.SHATTER_HITS)
+		assert(result.glass_hits == 1)

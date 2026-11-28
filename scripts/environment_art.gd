@@ -1,6 +1,7 @@
 extends RefCounted
 ## World-space artwork. The caller's ground and obstacle rectangles stay authoritative.
 const VEHICLES := {
+	"taxi": [preload("res://assets/environment/vehicles/taxi_east.png"), preload("res://assets/environment/vehicles/taxi_west.png")],
 	"sedan_silver": [preload("res://assets/environment/vehicles/sedan_silver_east.png"), preload("res://assets/environment/vehicles/sedan_silver_west.png")],
 	"sedan_ochre": [preload("res://assets/environment/vehicles/sedan_ochre_east.png"), preload("res://assets/environment/vehicles/sedan_ochre_west.png")],
 	"hatchback_russet": [preload("res://assets/environment/vehicles/hatchback_russet_east.png"), preload("res://assets/environment/vehicles/hatchback_russet_west.png")],

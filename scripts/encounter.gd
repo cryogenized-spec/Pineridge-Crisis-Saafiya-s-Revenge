@@ -24,7 +24,9 @@ const ROLES := {
 	"cudgel":{"life":3,"speed":112.0,"reach":26.0,"prop":"club_icon"},
 	"brick":{"life":2,"speed":66.0,"reach":156.0,"prop":"brick"},
 	"slingshot":{"life":2,"speed":68.0,"reach":185.0,"prop":"slingshot_icon"},
-	"pistol":{"life":3,"speed":72.0,"reach":330.0,"prop":"compact_icon"},
+	"pistol":{"life":3,"speed":72.0,"reach":330.0},
+	"rifle":{"life":3,"speed":67.0,"reach":255.0},
+	"machete":{"life":3,"speed":119.0,"reach":26.0,"prop":"blade_icon"},
 	"runner":{"life":2,"speed":112.0,"reach":20.0,"prop":"bottle"}
 }
 var avatar: Node2D
@@ -52,8 +54,22 @@ const MELEE_WINDUP := 0.37
 const MELEE_FOLLOW := 0.38
 const MELEE_SWINGS := {
 	0:preload("res://assets/characters/reactions/swing_00.png"),
-	7:preload("res://assets/characters/reactions/swing_07.png")
+	7:preload("res://assets/characters/reactions/swing_07.png"),
+	3:preload("res://assets/characters/reactions/cudgel_03.png"),
+	4:preload("res://assets/characters/reactions/cudgel_04.png"),
+	5:preload("res://assets/characters/reactions/cudgel_05.png"),
+	12:preload("res://assets/characters/reactions/swipe_12.png"),
+	13:preload("res://assets/characters/reactions/swipe_13.png")
 }
+const SLING_POSES := {
+	5:preload("res://assets/characters/reactions/slingshot_05.png"),
+	6:preload("res://assets/characters/reactions/slingshot_06.png"),
+	10:preload("res://assets/characters/reactions/slingshot_10.png")
+}
+const HERO_SWIPE := preload("res://assets/characters/sprite_kit/saafiya_swipe.png")
+const HERO_PICKUP := preload("res://assets/characters/sprite_kit/saafiya_pickup.png")
+const RIFLE_VOLLEY := [0.48, 0.26, 0.26]
+const KNIFE_RADIUS := 33.0
 var shots: Array[Dictionary] = []
 var motes: Array[Dictionary] = []
 var loot: Array[Dictionary] = []
@@ -70,6 +86,7 @@ var unlocked := [true,false,false]
 var shots_fired := 0
 var shots_hit := 0
 var defeated := 0
+var looter_takedowns := 0
 var phase := 0
 var elapsed := 0.0
 var finished := false
@@ -186,15 +203,17 @@ func spawn_character(at: Vector2, kind: String, look: int, male_voice: bool = fa
 	var character := Actor.new()
 	character.position = at
 	character.wardrobe_index = look
-	if kind == "knife":
+	if kind in ["knife", "cudgel", "machete"]:
 		character.action_atlas = MELEE_SWINGS.get(look)
+	elif kind == "slingshot":
+		character.action_atlas = SLING_POSES.get(look)
 	character.z_index = 2
 	add_child(character)
 	var attachment: Node2D
-	if kind == "pistol":
+	if kind in ["pistol", "rifle"]:
 		var firearm := WeaponVisual.new()
 		firearm.configure(character, false)
-		firearm.choose_slot(1)
+		firearm.choose_slot(1 if kind == "pistol" else 2)
 		attachment = firearm
 	else:
 		var prop := Sprite2D.new()
@@ -251,6 +270,7 @@ func on_gunfire(at: Vector2) -> void:
 			start_enemy_escape(enemy, at)
 		elif first_alarm:
 			enemy.startle = rng.randf_range(0.18, 0.36)
+			body.start_reaction(float(enemy.startle))
 			feedback.show_alert("!")
 			feedback.show_caption("Nangu!")
 		alarms += 1
@@ -407,7 +427,7 @@ func restart_stage() -> void:
 	get_tree().reload_current_scene()
 
 func fire_player() -> void:
-	if finished or player_hp <= 0 or cooldown > 0.0 or reload_clock > 0.0 or inventory_open():
+	if finished or player_hp <= 0 or cooldown > 0.0 or reload_clock > 0.0 or inventory_open() or avatar.gesture_time > 0.0:
 		return
 	if rounds[slot] <= 0:
 		audio.play_cue("reset")
@@ -424,6 +444,31 @@ func fire_player() -> void:
 	audio.play_cue("beretta_84fs_shot" if slot == 0 else ("cz75_shot" if slot == 1 else "akm_shot"))
 	on_gunfire(avatar.position)
 	update_hud()
+
+func swipe() -> bool:
+	if street_suspended or finished or player_hp <= 0 or cooldown > 0.0 or reload_clock > 0.0 or inventory_open():
+		return false
+	if inventory.item_for_slot("Knife").is_empty() or avatar.gesture_time > 0.0:
+		return false
+	var target: Dictionary = {}
+	var reach := KNIFE_RADIUS
+	for candidate in actors:
+		if candidate.down or candidate.escaped:
+			continue
+		var point: Vector2 = candidate.body.position
+		var distance := avatar.position.distance_to(point)
+		if distance < reach and stage_trace(avatar.position, point) == point:
+			target = candidate
+			reach = distance
+	var heading := float(avatar.facing)
+	if not target.is_empty():
+		var offset: Vector2 = target.body.position - avatar.position
+		heading = offset.angle()
+		hit_enemy(target, 2, offset.normalized())
+		audio.play_cue("knife_swipe")
+	avatar.play_gesture(HERO_SWIPE, .42, heading)
+	cooldown = .55
+	return true
 
 func resolve_player_action(origin: Vector2, direction: Vector2, aim: Vector2 = Vector2.INF) -> void:
 	# Immediate fictional arcade collision: no tracer or projectile rendering.
@@ -505,14 +550,13 @@ func affect_bystander(target: Dictionary, direction: Vector2 = Vector2.ZERO) -> 
 	var feedback: Node2D = target["feedback"]
 	register_character_impact(feedback)
 	feedback.show_caption("Awu…")
-	feedback.select(Feedback.State.DOWN)
 	begin_collapse(target)
 	stage_decals.impact(person.global_position, direction, 0.83)
 	audio.play_cue("reaction")
 
-func add_shot(start: Vector2, direction: Vector2, friendly: bool, kind: String, velocity: float) -> void:
+func add_shot(start: Vector2, direction: Vector2, friendly: bool, kind: String, velocity: float, source: Node2D = null) -> void:
 	shots.append({"point":start,"prior":start,"vector":direction.normalized()*velocity,
-	"friendly":friendly,"kind":kind,"life":0.32 if friendly else 1.05,"rotation":rng.randf_range(0,TAU)})
+	"friendly":friendly,"kind":kind,"life":0.32 if friendly else 1.05,"rotation":rng.randf_range(0,TAU),"source":source})
 	if shots.size()>90:
 		shots.pop_front()
 
@@ -547,12 +591,13 @@ func take_loot(entry: Dictionary, pile: Dictionary) -> String:
 		"cash":
 			inventory.add_cash(entry.amount)
 			destination = "wallet"
-		"pistol":
-			if not unlocked[1]:
-				unlocked[1] = true
-				rounds[1] = int(KIT[1]["size"])
-				inventory.equipment["Backup"] = KIT[1]["name"]
-				inventory.unlock_quick(1)
+		"pistol", "rifle":
+			var index_slot := 1 if entry.item == "pistol" else 2
+			if not unlocked[index_slot]:
+				unlocked[index_slot] = true
+				rounds[index_slot] = int(KIT[index_slot]["size"])
+				inventory.equipment["Backup" if index_slot == 1 else "Primary"] = KIT[index_slot]["name"]
+				inventory.unlock_quick(index_slot)
 				destination = "equipment"
 			elif not inventory.stow(entry.item):
 				return ""
@@ -562,6 +607,7 @@ func take_loot(entry: Dictionary, pile: Dictionary) -> String:
 	items.remove_at(index)
 	if items.is_empty():
 		loot.erase(pile)
+	avatar.play_gesture(HERO_PICKUP, .38, avatar.position.angle_to_point(pile.point))
 	audio.play_cue("pickup")
 	update_hud()
 	return destination
@@ -577,7 +623,7 @@ func show_car_boot() -> void:
 func inventory_open() -> bool:
 	return is_instance_valid(inventory_ui) and inventory_ui.open
 
-func hit_enemy(target: Dictionary, amount: int, direction: Vector2 = Vector2.ZERO) -> void:
+func hit_enemy(target: Dictionary, amount: int, direction: Vector2 = Vector2.ZERO, player_credit: bool = true) -> void:
 	if bool(target["down"]):
 		return
 	target["hp"] = maxi(0,int(target["hp"])-amount)
@@ -589,13 +635,17 @@ func hit_enemy(target: Dictionary, amount: int, direction: Vector2 = Vector2.ZER
 	if int(target["hp"]) <= 0:
 		target["down"]=true
 		target["attachment"].visible=false
-		feedback.select(Feedback.State.DOWN)
 		begin_collapse(target)
 		defeated+=1
 		var kind: String = target.kind
-		var items: Array[Dictionary] = [{"item":kind, "label":InventoryModel.ITEM_NAMES[kind]}]
+		if player_credit and kind not in ["rifle", "machete"]:
+			looter_takedowns += 1
+		var item := "knife" if kind == "machete" else kind
+		var items: Array[Dictionary] = [{"item":item, "label":InventoryModel.ITEM_NAMES[item]}]
 		if kind == "pistol":
 			items.append({"item":"pistol_mag", "label":InventoryModel.ITEM_NAMES["pistol_mag"]})
+		elif kind == "rifle":
+			items.append({"item":"rifle_mag", "label":InventoryModel.ITEM_NAMES["rifle_mag"]})
 		var notes: int=int(target.get("cash_rand",0))
 		if notes > 0:
 			items.append({"item":"cash", "label":"Wallet · R%d" % notes, "amount":notes})
@@ -607,7 +657,6 @@ func hit_enemy(target: Dictionary, amount: int, direction: Vector2 = Vector2.ZER
 		else:
 			audio.play_cue("down")
 	else:
-		feedback.select(Feedback.State.STUMBLE)
 		target["body"].start_reaction(float(target["reaction"]))
 		audio.play_cue("reaction")
 	update_hud()
@@ -656,17 +705,18 @@ func update_character(target: Dictionary, delta: float) -> void:
 	var to_avatar := avatar.position-body.position
 	var distance := to_avatar.length()
 	var kind: String = target.kind
-	var melee := kind in ["knife", "cudgel"]
+	var melee := kind in ["knife", "cudgel", "machete"]
+	var ranged := kind in ["pistol", "rifle"]
 	var clear_lane := distance <= 475.0 and stage_trace(body.position, avatar.position) == avatar.position
 	var motion := Vector2.ZERO
 	var heading := to_avatar.angle()
-	var notice_radius := 385.0 if kind == "pistol" else 250.0
-	var alerted_radius := 475.0 if kind == "pistol" else 380.0
+	var notice_radius := 385.0 if ranged else 250.0
+	var alerted_radius := 475.0 if ranged else 380.0
 	if float(target.windup) > 0.0:
 		heading = target.aim
 		target.windup = maxf(0.0, float(target.windup) - delta)
 		if target.windup == 0.0:
-			if kind == "pistol":
+			if ranged:
 				fire_volley(target)
 			elif melee:
 				target.attack = MELEE_FOLLOW
@@ -698,13 +748,13 @@ func update_character(target: Dictionary, delta: float) -> void:
 					target.aim = heading
 				else:
 					motion = to_avatar.normalized() * float(ROLES[kind].speed) * delta
-		elif kind == "pistol":
+		elif ranged:
 			if distance > float(ROLES[kind].reach) or not clear_lane:
 				motion = to_avatar.normalized() * float(ROLES[kind].speed) * delta
 			elif float(target.cooldown) <= 0.0:
 				target.aim = heading
 				target.volley = 0
-				target.windup = PISTOL_VOLLEY[0]
+				target.windup = PISTOL_VOLLEY[0] if kind == "pistol" else RIFLE_VOLLEY[0]
 		else:
 			if distance>125.0:
 				motion = to_avatar.normalized()*float(ROLES[target["kind"]]["speed"])*delta
@@ -726,6 +776,8 @@ func update_character(target: Dictionary, delta: float) -> void:
 			body.action_phase = .46 * (1.0 - float(target.windup) / MELEE_WINDUP)
 		elif target.attack > 0.0:
 			body.action_phase = 1.0 - .54 * float(target.attack) / MELEE_FOLLOW
+		elif kind == "slingshot" and step.is_zero_approx() and target.alerted:
+			body.action_phase = .0
 		accessory.visible = body.action_phase < 0.0
 	if float(target["reaction"])>0.0:
 		body.modulate=Color(1.0,0.61,0.61)
@@ -750,23 +802,27 @@ func attack_character(target: Dictionary, to_avatar: Vector2) -> void:
 	target["cooldown"] = 1.75
 	target["attack"] = 0.38
 	var direction := Vector2.from_angle(to_avatar.angle() + rng.randf_range(-0.32, 0.32))
-	add_shot(target["body"].position + direction * 10.0, direction, false, kind, 230.0)
+	add_shot(target["body"].position + direction * 10.0, direction, false, kind, 510.0 if kind == "slingshot" else 230.0)
 
 func fire_volley(target: Dictionary) -> void:
 	var body: Actor = target.body
-	if target.volley + 1 < PISTOL_VOLLEY.size():
+	var burst_sequence := PISTOL_VOLLEY if target.kind == "pistol" else RIFLE_VOLLEY
+	if target.volley + 1 < burst_sequence.size():
 		target.volley += 1
-		target.windup = PISTOL_VOLLEY[target.volley]
+		target.windup = burst_sequence[target.volley]
 	else:
 		target.cooldown = rng.randf_range(1.02, 1.35)
 	var direction := Vector2.from_angle(float(target.aim) + rng.randf_range(-0.023, 0.023))
-	var end := stage_trace(body.position, body.position + direction * ACTION_REACH)
-	var nearest := Geometry2D.get_closest_point_to_segment(avatar.position, body.position, end)
-	if nearest.distance_to(avatar.position) < 12.0 and stage_trace(nearest, avatar.position) == avatar.position:
-		hurt_player(direction)
+	if target.kind == "rifle":
+		add_shot(body.position + direction * 12.0, direction, false, "taxi_burst", 425.0, body)
+	else:
+		var end := stage_trace(body.position, body.position + direction * ACTION_REACH)
+		var nearest := Geometry2D.get_closest_point_to_segment(avatar.position, body.position, end)
+		if nearest.distance_to(avatar.position) < 12.0 and stage_trace(nearest, avatar.position) == avatar.position:
+			hurt_player(direction)
 	var weapon: WeaponVisual = target.attachment
 	stage_decals.eject(weapon.burst(direction))
-	audio.play_cue("cz75_shot", -4.0)
+	audio.play_cue("cz75_shot" if target.kind == "pistol" else "akm_shot", -4.0)
 	on_gunfire(body.position)
 
 func step_shots(delta: float) -> void:
@@ -781,16 +837,29 @@ func step_shots(delta: float) -> void:
 		var stop := stage_trace(previous, p)
 		var remove := float(s.life) <= 0.0
 		if not remove:
-			if bool(s["friendly"]):
+			var player_shot: bool = s.friendly
+			var avatar_contact := Geometry2D.get_closest_point_to_segment(avatar.position, previous, stop)
+			var hit_avatar := not player_shot and player_hp > 0 and avatar_contact.distance_to(avatar.position) < 11.0
+			var nearest := previous.distance_squared_to(avatar_contact) if hit_avatar else INF
+			var target: Dictionary = {}
+			if player_shot or s.kind == "taxi_burst":
 				for enemy in actors:
-					if not bool(enemy["down"]) and Geometry2D.get_closest_point_to_segment(enemy["body"].position,previous,stop).distance_to(enemy["body"].position) < 12.0:
-						hit_enemy(enemy, 1, Vector2(s["vector"]).normalized())
-						shots_hit+=1
-						remove=true
-						break
-			elif player_hp > 0 and Geometry2D.get_closest_point_to_segment(avatar.position, previous, stop).distance_to(avatar.position) < 11.0:
-				hurt_player(Vector2(s["vector"]).normalized())
-				remove=true
+					if enemy.down or enemy.escaped or enemy.body == s.source:
+						continue
+					var contact := Geometry2D.get_closest_point_to_segment(enemy.body.position, previous, stop)
+					var distance := previous.distance_squared_to(contact)
+					if contact.distance_to(enemy.body.position) < 12.0 and distance < nearest:
+						nearest = distance
+						target = enemy
+			var heading := Vector2(s.vector).normalized()
+			if not target.is_empty():
+				hit_enemy(target, 1, heading, player_shot)
+				if player_shot:
+					shots_hit += 1
+				remove = true
+			elif hit_avatar:
+				hurt_player(heading)
+				remove = true
 		if remove or stop != p:
 			motes.append({"point":stop,"life":0.28})
 			shots.remove_at(i)
@@ -842,10 +911,14 @@ func _draw() -> void:
 		var kind: String = s["kind"]
 		if kind == "brick" or kind == "slingshot":
 			var point: Vector2 = s["point"]
-			var size := 3.0 if kind == "brick" else 1.4
-			draw_circle(point,size,Color("#ab9181") if kind == "brick" else Color("#8a888b"),true,-1,true)
+			var size := Vector2.ONE * (9.0 if kind == "brick" else 3.7)
+			draw_set_transform(point, float(s.rotation))
+			draw_texture_rect(Props.texture("brick" if kind == "brick" else "pebble"), Rect2(-size / 2.0, size), false)
+			draw_set_transform(Vector2.ZERO)
+		elif kind == "taxi_burst":
+			draw_circle(s.point, 2.4, Color("#e5bc88"), true, -1, true)
 	for target in actors:
-		if not target.down and not target.escaped and target.kind == "pistol" and float(target.windup) > 0.0:
+		if not target.down and not target.escaped and target.kind in ["pistol", "rifle"] and float(target.windup) > 0.0:
 			var top: Vector2 = target.body.position + Vector2(0, -19)
 			draw_circle(top, 2.5, Color("#efb086"), true, -1, true)
 	for spark in motes:

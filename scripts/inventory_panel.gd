@@ -2,7 +2,8 @@ extends CanvasLayer
 ## One drag surface keeps overlapping item footprints and equipment targets in sync.
 const Model := preload("res://scripts/inventory_model.gd")
 const PORTRAIT := preload("res://assets/ui/inventory/saafiya.png")
-const OUTFIT_MASKS := {
+const PORTRAIT_BASE := preload("res://assets/ui/inventory/doll_base.png")
+const OUTFIT_LAYERS := {
 	"Head":preload("res://assets/ui/inventory/doll_glasses.png"),
 	"Neck":preload("res://assets/ui/inventory/doll_choker.png"),
 	"Torso":preload("res://assets/ui/inventory/doll_lace.png"),
@@ -47,7 +48,7 @@ const ICONS := {
 	"cudgel":"res://assets/props/rendered/club_icon.png",
 	"brick":"res://assets/props/rendered/brick.png",
 	"slingshot":"res://assets/props/rendered/slingshot_icon.png",
-	"runner":"res://assets/props/bottle.svg"
+	"runner":"res://assets/props/rendered/bottle.png"
 }
 
 class Surface extends Control:
@@ -158,10 +159,16 @@ func paint(canvas: Control) -> void:
 		canvas.draw_arc(Vector2(239, 292), 38.0 + i * 10, 0, TAU, 56, Color(0.46, 0.27, 0.31, .11), 1, true)
 	canvas.draw_line(Vector2(239, 137), Vector2(239, 476), Color("#433138"))
 	var portrait := Rect2(128, 133, 222, 347)
-	draw_icon(canvas, PORTRAIT, portrait, Color("#e0caca"))
-	for slot in OUTFIT_MASKS:
+	var layered := false
+	for slot in OUTFIT_LAYERS:
 		if model.item_for_slot(slot).is_empty():
-			draw_icon(canvas, OUTFIT_MASKS[slot], portrait)
+			layered = true
+			break
+	draw_icon(canvas, PORTRAIT_BASE if layered else PORTRAIT, portrait, Color("#e0caca"))
+	if layered:
+		for slot in OUTFIT_LAYERS:
+			if not model.item_for_slot(slot).is_empty():
+				draw_icon(canvas, OUTFIT_LAYERS[slot], portrait, Color("#e0caca"))
 	for slot in SLOTS:
 		var bounds: Rect2 = SLOTS[slot]
 		var item := model.item_for_slot(slot)
