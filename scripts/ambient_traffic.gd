@@ -1,6 +1,7 @@
 extends Node2D
 
 const Art := preload("res://scripts/environment_art.gd")
+const Damage := preload("res://scripts/vehicle_damage.gd")
 const Actor := preload("res://scripts/actor.gd")
 const DRIVER_GESTURE := preload("res://assets/characters/reactions/protest_09.png")
 const HORN := preload("res://assets/audio/traffic_horn.wav")
@@ -59,7 +60,7 @@ func step_car(car: Dictionary, delta: float) -> bool:
 	var next := Rect2(current.position + Vector2(float(car.direction) * car.pace * delta, 0), CAR_SIZE)
 	var blocked_by_player := is_instance_valid(avatar) and current.merge(next).grow(14.0).has_point(avatar.position)
 	var driver: Actor = car.driver
-	if car.marks.size() >= STALL_HITS:
+	if int(car.damage.get("hits", 0)) >= STALL_HITS:
 		if is_instance_valid(driver):
 			update_driver(car, current, false, delta)
 		return false
@@ -118,7 +119,7 @@ func spawn_car() -> void:
 	cars.append({
 		"pos":Vector2(x, y), "direction":heading,
 		"speed":cruise, "pace":cruise, "hurrying":false, "waiting":0.0, "gesture":0.0,
-		"driver":null, "marks":[],
+		"driver":null, "damage":{},
 		"model":"security" if count % 5 == 4 else MODELS[count % MODELS.size()]
 	})
 	count += 1
@@ -129,45 +130,22 @@ func blocked(p: Vector2, radius: float = 7.0) -> bool:
 			return true
 	return false
 
-func impact_vehicle(at: Vector2) -> bool:
+func impact_vehicle(contact: Vector2, heading: Vector2, aim: Vector2) -> Vector2:
 	for car in cars:
-		var bounds := Rect2(car.pos, CAR_SIZE)
-		if bounds.grow(6.0).has_point(at):
-			add_mark(car.marks, bounds, at)
+		var hit := Damage.impact(Rect2(car.pos, CAR_SIZE), car.model, car.direction,
+			contact, heading, aim, car.damage)
+		if hit.is_finite():
 			queue_redraw()
-			return true
-	return false
-
-static func add_mark(marks: Array, bounds: Rect2, point: Vector2) -> void:
-	if marks.size() >= 18:
-		marks.pop_front()
-	var at := point.clamp(bounds.position + Vector2(7, 6), bounds.end - Vector2(7, 6))
-	marks.append(at - bounds.position)
-
-static func mark_parked(at: Vector2, vehicles: Array, all_marks: Dictionary) -> bool:
-	for i in range(vehicles.size()):
-		var bounds: Rect2 = vehicles[i]
-		if bounds.grow(6).has_point(at):
-			if not all_marks.has(i):
-				all_marks[i] = []
-			add_mark(all_marks[i], bounds, at)
-			return true
-	return false
-
-static func draw_marks(canvas: Node2D, bounds: Rect2, marks: Array) -> void:
-	for offset in marks:
-		var point: Vector2 = bounds.position + offset
-		canvas.draw_circle(point, 2.2, Color("#413039"), true, -1, true)
-		canvas.draw_line(point - Vector2(2, -1), point + Vector2(2, -1.7), Color("#bba999"), 1, true)
-	if marks.size() >= STALL_HITS:
-		canvas.draw_circle(bounds.get_center() + Vector2(-2, -5), 9, Color("#453a3c80"), true, -1, true)
-		canvas.draw_circle(bounds.get_center() + Vector2(1, -11), 7, Color("#6e60616b"), true, -1, true)
+			return hit
+	return Damage.MISS
 
 func _draw() -> void:
 	for car in cars:
 		var bounds := Rect2(car.pos, CAR_SIZE)
 		Art.vehicle(self, bounds, car.model, car.direction)
-		draw_marks(self, bounds, car.marks)
+		Damage.draw(self, bounds, car.model, car.direction, car.damage)
+		if int(car.damage.get("hits", 0)) >= STALL_HITS:
+			Damage.draw_vapor(self, bounds, car.direction, elapsed)
 		var driver: Actor = car.driver
 		if is_instance_valid(driver) and car.waiting >= EXIT_AFTER and not car.hurrying:
 			draw_complaint(driver.position + Vector2(0, -27), floori(car.gesture / 2.4) % 3)

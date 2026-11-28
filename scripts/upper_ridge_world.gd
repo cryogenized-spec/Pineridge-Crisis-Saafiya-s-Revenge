@@ -2,6 +2,7 @@ extends Node2D
 
 const Art = preload("res://scripts/environment_art.gd")
 const Traffic = preload("res://scripts/ambient_traffic.gd")
+const Damage := preload("res://scripts/vehicle_damage.gd")
 const RIDGE_TREE := preload("res://assets/environment/roadside/jacobs_tree.png")
 const RIDGE_HOUSE := preload("res://assets/environment/architecture/jacobs_house.png")
 var traffic: Traffic
@@ -20,6 +21,7 @@ const JACOBS_LAWN := Rect2(1859, 39, 359, 351)
 const JACOBS_ROOF := Rect2(1902, 128, 238, 148)
 const TREE_POINT := Vector2(2064, 77)
 const PARKED_ART := ["saafiya_car", "hatchback_russet", "sedan_silver", "utility_ivory"]
+const PARKED_FACING := [1, 1, -1, 1]
 var parked: Array[Rect2] = [
 	PLAYER_CAR,
 	Rect2(350,326,CAR_LENGTH,CAR_WIDTH),
@@ -59,13 +61,15 @@ func blocked(p: Vector2, radius: float = 7.0) -> bool:
 			return true
 	return false
 
-func impact_vehicle(at: Vector2, _heading: Vector2) -> bool:
-	if is_instance_valid(traffic) and traffic.impact_vehicle(at):
-		return true
-	if Traffic.mark_parked(at, parked, vehicle_marks):
+func impact_vehicle(contact: Vector2, heading: Vector2, aim: Vector2) -> Vector2:
+	if is_instance_valid(traffic):
+		var moving := traffic.impact_vehicle(contact, heading, aim)
+		if moving.is_finite():
+			return moving
+	var hit := Damage.hit_parked(contact, heading, aim, parked, PARKED_ART, PARKED_FACING, vehicle_marks)
+	if hit.is_finite():
 		queue_redraw()
-		return true
-	return false
+	return hit
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO,SIZE),Color("#34483f"))
@@ -96,8 +100,8 @@ func _draw() -> void:
 		draw_shrub(Vector2(x,350.0+float((i*7)%13)),i)
 		draw_shrub(Vector2(x+15,702.0+float((i*5)%13)),i+11)
 	for i in range(parked.size()):
-		Art.vehicle(self, parked[i], PARKED_ART[i], -1 if i == 2 else 1)
-		Traffic.draw_marks(self, parked[i], vehicle_marks.get(i, []))
+		Art.vehicle(self, parked[i], PARKED_ART[i], PARKED_FACING[i])
+		Damage.draw(self, parked[i], PARKED_ART[i], PARKED_FACING[i], vehicle_marks.get(i, {}))
 	draw_string(ThemeDB.fallback_font,TRUNK_POINT+Vector2(-18,-21),"SAAFIYA'S MUSTANG",HORIZONTAL_ALIGNMENT_LEFT,-1,11,Color("#f1dfc3"))
 	# Environmental signposting, not tactical markers.
 	draw_sign(Vector2(192,390),"UPPER RIDGE")

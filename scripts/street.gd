@@ -1,7 +1,7 @@
 extends Node2D
 
 const Art = preload("res://scripts/environment_art.gd")
-const Traffic = preload("res://scripts/ambient_traffic.gd")
+const Damage := preload("res://scripts/vehicle_damage.gd")
 
 const SIZE := Vector2(2320, 700)
 const SHOP_NAMES := ["HOME & MORE", "PINE RIDGE", "BAKERY", "RECORDS", "PHARMACY"]
@@ -9,6 +9,8 @@ const PARKED_ART := ["hatchback_russet", "sedan_silver", "hatchback_sage", "util
 const Props = preload("res://scripts/prop_library.gd")
 var obstacles: Array[Rect2] = []
 var parked: Array[Rect2] = []
+var parked_models: Array[String] = []
+var parked_directions: Array[int] = []
 var vehicle_marks := {}
 var litter: Array[Dictionary] = []
 var haze_origins := PackedVector2Array([Vector2(580,268),Vector2(1290,435),Vector2(1880,262)])
@@ -20,6 +22,9 @@ func _ready() -> void:
 	obstacles.append(Rect2(0, 550, SIZE.x, 150))
 	for x in range(330, 2240, 342):
 		parked.append(Rect2(x - 22, (460 if x >= 1000 or x % 2 else 239) - 13, 44, 26))
+	for i in range(parked.size()):
+		parked_models.append(PARKED_ART[i % PARKED_ART.size()])
+		parked_directions.append(-1 if parked[i].get_center().y > 350 else 1)
 	obstacles.append_array(parked)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 67204
@@ -40,11 +45,11 @@ func blocked(p: Vector2, radius: float = 7.0) -> bool:
 			return true
 	return false
 
-func impact_vehicle(at: Vector2, _heading: Vector2) -> bool:
-	if Traffic.mark_parked(at, parked, vehicle_marks):
+func impact_vehicle(contact: Vector2, heading: Vector2, aim: Vector2) -> Vector2:
+	var hit := Damage.hit_parked(contact, heading, aim, parked, parked_models, parked_directions, vehicle_marks)
+	if hit.is_finite():
 		queue_redraw()
-		return true
-	return false
+	return hit
 
 func _draw() -> void:
 	var rng := RandomNumberGenerator.new()
@@ -69,8 +74,8 @@ func _draw() -> void:
 		tree(Vector2(x, 600 + rng.randf_range(-15, 40)), rng)
 	for i in range(parked.size()):
 		var bounds := parked[i]
-		Art.vehicle(self, bounds, PARKED_ART[i % PARKED_ART.size()], -1 if bounds.get_center().y > 350 else 1)
-		Traffic.draw_marks(self, bounds, vehicle_marks.get(i, []))
+		Art.vehicle(self, bounds, parked_models[i], parked_directions[i])
+		Damage.draw(self, bounds, parked_models[i], parked_directions[i], vehicle_marks.get(i, {}))
 	for x in range(80, 2320, 218):
 		tree(Vector2(x, 181), rng)
 		tree(Vector2(x + 30, 519), rng)

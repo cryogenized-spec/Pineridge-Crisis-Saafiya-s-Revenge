@@ -67,7 +67,8 @@ func run() -> void:
 	level.traffic.step_car(car, 0.51)
 	assert(car.driver.action_atlas != null and car.driver.action_phase >= 0.0)
 	for hit in range(level.traffic.STALL_HITS):
-		assert(level.traffic.impact_vehicle(car.pos + Vector2(21, 22)))
+		var at: Vector2 = car.pos + Vector2(21, 22)
+		assert(level.traffic.impact_vehicle(at, Vector2.RIGHT, at).is_finite())
 	var stalled_at: Vector2 = car.pos
 	hero.position += Vector2(0, 48)
 	level.traffic.step_car(car, 1.0)
@@ -104,6 +105,7 @@ func run() -> void:
 	assert(battle.inventory.footprint("pistol_mag") == Vector2i.ONE)
 	battle.resolve_player_action(Vector2(190, 478), Vector2.RIGHT)
 	assert(level.world.vehicle_marks.has(0))
+	verify_vehicle_glass(battle, level.world)
 	assert(battle.inventory.quick_slots == [0, 1, -1, -1])
 	battle.toggle_inventory()
 	var ui: CanvasLayer = battle.inventory_ui
@@ -212,3 +214,29 @@ func drag_between(ui: CanvasLayer, from: Vector2, to: Vector2) -> void:
 	release.button_index = MOUSE_BUTTON_LEFT
 	release.position = to
 	ui.point_input(release)
+
+func verify_vehicle_glass(battle: Node, world: Node) -> void:
+	var art := preload("res://scripts/environment_art.gd")
+	var damage := preload("res://scripts/vehicle_damage.gd")
+	var footprint: Rect2 = world.PLAYER_CAR
+	var bounds := art.vehicle_bounds(footprint)
+	var model := "saafiya_car"
+	for direction in [1, -1]:
+		var glass := PackedVector2Array(damage.panel(model, direction).glass)
+		var center := Vector2.ZERO
+		for point in glass:
+			center += point / glass.size()
+		var aim := bounds.position + bounds.size * center
+		var result := {}
+		assert(damage.impact(footprint, model, direction, footprint.get_center(), Vector2.RIGHT, aim, result) == aim)
+		assert(result.glass_hits == 1 and result.marks[0].glass)
+		if direction > 0:
+			var pos := Vector2(aim.x, footprint.end.y + 35)
+			var heading := (aim - pos).normalized()
+			var actor_marks: int = battle.stage_decals.records.size()
+			for i in range(damage.SHATTER_HITS):
+				battle.resolve_player_action(pos, heading, aim)
+			assert(world.vehicle_marks[0].glass_hits == damage.SHATTER_HITS)
+			assert(world.vehicle_marks[0].hits == damage.SHATTER_HITS + 1)
+			assert(battle.motes[-1].point == aim)
+			assert(battle.stage_decals.records.size() == actor_marks)
