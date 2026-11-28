@@ -165,3 +165,14 @@ This section links additional director-discussed details missed or compressed in
 - **[H/O]** Some older *Hero-shooter* art labels Saafiya **"NPC / Temporary Ally"**, whereas the standalone *Pine Ridge at Dawn* and current Godot *Saafiya's Revenge* make her playable. This is a project/version distinction, not proof C and Saafiya are the same person.
 - **[D/P]** An older Fayeem family-house treatment depicts a **1950s mine-worker-era dwelling**; the house's age is not the period in which the adult story occurs. A specific comic-art revision removed two back straps and a collar ring from **that image**, not from every future outfit.
 - See [seventh-pass audit](seventh-pass-2026-11-28-residential-route-and-provenance.md) for the complete preservation, source boundaries and current-code distinctions.
+
+## Narrative-consequence detail recovered from the source guide (28 November 2026)
+
+The original [narrative presentation and sound guide](source-hero-shooter/narrative-presentation-and-sound-2026-11.md) already contains more precise proposed systems than the brief summary above. Preserve the distinctions rather than merging them into an undifferentiated morality meter.
+
+- **[D/P]** The beating anatomical-heart motif may use thin tendril/vine imagery, with an initially red and relatively intact appearance. Increasing darkness is intended to feel **mournful**, not to announce a simplistic demon transformation. Full animation is a proposal, not a verified HUD feature.
+- **[P]** **Pulse / BPM** represents transient physiological stress and exertion; **psychological burden** represents shock, fear, grief and exhaustion; **humanity / conduct** concerns choices, mercy, cruelty and conscience. The heart-rate display does **not** measure goodness.
+- **[D/P]** Suggested longer-running consequences are **Russian alignment**, **public legitimacy or trust**, **scrutiny by institutions and rival groups**, and **regional stability / consequences for communities**. These are narrative dimensions, not confirmed implemented numerical variables.
+- **[D/P]** Opening confrontation should show hesitation, anger, disbelief and fear, distinguishing immediate danger from bystanders and those fleeing. One early cinematic suggestion was a **15–20-second** illustrated sequence using a few expressive layers, with the bars withdrawing when free movement begins.
+- **[P]** Emotional cinematic elements should be skippable/replayable where possible; the detailed heart is better reserved for major introspection/choice scenes than constantly covering live gameplay, with accessibility considerations for pulsing or flashing.
+- **[O]** This guide is *archived verbatim* in [source-hero-shooter](source-hero-shooter/narrative-presentation-and-sound-2026-11.md). Its detailed proposed interface and branching logic are **not** automatically functioning in the current Godot project.
