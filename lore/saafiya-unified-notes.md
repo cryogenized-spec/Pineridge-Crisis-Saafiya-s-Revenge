@@ -105,4 +105,13 @@ See [Sarah, Ambrosia and Dark Mountain](sarah-ambrosia-dark-mountain.md) for the
 - [Comic, dialogue, heart motif and music presentation](source-hero-shooter/narrative-presentation-and-sound-2026-11.md).
 - [Home & More approved layout provenance](source-hero-shooter/home-and-more-shop-approved.md).
 
-For decisions needing reconciliation, use [the continuity register](continuity-register.md). 
+For decisions needing reconciliation, use [the continuity register](continuity-register.md).
+
+## Second-pass recovery: material omitted from the first consolidation (28 Nov 2026)
+
+This section links additional director-discussed details missed or compressed in the original synthesis. Full context and uncertainty labels: [recovered fragments](recovered-fragments-2026-11-28.md); [Farsha character fragments](farsha-character-fragments.md).
+
+- **[D]** Saafiya's mother is **Heather**; **Aunt Isadora** is a different person who receives her after school troubles. A draft relocation scene places Heather and Saafiya in an old grey **Renault 5**, carrying two suitcases and one additional bag, listening to Sandra's **"(I'll Never Be) Maria Magdalena"** on cassette; a **Princeton cigarette** and **glass-ball metaphor** enrich their complex conversation. The journey was imagined as about **two hours**, which is **[O]** against a literal uninterrupted KZN-to-Cape-Town drive.
+- **[D/P]** A significant rival, **Farsha**, has an independent history: Afrikaans-speaking family, bullying over accent, retreat into private fantasy, an online-first Dark Mountain identity and a troubling, initially deceptive school relationship with Saafiya. A lavatory confrontation causes serious injury and unsettled consequences. Do not reduce her to an anonymous antagonist or invent the outcome.
+- **[D/P]** Sarah's world includes a wooded/hillside home, a pool, an expressive 1980s-styled mother with serious private struggles, a richly illustrated childhood folklore encyclopedia and a mysterious black ceremonial dagger. Their details and meaning remain unsettled. See [Sarah's companion entry](sarah-ambrosia-dark-mountain.md).
+- **[O]** Other uncertainties include the number of MXit rooms versus participants per room, Ambrosia's previous reading/makeup circle versus Saafiya's tabletop entry, and the older browser game's eight-round Beretta versus later 84FS .380 ACP story designation. See [continuity register](continuity-register.md).
