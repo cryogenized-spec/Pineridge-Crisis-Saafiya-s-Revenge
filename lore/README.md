@@ -6,7 +6,9 @@
 
 1. **[Saafiya / Sophia / Sofia — consolidated character and narrative notes](saafiya-unified-notes.md)** — identity, family, coming of age, school and Cape Town, visual language, Sarah, Ambrosia, adult relationships, the Fayeem/Russian plot and older Hero-shooter game-world interlocks.
 2. **[Sarah, Ambrosia and Dark Mountain](sarah-ambrosia-dark-mountain.md)** — Sarah's personality and family, the art-class bond and mirror, tabletop and LARP progression, the coven, lowercase Pixie identity, historical inspirations, fictional supernatural possibilities and open questions.
-3. **[Continuity register](continuity-register.md)** — unresolved names, competing origin stories, chronological alternatives and implementation-versus-story distinctions. **Do not "fix" contradictions without a decision.**
+3. **[Farsha — character development fragments](farsha-character-fragments.md)** — childhood and family, Afrikaans school experiences, MXit persona, Saafiya conflict and unresolved aftermath.
+4. **[Recovered overlooked lore fragments — 28 November audit](recovered-fragments-2026-11-28.md)** — Heather's relocation drive, Sarah's home and childhood objects, school and Dark Mountain details, and earlier game-scene fragments.
+5. **[Continuity register](continuity-register.md)** — unresolved names, competing origin stories, chronological alternatives and implementation-versus-story distinctions. **Do not "fix" contradictions without a decision.**
 
 ## Preserved Hero-shooter source documents
 
