@@ -115,3 +115,10 @@ This is an **outline, not a locked shot list, nor proof of a romance**.
 - **[O]** The early girls' reading/makeup circle and later mixed-age tabletop/LARP/esoteric circle might be nested circles or later developments; neither relationship is yet settled.
 - **[O]** School/MXit event dates are **mid-to-late 2000s**, still not an approved exact chronological sequence. Preserve this ambiguity, particularly when referencing media released in different years.
 - Supplemental source and context: [fourth-pass audit](fourth-pass-continuity-audit-2026-11-28.md).
+
+## Fifth-pass McDonald's bridge: the events immediately preceding Sarah's appearance
+
+- **[D]** Saafiya's first sighting of Sarah is not a free-standing chance meeting. It follows the **school lavatory altercation involving Farsha**, Saafiya being called to the office by a **female matric prefect** after roughly half an hour to an hour, and **Aunt Isadora's** calm discussion with staff at the principal's office.
+- **[D]** Isadora takes Saafiya for a **second breakfast at McDonald's**, suggesting a **bran muffin and coffee** while Saafiya remains disturbed by the day's events and barely eats.
+- **[D]** Outside sits Sarah, another student absent from school that day, with companions waiting to **meet an online Dark Mountain contact face to face**. The group and the face-exchange premise should not be erased. Exactly who notices whom first and what, if anything, they say remain open; a later **art-class friendship** is a distinct development.
+- This recovered **cause-and-effect sequence** is documented in [fifth-pass recovery](fifth-pass-recovery-and-corrections-2026-11-28.md).
